@@ -51,7 +51,7 @@
             </MenuItem>
         </Menu>
         <Viewbox Margin="20">
-            <Border BorderThickness="0.1" BorderBrush="White">
+            <Border BorderThickness="0.2" BorderBrush="White">
                 <Border.Resources>
                     <Duration x:Key="duration">0:0:0.5</Duration>
                     <Storyboard x:Key="fadeWhite">
@@ -83,146 +83,148 @@
                                    Margin="5"/>
                     </ToolTip>
                 </Border.ToolTip>
-                <Canvas Width="8" Height="8" MouseDown="BoardMouseDown">
-                    <Canvas.Resources>
-                        <PowerEase x:Key="ease" EasingMode="EaseInOut" />
-                        <Storyboard x:Key="fadeIn">
-                            <DoubleAnimation
+                <Border BorderThickness="0.05" BorderBrush="#808080">
+                    <Canvas Width="8" Height="8" MouseDown="BoardMouseDown">
+                        <Canvas.Resources>
+                            <PowerEase x:Key="ease" EasingMode="EaseInOut" />
+                            <Storyboard x:Key="fadeIn">
+                                <DoubleAnimation
                                 Duration="{StaticResource duration}" To="1"
                                 Storyboard.TargetProperty="Opacity" />
-                        </Storyboard>
-                        <Storyboard x:Key="fadeOut">
-                            <DoubleAnimation
+                            </Storyboard>
+                            <Storyboard x:Key="fadeOut">
+                                <DoubleAnimation
                                 Duration="{StaticResource duration}" To="0"
                                 Storyboard.TargetProperty="Opacity" />
-                        </Storyboard>
-                        <Storyboard x:Key="fadeOutWithEvent" Completed="RemoveCompleted">
-                            <DoubleAnimation
+                            </Storyboard>
+                            <Storyboard x:Key="fadeOutWithEvent" Completed="RemoveCompleted">
+                                <DoubleAnimation
                                 Duration="{StaticResource duration}" To="0"
                                 Storyboard.TargetProperty="Opacity" />
-                        </Storyboard>
-                    </Canvas.Resources>
-                    <!-- Board fields -->
-                    <ItemsControl ItemsSource="{Binding Board.Fields}">
-                        <ItemsControl.Resources>
-                            <conv:FieldBrushConverter x:Key="fieldBrushConverter" />
-                        </ItemsControl.Resources>
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas Width="8" Height="8" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="Width" Value="1" />
-                                <Setter Property="Height" Value="1" />
-                                <Setter Property="Canvas.Bottom" Value="{Binding Row}" />
-                                <Setter Property="Canvas.Left" Value="{Binding Column}" />
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border>
-                                    <Border.Background>
-                                        <MultiBinding Converter="{StaticResource fieldBrushConverter}" Mode="OneTime">
-                                            <Binding Path="Row" />
-                                            <Binding Path="Column" />
-                                        </MultiBinding>
-                                    </Border.Background>
-                                    <Rectangle Margin="0.075" Fill="SeaGreen" Opacity="0">
-                                        <Rectangle.Style>
-                                            <Style>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsTarget}" Value="True" >
-                                                        <DataTrigger.EnterActions>
-                                                            <BeginStoryboard>
-                                                                <StaticResource ResourceKey="fadeIn" />
-                                                            </BeginStoryboard>
-                                                        </DataTrigger.EnterActions>
-                                                        <DataTrigger.ExitActions>
-                                                            <BeginStoryboard>
-                                                                <StaticResource ResourceKey="fadeOut" />
-                                                            </BeginStoryboard>
-                                                        </DataTrigger.ExitActions>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Rectangle.Style>
-                                    </Rectangle>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <!-- Board pieces -->
-                    <ItemsControl ItemsSource="{Binding Board.Pieces}">
-                        <ItemsControl.Resources>
-                            <select:PieceSymbolSelector x:Key="symbolSelector" />
-                            <RelativeSource
+                            </Storyboard>
+                        </Canvas.Resources>
+                        <!-- Board fields -->
+                        <ItemsControl ItemsSource="{Binding Board.Fields}">
+                            <ItemsControl.Resources>
+                                <conv:FieldBrushConverter x:Key="fieldBrushConverter" />
+                            </ItemsControl.Resources>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas Width="8" Height="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Width" Value="1" />
+                                    <Setter Property="Height" Value="1" />
+                                    <Setter Property="Canvas.Bottom" Value="{Binding Row}" />
+                                    <Setter Property="Canvas.Left" Value="{Binding Column}" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Border.Background>
+                                            <MultiBinding Converter="{StaticResource fieldBrushConverter}" Mode="OneTime">
+                                                <Binding Path="Row" />
+                                                <Binding Path="Column" />
+                                            </MultiBinding>
+                                        </Border.Background>
+                                        <Rectangle Margin="0.075" Fill="SeaGreen" Opacity="0">
+                                            <Rectangle.Style>
+                                                <Style>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsTarget}" Value="True" >
+                                                            <DataTrigger.EnterActions>
+                                                                <BeginStoryboard>
+                                                                    <StaticResource ResourceKey="fadeIn" />
+                                                                </BeginStoryboard>
+                                                            </DataTrigger.EnterActions>
+                                                            <DataTrigger.ExitActions>
+                                                                <BeginStoryboard>
+                                                                    <StaticResource ResourceKey="fadeOut" />
+                                                                </BeginStoryboard>
+                                                            </DataTrigger.ExitActions>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Rectangle.Style>
+                                        </Rectangle>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <!-- Board pieces -->
+                        <ItemsControl ItemsSource="{Binding Board.Pieces}">
+                            <ItemsControl.Resources>
+                                <select:PieceSymbolSelector x:Key="symbolSelector" />
+                                <RelativeSource
                                 x:Key="parent"
                                 Mode="FindAncestor"
                                 AncestorType="{x:Type ContentPresenter}" />
-                        </ItemsControl.Resources>
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas Width="8" Height="8"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="Width" Value="1" />
-                                <Setter Property="Height" Value="1" />
-                                <Setter Property="Opacity" Value="0" />
-                                <Setter Property="Canvas.Bottom" Value="{Binding Position.Row, Mode=OneTime}" />
-                                <Setter Property="Canvas.Left" Value="{Binding Position.Column, Mode=OneTime}" />
-                                <Style.Triggers>
-                                    <Trigger Property="Visibility" Value="Visible">
-                                        <Trigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <StaticResource ResourceKey="fadeIn" />
-                                            </BeginStoryboard>
-                                        </Trigger.EnterActions>
-                                    </Trigger>
-                                    <DataTrigger Binding="{Binding Removed}" Value="True" >
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <StaticResource ResourceKey="fadeOutWithEvent" />
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <ContentControl Content="{Binding}">
-                                    <ContentControl.ContentTemplateSelector>
-                                        <StaticResource ResourceKey="symbolSelector" />
-                                    </ContentControl.ContentTemplateSelector>
-                                    <ContentControl.Triggers>
-                                        <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
+                            </ItemsControl.Resources>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas Width="8" Height="8"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Width" Value="1" />
+                                    <Setter Property="Height" Value="1" />
+                                    <Setter Property="Opacity" Value="0" />
+                                    <Setter Property="Canvas.Bottom" Value="{Binding Position.Row, Mode=OneTime}" />
+                                    <Setter Property="Canvas.Left" Value="{Binding Position.Column, Mode=OneTime}" />
+                                    <Style.Triggers>
+                                        <Trigger Property="Visibility" Value="Visible">
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <StaticResource ResourceKey="fadeIn" />
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                        </Trigger>
+                                        <DataTrigger Binding="{Binding Removed}" Value="True" >
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <StaticResource ResourceKey="fadeOutWithEvent" />
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ContentControl Content="{Binding}">
+                                        <ContentControl.ContentTemplateSelector>
+                                            <StaticResource ResourceKey="symbolSelector" />
+                                        </ContentControl.ContentTemplateSelector>
+                                        <ContentControl.Triggers>
+                                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation
                                                         Duration="{StaticResource duration}"
                                                         To="{Binding Position.Row, NotifyOnTargetUpdated=True}"
                                                         Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
                                                         Storyboard.TargetProperty="(Canvas.Bottom)"
                                                         EasingFunction="{StaticResource ease}"/>
-                                                    <DoubleAnimation
+                                                        <DoubleAnimation
                                                         Duration="{StaticResource duration}"
                                                         To="{Binding Position.Column, NotifyOnTargetUpdated=True}"
                                                         Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
                                                         Storyboard.TargetProperty="(Canvas.Left)"
                                                         EasingFunction="{StaticResource ease}"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </ContentControl.Triggers>
-                                </ContentControl>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Canvas>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </ContentControl.Triggers>
+                                    </ContentControl>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Canvas>
+                </Border>
             </Border>
         </Viewbox>
     </DockPanel>
