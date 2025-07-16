@@ -31,6 +31,11 @@ namespace Chess.ViewModel.Game
         private readonly FieldVM[,] fields;
 
         /// <summary>
+        /// Represents the labels for columns and rows on all of the four sides of the board.
+        /// </summary>
+        private readonly List<RowColumnLabelVM> rowColumnLabels;
+
+        /// <summary>
         /// Represents the mapping from target fields to potential game updates.
         /// </summary>
         private readonly Dictionary<FieldVM, List<Update>> targets;
@@ -53,6 +58,66 @@ namespace Chess.ViewModel.Game
                 fieldArray[field.Row, field.Column] = field;
             }
 
+            this.rowColumnLabels = new List<RowColumnLabelVM>();
+
+            for(int row = 0; row < 8; row++) 
+            {
+                var labelVM = new RowColumnLabelVM
+                {
+                    Column = 0,
+                    Label = row.ToString(),
+                    Row = row,
+                    Height = 1,
+                    Width = BoardConstants.BoardMarginForId,
+                    DistanceFromBottom = BoardConstants.BoardMarginForId + row,
+                    DistanceFromLeft = 0,
+                };
+
+                rowColumnLabels.Add(labelVM);
+
+                labelVM = new RowColumnLabelVM
+                {
+                    Column = 7,
+                    Label = row.ToString(),
+                    Row = row,
+                    Height = 1,
+                    Width = BoardConstants.BoardMarginForId,
+                    DistanceFromBottom = BoardConstants.BoardMarginForId + row,
+                    DistanceFromLeft = BoardConstants.BoardMarginForId + 8,
+                };
+
+                rowColumnLabels.Add(labelVM);
+            }
+
+            for (int column = 0; column < 8; column++)
+            {
+                var labelVM = new RowColumnLabelVM
+                {
+                    Column = column,
+                    Label = column.ToString(),
+                    Row = 0,
+                    Width = 1,
+                    Height = BoardConstants.BoardMarginForId,
+                    DistanceFromBottom = 0,
+                    DistanceFromLeft = BoardConstants.BoardMarginForId + column,
+                };
+
+                rowColumnLabels.Add(labelVM);
+
+                labelVM = new RowColumnLabelVM
+                {
+                    Column = column,
+                    Label = column.ToString(),
+                    Row = 7,
+                    Width = 1,
+                    Height = BoardConstants.BoardMarginForId,
+                    DistanceFromBottom = BoardConstants.BoardMarginForId + 8,
+                    DistanceFromLeft = BoardConstants.BoardMarginForId + column,
+                };
+
+                rowColumnLabels.Add(labelVM);
+            }
+
             this.fields = fieldArray;
             this.Pieces = new ObservableCollection<PlacedPieceVM>(pieces);
             this.targets = new Dictionary<FieldVM, List<Update>>();
@@ -73,6 +138,14 @@ namespace Chess.ViewModel.Game
         /// </summary>
         /// <value>The current pieces on the chess board.</value>
         public ObservableCollection<PlacedPieceVM> Pieces { get; }
+
+        public IEnumerable<RowColumnLabelVM> RowColumnLabels 
+        {
+            get
+            { 
+                return rowColumnLabels; 
+            } 
+        }
 
         /// <summary>
         /// Gets a sequence of the currently presented chess board fields.
