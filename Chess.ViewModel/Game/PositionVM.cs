@@ -29,6 +29,30 @@ namespace Chess.ViewModel.Game
         }
 
         /// <summary>
+        /// Gets the distance from the left boundary of the board, based on column in double units
+        /// </summary>
+        /// <value>The distance of the position from the left of the board</value>
+        public double DistanceFromLeft
+        {
+            get
+            {
+                return Column + BoardConstants.BoardMarginForId;
+            }
+        }
+
+        /// <summary>
+        /// Gets the distance from the bottom of the board, based on row in double units
+        /// </summary>
+        /// <value>The distance of the field from the bottom of the board</value>
+        public double DistanceFromBottom
+        {
+            get
+            {
+                return Row - BoardConstants.BoardMarginForId;
+            }
+        }
+
+        /// <summary>
         /// Gets the row of the position, where 0 represents the bottom row.
         /// </summary>
         /// <value>The row component of the position.</value>

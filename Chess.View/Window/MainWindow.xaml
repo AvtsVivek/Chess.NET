@@ -84,7 +84,7 @@
                     </ToolTip>
                 </Border.ToolTip>
                 <Border BorderThickness="0.05" BorderBrush="#808080">
-                    <Canvas Width="8" Height="8" MouseDown="BoardMouseDown">
+                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" Height="{x:Static game:BoardConstants.FullCanvasLength}" MouseDown="BoardMouseDown">
                         <Canvas.Resources>
                             <PowerEase x:Key="ease" EasingMode="EaseInOut" />
                             <Storyboard x:Key="fadeIn">
@@ -103,6 +103,31 @@
                                 Storyboard.TargetProperty="Opacity" />
                             </Storyboard>
                         </Canvas.Resources>
+                        
+                        <!--Row Column Labels-->
+                        <ItemsControl ItemsSource="{Binding Board.RowColumnLabels}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" Height="{x:Static game:BoardConstants.FullCanvasLength}" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Width" Value="{Binding Width}" />
+                                    <Setter Property="Height" Value="{Binding Height}" />
+                                    <Setter Property="Canvas.Bottom" Value="{Binding DistanceFromBottom}" />
+                                    <Setter Property="Canvas.Left" Value="{Binding DistanceFromLeft}" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="Yellow" BorderThickness="{Binding BorderThickness}">
+                                        <TextBlock Background="Green">1</TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        
                         <!-- Board fields -->
                         <ItemsControl ItemsSource="{Binding Board.Fields}">
                             <ItemsControl.Resources>
@@ -117,8 +142,8 @@
                                 <Style TargetType="ContentPresenter">
                                     <Setter Property="Width" Value="1" />
                                     <Setter Property="Height" Value="1" />
-                                    <Setter Property="Canvas.Bottom" Value="{Binding Row}" />
-                                    <Setter Property="Canvas.Left" Value="{Binding Column}" />
+                                    <Setter Property="Canvas.Bottom" Value="{Binding DistanceFromBottom}" />
+                                    <Setter Property="Canvas.Left" Value="{Binding DistanceFromLeft}" />
                                 </Style>
                             </ItemsControl.ItemContainerStyle>
                             <ItemsControl.ItemTemplate>
@@ -173,8 +198,8 @@
                                     <Setter Property="Width" Value="1" />
                                     <Setter Property="Height" Value="1" />
                                     <Setter Property="Opacity" Value="0" />
-                                    <Setter Property="Canvas.Bottom" Value="{Binding Position.Row, Mode=OneTime}" />
-                                    <Setter Property="Canvas.Left" Value="{Binding Position.Column, Mode=OneTime}" />
+                                    <Setter Property="Canvas.Bottom" Value="{Binding Position.DistanceFromBottom, Mode=OneTime}" />
+                                    <Setter Property="Canvas.Left" Value="{Binding Position.DistanceFromLeft, Mode=OneTime}" />
                                     <Style.Triggers>
                                         <Trigger Property="Visibility" Value="Visible">
                                             <Trigger.EnterActions>
@@ -205,13 +230,13 @@
                                                     <Storyboard>
                                                         <DoubleAnimation
                                                         Duration="{StaticResource duration}"
-                                                        To="{Binding Position.Row, NotifyOnTargetUpdated=True}"
+                                                        To="{Binding Position.DistanceFromBottom, NotifyOnTargetUpdated=True}"
                                                         Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
                                                         Storyboard.TargetProperty="(Canvas.Bottom)"
                                                         EasingFunction="{StaticResource ease}"/>
                                                         <DoubleAnimation
                                                         Duration="{StaticResource duration}"
-                                                        To="{Binding Position.Column, NotifyOnTargetUpdated=True}"
+                                                        To="{Binding Position.DistanceFromLeft, NotifyOnTargetUpdated=True}"
                                                         Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
                                                         Storyboard.TargetProperty="(Canvas.Left)"
                                                         EasingFunction="{StaticResource ease}"/>
@@ -223,6 +248,8 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        
+                        
                     </Canvas>
                 </Border>
             </Border>
