@@ -60,7 +60,11 @@ namespace Chess.ViewModel.Game
         public double BorderThickness { get; set; } = 0.04;
 
 
-
+        /// <summary>
+        /// Gets or sets the resource key for the label, which is used to find the right data template in the application resources.
+        /// </summary>
+        /// <value>The resource key for the row or column label.</value>
+        public string ResourceKey { get; set; }
 
     }
 }

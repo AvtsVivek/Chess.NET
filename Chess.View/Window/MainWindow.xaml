@@ -106,6 +106,13 @@
                         
                         <!--Row Column Labels-->
                         <ItemsControl ItemsSource="{Binding Board.RowColumnLabels}">
+                            <ItemsControl.Resources>
+                                <select:RowColumnIdSelector x:Key="rowColumnIdSelector" />
+                                <RelativeSource
+                                x:Key="parent"
+                                Mode="FindAncestor"
+                                AncestorType="{x:Type ContentPresenter}" />
+                            </ItemsControl.Resources>
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" Height="{x:Static game:BoardConstants.FullCanvasLength}" />
@@ -121,9 +128,11 @@
                             </ItemsControl.ItemContainerStyle>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="Yellow" BorderThickness="{Binding BorderThickness}">
-                                        <TextBlock Background="Green">1</TextBlock>
-                                    </Border>
+                                    <ContentControl Content="{Binding}">
+                                        <ContentControl.ContentTemplateSelector>
+                                            <StaticResource ResourceKey="rowColumnIdSelector" />
+                                        </ContentControl.ContentTemplateSelector>
+                                    </ContentControl>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -248,8 +257,6 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        
-                        
                     </Canvas>
                 </Border>
             </Border>

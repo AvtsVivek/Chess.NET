@@ -71,6 +71,7 @@ namespace Chess.ViewModel.Game
                     Width = BoardConstants.BoardMarginForId,
                     DistanceFromBottom = BoardConstants.BoardMarginForId + row,
                     DistanceFromLeft = 0,
+                    ResourceKey = "digit" + (row + 1).ToString()
                 };
 
                 rowColumnLabels.Add(labelVM);
@@ -84,6 +85,7 @@ namespace Chess.ViewModel.Game
                     Width = BoardConstants.BoardMarginForId,
                     DistanceFromBottom = BoardConstants.BoardMarginForId + row,
                     DistanceFromLeft = BoardConstants.BoardMarginForId + 8,
+                    ResourceKey = "digit" + (row + 1).ToString()
                 };
 
                 rowColumnLabels.Add(labelVM);
@@ -100,6 +102,7 @@ namespace Chess.ViewModel.Game
                     Height = BoardConstants.BoardMarginForId,
                     DistanceFromBottom = 0,
                     DistanceFromLeft = BoardConstants.BoardMarginForId + column,
+                    ResourceKey = "char" + (column + 1).ToString()
                 };
 
                 rowColumnLabels.Add(labelVM);
@@ -113,6 +116,7 @@ namespace Chess.ViewModel.Game
                     Height = BoardConstants.BoardMarginForId,
                     DistanceFromBottom = BoardConstants.BoardMarginForId + 8,
                     DistanceFromLeft = BoardConstants.BoardMarginForId + column,
+                    ResourceKey = "char" + (column + 1).ToString()
                 };
 
                 rowColumnLabels.Add(labelVM);

@@ -1,0 +1,20 @@
+﻿<UserControl x:Class="Chess.View.RowColumnId.DigitOne"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Stretch="Uniform">
+        <Canvas Name="digitOne" Width="10" Height="10">
+            <Canvas Name="g12">
+                <Canvas Name="g8" UseLayoutRounding="False" Width="8.5" Height="8.5">
+                    <Canvas.Clip>
+                        <RectangleGeometry Rect="0.0,0.0,8.5,8.5"/>
+                    </Canvas.Clip>
+                    <Path Fill="White">
+                        <Path.Data>
+                            <PathGeometry Figures="M 5.68988 8.4654 H 1.15727 V 7.61061 H 2.90058 V 1.99827 H 1.15727 V 1.23347 q 0.354286 0 0.759184 -0.056236 Q 2.32135 1.11537 2.52943 1.0029 Q 2.78811 0.86231 2.93432 0.648614 Q 3.08616 0.429294 3.10866 0.0637612 H 3.98031 V 7.61061 h 1.70957 z" FillRule="Nonzero"/>
+                        </Path.Data>
+                    </Path>
+                </Canvas>
+            </Canvas>
+        </Canvas>
+    </Viewbox>
+</UserControl>
