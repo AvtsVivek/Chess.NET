@@ -49,8 +49,10 @@ namespace Chess.View.Window
         private void BoardMouseDown(object sender, MouseButtonEventArgs e)
         {
             var point = Mouse.GetPosition(sender as Canvas);
-            var row = 7 - (int)point.Y;
-            var column = (int)point.X;
+
+            var row = 7 - (int)(point.Y - BoardConstants.BoardMarginForId);
+            var column = (int)(point.X - BoardConstants.BoardMarginForId);
+
             var validRow = Math.Max(0, Math.Min(7, row));
             var validColumn = Math.Max(0, Math.Min(7, column));
 
