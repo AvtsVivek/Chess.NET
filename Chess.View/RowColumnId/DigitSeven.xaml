@@ -4,7 +4,7 @@
     <Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Stretch="Uniform">
         <Canvas Name="digitSeven" Width="10" Height="10">
             <Canvas Name="g12">
-                <Canvas Name="g8" UseLayoutRounding="False" Width="8.5" Height="8.5">
+                <Canvas Name="g8" UseLayoutRounding="False" Width="8.5" Height="8.5" Margin=".75">
                     <Canvas.Clip>
                         <RectangleGeometry Rect="0.0,0.0,8.5,8.5"/>
                     </Canvas.Clip>
