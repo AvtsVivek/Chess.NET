@@ -9,6 +9,7 @@ namespace Chess.View.Window
     using Chess.Model.Game;
     using Chess.View.Selector;
     using Chess.ViewModel.Game;
+    using MahApps.Metro.Controls;
     using System;
     using System.Collections.Generic;
     using System.Windows;
@@ -18,7 +19,7 @@ namespace Chess.View.Window
     /// <summary>
     /// Interaction logic for the <see cref="MainWindow"/> window.
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
         /// <summary>
         /// Represents the view model of the window.
@@ -49,8 +50,10 @@ namespace Chess.View.Window
         private void BoardMouseDown(object sender, MouseButtonEventArgs e)
         {
             var point = Mouse.GetPosition(sender as Canvas);
-            var row = 7 - (int)point.Y;
-            var column = (int)point.X;
+
+            var row = 7 - (int)(point.Y - BoardConstants.BoardMarginForId);
+            var column = (int)(point.X - BoardConstants.BoardMarginForId);
+
             var validRow = Math.Max(0, Math.Min(7, row));
             var validColumn = Math.Max(0, Math.Min(7, column));
 
@@ -103,6 +106,16 @@ namespace Chess.View.Window
                 selectedPiece != null
                     ? promotions[selectedPiece]
                     : null;
+        }
+
+        private void LaunchGitHubSite(object sender, RoutedEventArgs e)
+        {
+            // Launch the GitHub site...
+        }
+
+        private void DeployCupCakes(object sender, RoutedEventArgs e)
+        {
+            // deploy some CupCakes...
         }
     }
 }

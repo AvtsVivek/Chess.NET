@@ -14,6 +14,11 @@
     <ProjectReference Include="..\Chess.Model\Chess.Model.csproj" />
     <ProjectReference Include="..\Chess.ViewModel\Chess.ViewModel.csproj" />
   </ItemGroup>
+	
+  <ItemGroup>
+    <PackageReference Include="MahApps.Metro" Version="2.4.10" />
+    <PackageReference Include="MahApps.Metro.IconPacks" Version="5.1.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Icon\appIcon.png" />
