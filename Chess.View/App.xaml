@@ -5,108 +5,119 @@
              xmlns:rowColumnId="clr-namespace:Chess.View.RowColumnId"
              StartupUri="Window/MainWindow.xaml">
     <Application.Resources>
-        <!-- White pieces -->
-        <DataTemplate x:Key="whiteBishop">
-            <piece:WhiteBishop />
-        </DataTemplate>
-        <DataTemplate x:Key="whiteKing">
-            <piece:WhiteKing />
-        </DataTemplate>
-        <DataTemplate x:Key="whiteKnight">
-            <piece:WhiteKnight />
-        </DataTemplate>
-        <DataTemplate x:Key="whitePawn">
-            <piece:WhitePawn />
-        </DataTemplate>
-        <DataTemplate x:Key="whiteQueen">
-            <piece:WhiteQueen />
-        </DataTemplate>
-        <DataTemplate x:Key="whiteRook">
-            <piece:WhiteRook />
-        </DataTemplate>
-        <!-- Black pieces -->
-        <DataTemplate x:Key="blackBishop">
-            <piece:BlackBishop />
-        </DataTemplate>
-        <DataTemplate x:Key="blackKing">
-            <piece:BlackKing />
-        </DataTemplate>
-        <DataTemplate x:Key="blackKnight">
-            <piece:BlackKnight />
-        </DataTemplate>
-        <DataTemplate x:Key="blackPawn">
-            <piece:BlackPawn />
-        </DataTemplate>
-        <DataTemplate x:Key="blackQueen">
-            <piece:BlackQueen />
-        </DataTemplate>
-        <DataTemplate x:Key="blackRook">
-            <piece:BlackRook />
-        </DataTemplate>
 
-        <DataTemplate x:Key="digit1">
-            <rowColumnId:DigitOne />
-        </DataTemplate>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <!-- Theme setting -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <DataTemplate x:Key="digit2">
-            <rowColumnId:DigitTwo />
-        </DataTemplate>
+            <!-- White pieces -->
+            <DataTemplate x:Key="whiteBishop">
+                <piece:WhiteBishop />
+            </DataTemplate>
+            <DataTemplate x:Key="whiteKing">
+                <piece:WhiteKing />
+            </DataTemplate>
+            <DataTemplate x:Key="whiteKnight">
+                <piece:WhiteKnight />
+            </DataTemplate>
+            <DataTemplate x:Key="whitePawn">
+                <piece:WhitePawn />
+            </DataTemplate>
+            <DataTemplate x:Key="whiteQueen">
+                <piece:WhiteQueen />
+            </DataTemplate>
+            <DataTemplate x:Key="whiteRook">
+                <piece:WhiteRook />
+            </DataTemplate>
+            <!-- Black pieces -->
+            <DataTemplate x:Key="blackBishop">
+                <piece:BlackBishop />
+            </DataTemplate>
+            <DataTemplate x:Key="blackKing">
+                <piece:BlackKing />
+            </DataTemplate>
+            <DataTemplate x:Key="blackKnight">
+                <piece:BlackKnight />
+            </DataTemplate>
+            <DataTemplate x:Key="blackPawn">
+                <piece:BlackPawn />
+            </DataTemplate>
+            <DataTemplate x:Key="blackQueen">
+                <piece:BlackQueen />
+            </DataTemplate>
+            <DataTemplate x:Key="blackRook">
+                <piece:BlackRook />
+            </DataTemplate>
 
-        <DataTemplate x:Key="digit3">
-            <rowColumnId:DigitThree />
-        </DataTemplate>
+            <DataTemplate x:Key="digit1">
+                <rowColumnId:DigitOne />
+            </DataTemplate>
 
-        <DataTemplate x:Key="digit4">
-            <rowColumnId:DigitFour />
-        </DataTemplate>
+            <DataTemplate x:Key="digit2">
+                <rowColumnId:DigitTwo />
+            </DataTemplate>
 
-        <DataTemplate x:Key="digit5">
-            <rowColumnId:DigitFive />
-        </DataTemplate>
+            <DataTemplate x:Key="digit3">
+                <rowColumnId:DigitThree />
+            </DataTemplate>
 
-        <DataTemplate x:Key="digit6">
-            <rowColumnId:DigitSix />
-        </DataTemplate>
+            <DataTemplate x:Key="digit4">
+                <rowColumnId:DigitFour />
+            </DataTemplate>
 
-        <DataTemplate x:Key="digit7">
-            <rowColumnId:DigitSeven />
-        </DataTemplate>
+            <DataTemplate x:Key="digit5">
+                <rowColumnId:DigitFive />
+            </DataTemplate>
 
-        <DataTemplate x:Key="digit8">
-            <rowColumnId:DigitEight />
-        </DataTemplate>
+            <DataTemplate x:Key="digit6">
+                <rowColumnId:DigitSix />
+            </DataTemplate>
 
-        <DataTemplate x:Key="char1">
-            <rowColumnId:CharA />
-        </DataTemplate>
+            <DataTemplate x:Key="digit7">
+                <rowColumnId:DigitSeven />
+            </DataTemplate>
 
-        <DataTemplate x:Key="char2">
-            <rowColumnId:CharB />
-        </DataTemplate>
+            <DataTemplate x:Key="digit8">
+                <rowColumnId:DigitEight />
+            </DataTemplate>
 
-        <DataTemplate x:Key="char3">
-            <rowColumnId:CharC />
-        </DataTemplate>
+            <DataTemplate x:Key="char1">
+                <rowColumnId:CharA />
+            </DataTemplate>
 
-        <DataTemplate x:Key="char4">
-            <rowColumnId:CharD />
-        </DataTemplate>
+            <DataTemplate x:Key="char2">
+                <rowColumnId:CharB />
+            </DataTemplate>
 
-        <DataTemplate x:Key="char5">
-            <rowColumnId:CharE />
-        </DataTemplate>
+            <DataTemplate x:Key="char3">
+                <rowColumnId:CharC />
+            </DataTemplate>
 
-        <DataTemplate x:Key="char6">
-            <rowColumnId:CharF />
-        </DataTemplate>
+            <DataTemplate x:Key="char4">
+                <rowColumnId:CharD />
+            </DataTemplate>
 
-        <DataTemplate x:Key="char7">
-            <rowColumnId:CharG />
-        </DataTemplate>
+            <DataTemplate x:Key="char5">
+                <rowColumnId:CharE />
+            </DataTemplate>
 
-        <DataTemplate x:Key="char8">
-            <rowColumnId:CharH />
-        </DataTemplate>
+            <DataTemplate x:Key="char6">
+                <rowColumnId:CharF />
+            </DataTemplate>
 
+            <DataTemplate x:Key="char7">
+                <rowColumnId:CharG />
+            </DataTemplate>
+
+            <DataTemplate x:Key="char8">
+                <rowColumnId:CharH />
+            </DataTemplate>
+            
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

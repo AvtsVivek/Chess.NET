@@ -9,6 +9,7 @@ namespace Chess.View.Window
     using Chess.Model.Game;
     using Chess.View.Selector;
     using Chess.ViewModel.Game;
+    using MahApps.Metro.Controls;
     using System;
     using System.Collections.Generic;
     using System.Windows;
@@ -18,7 +19,7 @@ namespace Chess.View.Window
     /// <summary>
     /// Interaction logic for the <see cref="MainWindow"/> window.
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
         /// <summary>
         /// Represents the view model of the window.
@@ -105,6 +106,16 @@ namespace Chess.View.Window
                 selectedPiece != null
                     ? promotions[selectedPiece]
                     : null;
+        }
+
+        private void LaunchGitHubSite(object sender, RoutedEventArgs e)
+        {
+            // Launch the GitHub site...
+        }
+
+        private void DeployCupCakes(object sender, RoutedEventArgs e)
+        {
+            // deploy some CupCakes...
         }
     }
 }
