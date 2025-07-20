@@ -12,9 +12,19 @@
         d:DataContext="{d:DesignInstance Type=game:ChessGameVM}"
         mc:Ignorable="d"
         ResizeMode="CanResizeWithGrip"
+        ShowIconOnTitleBar="True"
         WindowStartupLocation="CenterScreen"
         Background="DarkGray" Icon="/Icon/appIcon.png"
         Title="Chess.NET" Height="700" Width="700">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <Style x:Key="AppThemeMenuItemStyle" TargetType="{x:Type MenuItem}">
+                <Setter Property="Height" Value="20" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewCommand}" />
         <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding UndoCommand}" />
@@ -85,18 +95,21 @@
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
             <MenuItem Header="Game">
-                <MenuItem Header="New" Command="{Binding NewCommand}" InputGestureText="Ctrl+N">
+                <MenuItem Header="New" Command="{Binding NewCommand}" InputGestureText="Ctrl+N" 
+                          Style="{StaticResource AppThemeMenuItemStyle}">
                     <MenuItem.Icon>
                         <icon:NewIcon />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z">
+                <MenuItem Header="Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z"
+                          Style="{StaticResource AppThemeMenuItemStyle}">
                     <MenuItem.Icon>
                         <icon:UndoIcon />
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Exit" Click="ExitClick">
+                <MenuItem Header="Exit" Click="ExitClick" 
+                          Style="{StaticResource AppThemeMenuItemStyle}">
                     <MenuItem.Icon>
                         <icon:ExitIcon />
                     </MenuItem.Icon>
@@ -111,9 +124,9 @@
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="ChessGameColumn" Width="*" />
                 <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="ConsoleColumn" Width="*" />
             </Grid.ColumnDefinitions>
                         
             <Viewbox Margin="20">
@@ -328,7 +341,7 @@
                     </Canvas>
                 </Border>
             </Viewbox>
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted" />
             <TextBlock Grid.Column="2" FontSize="55" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap">Right side</TextBlock>
         </Grid>
 
