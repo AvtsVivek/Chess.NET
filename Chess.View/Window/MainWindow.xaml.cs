@@ -32,6 +32,11 @@ namespace Chess.View.Window
         private readonly PromotionSelector promotionSelector;
 
         /// <summary>
+        /// Provides the functionality to convert a <see cref="GridLength"/> to a string and vice versa.
+        /// </summary>
+        private readonly GridLengthConverter gridLengthConverter;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MainWindow"/> class.
         /// </summary>
         public MainWindow()
@@ -40,6 +45,16 @@ namespace Chess.View.Window
             this.game = new ChessGameVM(this.Choose);
             this.promotionSelector = new PromotionSelector();
             this.DataContext = this.game;
+
+            this.SaveWindowPosition = true;
+
+            this.gridLengthConverter = new GridLengthConverter();
+
+            if(!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessGameColumnWidth))
+                ChessGameColumn.Width = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessGameColumnWidth);
+
+            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ConsoleColumnWidth))
+                ConsoleColumn.Width = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ConsoleColumnWidth);
         }
 
         /// <summary>
@@ -116,6 +131,17 @@ namespace Chess.View.Window
         private void DeployCupCakes(object sender, RoutedEventArgs e)
         {
             // deploy some CupCakes...
+        }
+
+        private void GridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            var chessGameColumnWidth = gridLengthConverter.ConvertToString(ChessGameColumn.Width);
+
+            var consoleColumnWidth = gridLengthConverter.ConvertToString(ConsoleColumn.Width);
+
+            ChessAppSettings.Default.ChessGameColumnWidth = chessGameColumnWidth;
+            ChessAppSettings.Default.ConsoleColumnWidth = consoleColumnWidth;
+            ChessAppSettings.Default.Save();
         }
     }
 }
