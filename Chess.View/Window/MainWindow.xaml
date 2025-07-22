@@ -129,8 +129,8 @@
                 <ColumnDefinition x:Name="ConsoleColumn" Width="*" />
             </Grid.ColumnDefinitions>
                         
-            <Viewbox Margin="20">
-                <Border BorderThickness="0.1" BorderBrush="White">
+            <Viewbox Margin="10">
+                <Border BorderThickness="0.2" BorderBrush="White">
                     <Border.Resources>
                         <Duration x:Key="duration">0:0:0.5</Duration>
                         <Storyboard x:Key="fadeWhite">
@@ -184,7 +184,7 @@
                             </Storyboard>
                         </Canvas.Resources>
 
-                        <!--Row Column Labels-->
+                        <!-- Row Column Labels -->
                         <ItemsControl ItemsSource="{Binding Board.RowColumnLabels}">
                             <ItemsControl.Resources>
                                 <select:RowColumnIdSelector x:Key="rowColumnIdSelector" />
@@ -195,7 +195,8 @@
                             </ItemsControl.Resources>
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" Height="{x:Static game:BoardConstants.FullCanvasLength}" />
+                                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" 
+                                            Height="{x:Static game:BoardConstants.FullCanvasLength}" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemContainerStyle>
@@ -342,12 +343,32 @@
                 </Border>
             </Viewbox>
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted" />
-            <TextBlock Grid.Column="2" FontSize="55" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap">Right side</TextBlock>
+            <ListView Grid.Column="2" x:Name="myListView" 
+                        ItemsSource="{Binding Path=ChessMoveSequence.ChessMoves}"
+                        Height="200" Margin="10" 
+                              Width="Auto"
+                        VerticalAlignment="Top"
+                        Background="AliceBlue">
+                <ListView.Resources>
+                    <select:PieceSelectorForMoveSequenceListView x:Key="pieceSelectorForMoveSequenceListView" />
+                </ListView.Resources>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Text="{Binding MoveNumber}" Margin="10" FontWeight="Bold"/>
+                            <ContentControl Content="{Binding}">
+                                <ContentControl.ContentTemplateSelector>
+                                    <StaticResource ResourceKey="pieceSelectorForMoveSequenceListView" />
+                                </ContentControl.ContentTemplateSelector>
+                            </ContentControl>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding PieceColor}" Margin="10" />
+                            <TextBlock VerticalAlignment="Center" Text="{Binding PieceName}" Margin="10" />
+                            <TextBlock VerticalAlignment="Center" Text="{Binding SourceString}" Margin="10"/>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding TargetString}" Margin="10"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </Grid>
-
-
-
-
-
     </DockPanel>
 </mah:MetroWindow>
