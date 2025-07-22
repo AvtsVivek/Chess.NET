@@ -1,9 +1,4 @@
 ﻿using Chess.ViewModel.Game;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -19,7 +14,22 @@ namespace Chess.View.Selector
         {
             if (item is RowColumnLabelVM id)
             {
-                return Application.Current.FindResource(id.ResourceKey) as DataTemplate;
+                return Application.Current.FindResource(id.LabelResourceKey) as DataTemplate;
+            }
+            return base.SelectTemplate(item, container);
+        }
+    }
+
+    public class PieceSelectorForMoveSequenceListView : DataTemplateSelector
+    {
+        public PieceSelectorForMoveSequenceListView()
+        {
+        }
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            if (item is ChessMoveVM chessMove)
+            {
+                return Application.Current.FindResource(chessMove.PieceId) as DataTemplate;
             }
             return base.SelectTemplate(item, container);
         }

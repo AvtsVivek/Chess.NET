@@ -51,6 +51,14 @@ namespace Chess.ViewModel.Game
         private BoardVM board;
 
         /// <summary>
+        /// Represents the sequence of chess moves in the current game.
+        /// </summary>
+        /// <remarks>This property is used to track and manage the sequence of moves made during a chess
+        /// game. It provides access to the move history and supports operations related to move analysis or
+        /// replay.</remarks>
+        private ChessMoveSequenceVM moveSequence;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ChessGameVM"/> class.
         /// </summary>
         /// <param name="updateSelector">The disambiguation mechanism if multiple updates are available for a target field.</param>
@@ -72,6 +80,7 @@ namespace Chess.ViewModel.Game
                         this.Game = e.Game;
                         this.Board.ClearUpdates();
                         e.Command.Accept(this.negator).Accept(this);
+                        RemoveChessUpdatesFromSequence(e);
                     }
                 )
             );
@@ -125,6 +134,8 @@ namespace Chess.ViewModel.Game
                         this.Game = this.rulebook.CreateGame();
                         this.Board = new BoardVM(this.Game.Board);
                         this.OnPropertyChanged(nameof(this.Status));
+                        this.ChessMoveSequence.ChessMoves.Clear();
+                        OnPropertyChanged("ChessMoveSequence");
                     }
                 );
             }
@@ -156,6 +167,15 @@ namespace Chess.ViewModel.Game
             }
         }
 
+        public ChessMoveSequenceVM ChessMoveSequence
+        {
+            get
+            {
+                return moveSequence;
+            }
+        }
+
+
         /// <summary>
         /// Selects a specific field of the chess board.
         /// </summary>
@@ -180,12 +200,75 @@ namespace Chess.ViewModel.Game
             {
                 this.Game = selectedUpdate.Game;
                 selectedUpdate.Command.Accept(this);
+                AddChessUpdatesToSequence(updates);
             }
             else if (this.game.Board.IsOccupied(position, this.game.ActivePlayer.Color))
             {
                 var newUpdates = this.rulebook.GetUpdates(this.Game, position);
                 this.Board.SetSource(position);
                 this.Board.SetTargets(newUpdates);
+            }
+        }
+
+        private int chessMoveSequenceIndex = 0;
+
+        /// <summary>
+        /// Adds a collection of chess updates to the current move sequence, extracting and processing valid chess moves.
+        /// </summary>
+        /// <remarks>This method processes each update in the provided collection, extracting valid move
+        /// commands and adding them to the beginning of the current move sequence. If the move sequence is not
+        /// initialized, it will be created. Only updates containing a valid <see cref="MoveCommand"/> within a nested
+        /// <see cref="SequenceCommand"/> structure are processed. The move number is incremented for each valid move
+        /// added.</remarks>
+        /// <param name="updates">A collection of <see cref="Update"/> objects to process. Each update is evaluated to determine if it
+        /// contains a valid move command to be added to the move sequence.</param>
+        private void AddChessUpdatesToSequence(IList<Update> updates)
+        {
+            if (this.moveSequence == null)
+            {
+                this.moveSequence = new ChessMoveSequenceVM();
+            }
+
+            foreach (var update in updates)
+            {
+                if (update.Command is SequenceCommand sequenceCommand
+                    && sequenceCommand.FirstCommand is SequenceCommand
+                    && ((SequenceCommand)sequenceCommand.FirstCommand)
+                    .FirstCommand is MoveCommand)
+                {
+                    var moveCommand = (MoveCommand)((SequenceCommand)sequenceCommand.FirstCommand).FirstCommand;
+                    chessMoveSequenceIndex++;
+                    var move = new ChessMoveVM
+                    (
+                        new PositionVM(moveCommand.Source),
+                        new PositionVM(moveCommand.Target),
+                        moveCommand.Piece
+                    );
+
+                    move.MoveNumber = chessMoveSequenceIndex;
+                    this.ChessMoveSequence.ChessMoves.Insert(0, move);
+                    OnPropertyChanged("ChessMoveSequence");
+                }
+                else
+                {
+                    continue;
+                }
+            }
+        }
+
+        private void RemoveChessUpdatesFromSequence(Update update)
+        {
+            if (this.moveSequence == null)
+            {
+                return;
+            }
+
+            if (update.Command is SequenceCommand sequenceCommand
+                && sequenceCommand.FirstCommand is MoveCommand)
+            {
+                this.ChessMoveSequence.ChessMoves.RemoveAt(0); // Remove the last move, which is the most recent one.
+                chessMoveSequenceIndex--;
+                OnPropertyChanged("ChessMoveSequence");
             }
         }
 

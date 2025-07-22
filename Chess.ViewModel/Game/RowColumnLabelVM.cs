@@ -64,7 +64,7 @@ namespace Chess.ViewModel.Game
         /// Gets or sets the resource key for the label, which is used to find the right data template in the application resources.
         /// </summary>
         /// <value>The resource key for the row or column label.</value>
-        public string ResourceKey { get; set; }
+        public string LabelResourceKey { get; set; }
 
     }
 }
