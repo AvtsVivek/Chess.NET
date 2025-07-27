@@ -1,6 +1,4 @@
 ﻿using Chess.Model.Piece;
-using Chess.Model.Rule;
-using Chess.ViewModel.Piece;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -50,11 +48,13 @@ namespace Chess.ViewModel.Game
 
         public ChessMoveVM() { }
 
-        public ChessMoveVM(PositionVM source, PositionVM target, ChessPiece chessPiece) 
+        public ChessMoveVM(PositionVM source, PositionVM target, ChessPiece chessPiece, int moveNumber, string shortDescription)
         {
             this.Source = source;
             this.Target = target;
             this.Piece = chessPiece;
+            this.MoveNumber = moveNumber;
+            this.ShortDescription = shortDescription;
         }
 
         /// <summary>
@@ -80,6 +80,11 @@ namespace Chess.ViewModel.Game
             }
         }
 
+        /// <summary>
+        /// Gets or sets a brief description or summary of this move.
+        /// </summary>
+        public string ShortDescription { get; set; }
+
         public string SourceString
         {
             get
@@ -92,6 +97,10 @@ namespace Chess.ViewModel.Game
         {
             get
             {
+                if (this.target == null)
+                {
+                    return "-";
+                }
                 return GetRowColumnId(target.Row, target.Column);
             }
         }

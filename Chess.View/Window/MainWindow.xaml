@@ -342,13 +342,12 @@
                     </Canvas>
                 </Border>
             </Viewbox>
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted" />
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" 
+                          DragCompleted="GridSplitter_DragCompleted" />
             <ListView Grid.Column="2" x:Name="myListView" 
-                        ItemsSource="{Binding Path=ChessMoveSequence.ChessMoves}"
-                        Height="200" Margin="10" 
-                              Width="Auto"
-                        VerticalAlignment="Top"
-                        Background="AliceBlue">
+                        ItemsSource="{Binding Path=Board.ChessMoveSequence.ChessMoves}"
+                        Height="Auto" Margin="10" Width="Auto"
+                        VerticalAlignment="Top" Background="AliceBlue">
                 <ListView.Resources>
                     <select:PieceSelectorForMoveSequenceListView x:Key="pieceSelectorForMoveSequenceListView" />
                 </ListView.Resources>
@@ -365,6 +364,7 @@
                             <TextBlock VerticalAlignment="Center" Text="{Binding PieceName}" Margin="10" />
                             <TextBlock VerticalAlignment="Center" Text="{Binding SourceString}" Margin="10"/>
                             <TextBlock VerticalAlignment="Center" Text="{Binding TargetString}" Margin="10"/>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding ShortDescription}" Margin="10"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>

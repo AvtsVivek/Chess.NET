@@ -15,9 +15,19 @@ namespace Chess.Model.Command
     public class EndTurnCommand : ICommand
     {
         /// <summary>
-        /// Represents the default instance of the stateless class <see cref="EndTurnCommand"/>.
+        /// Represents a command to end the current turn in a game.
         /// </summary>
-        public static readonly EndTurnCommand Instance = new();
+        /// <param name="isUndo">A value indicating whether this command is an undo operation.  <see langword="true"/> if the command is
+        /// intended to undo a previous action; otherwise, <see langword="false"/>.</param>
+        public EndTurnCommand(bool isUndo = false)
+        {
+            this.IsUndo = isUndo;
+        }
+
+        /// <summary>
+        /// Determines the sequence should be executed in reverse order
+        /// </summary>
+        public bool IsUndo { get; private set; } = false;
 
         /// <summary>
         /// Applies the command to a chess game state.
