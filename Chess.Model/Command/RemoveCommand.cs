@@ -29,7 +29,7 @@ namespace Chess.Model.Command
         /// Initializes a new instance of the <see cref="RemoveCommand"/> class.
         /// </summary>
         /// <param name="piece">The placed chess piece to be removed.</param>
-        public RemoveCommand(PlacedPiece piece) : this(piece.Position, piece.Piece)
+        public RemoveCommand(PlacedPiece piece, bool isUndo = false) : this(piece.Position, piece.Piece, isUndo)
         {
         }
 
@@ -38,14 +38,20 @@ namespace Chess.Model.Command
         /// </summary>
         /// <param name="position">The position of the chess piece to be removed.</param>
         /// <param name="piece">The chess piece to be removed.</param>
-        public RemoveCommand(Position position, ChessPiece piece)
+        public RemoveCommand(Position position, ChessPiece piece, bool isUndo = false)
         {
             Validation.NotNull(position, nameof(position));
             Validation.NotNull(piece, nameof(piece));
 
             this.Position = position;
             this.Piece = piece;
+            this.IsUndo = isUndo;
         }
+
+        /// <summary>
+        /// Determines the sequence should be executed in reverse order
+        /// </summary>
+        public bool IsUndo { get; private set; } = false;
 
         /// <summary>
         /// Applies the command to a chess game state.

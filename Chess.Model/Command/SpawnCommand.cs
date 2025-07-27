@@ -30,14 +30,20 @@ namespace Chess.Model.Command
         /// </summary>
         /// <param name="position">The position of the newly introduced chess piece.</param>
         /// <param name="piece">The newly introduced chess piece.</param>
-        public SpawnCommand(Position position, ChessPiece piece)
+        public SpawnCommand(Position position, ChessPiece piece, bool isUndo = false)
         {
             Validation.NotNull(position, nameof(position));
             Validation.NotNull(piece, nameof(piece));
 
             this.Position = position;
             this.Piece = piece;
+            this.IsUndo = isUndo;
         }
+
+        /// <summary>
+        /// Determines the sequence should be executed in reverse order
+        /// </summary>
+        public bool IsUndo { get; private set; } = false;
 
         /// <summary>
         /// Applies the command to a chess game state.

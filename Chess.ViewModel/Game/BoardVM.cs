@@ -13,12 +13,13 @@ namespace Chess.ViewModel.Game
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.ComponentModel;
     using System.Linq;
 
     /// <summary>
     /// Represents the view model of a chess board.
     /// </summary>
-    public class BoardVM
+    public class BoardVM : INotifyPropertyChanged
     {
         /// <summary>
         /// Represents the visitor that can set potential targets for chess pieces on the board.
@@ -41,11 +42,39 @@ namespace Chess.ViewModel.Game
         private readonly Dictionary<FieldVM, List<Update>> targets;
 
         /// <summary>
+        /// Represents the sequence of chess moves in the current game.
+        /// </summary>
+        /// <remarks>This property is used to track and manage the sequence of moves made during a chess
+        /// game. It provides access to the move history and supports operations related to move analysis or
+        /// replay.</remarks>
+        private ChessMoveSequenceVM moveSequence;
+
+        /// <summary>
+        /// Represents the current index in the sequence of chess moves.
+        /// </summary>
+        /// <remarks>This field is used to track the position within a sequence of moves in a chess game.
+        /// The value starts at 1 and increments as moves are processed.</remarks>
+        private int chessMoveSequenceIndex = 0;
+
+        /// <summary>
+        /// Represents the collection of commands being executed for the current active player.
+        /// </summary>
+        /// <remarks>This list contains instances of commands that are currently being executed by the active player.
+        /// Multiple commands are executed during an active players turn.
+        /// For example, castling involves both the king and one rook, and here two move commands are executed in sequence.
+        /// In a more common scenario, multiple commands are executed after a capture occurs, or a pawn was promoted.
+        /// When a capture occurs, a move command and a remove command are executed. 
+        /// </remarks>
+        private List<ICommand> activePlayerCommands;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BoardVM"/> class.
         /// </summary>
         /// <param name="board">The current chess board state.</param>
         public BoardVM(Board board)
         {
+            this.activePlayerCommands = new List<ICommand>();
+            this.moveSequence = new ChessMoveSequenceVM();
             var pieces = board.Select(p => new PlacedPieceVM(p));
             var fieldArray = new FieldVM[8, 8];
             var fieldVMs =
@@ -129,6 +158,22 @@ namespace Chess.ViewModel.Game
         }
 
         /// <summary>
+        /// Gets the sequence of chess moves represented by the view model.
+        /// </summary>
+        public ChessMoveSequenceVM ChessMoveSequence
+        {
+            get
+            {
+                return moveSequence;
+            }
+        }
+
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
         /// Gets or sets the selected source field for which the <see cref="targets"/> were determined.
         /// </summary>
         /// <value>
@@ -167,6 +212,16 @@ namespace Chess.ViewModel.Game
                     from column in Enumerable.Range(0, columnCount)
                     select this.fields[row, column];
             }
+        }
+
+        /// <summary>
+        /// Clears the current sequence of chess moves.
+        /// </summary>
+        /// <remarks>This method removes all moves from the current chess move sequence, resetting it to
+        /// an empty state.</remarks>
+        public void ClearChessMoveSequence()
+        {
+            this.ChessMoveSequence.ChessMoves.Clear();
         }
 
         /// <summary>
@@ -245,6 +300,7 @@ namespace Chess.ViewModel.Game
             var field = this.fields[position.Row, position.Column];
             field.IsTarget = true;
             this.Source = field;
+            this.activePlayerCommands.Clear();
         }
 
         /// <summary>
@@ -268,6 +324,85 @@ namespace Chess.ViewModel.Game
         }
 
         /// <summary>
+        /// Executes the specified end-turn command, either finalizing or undoing the player's moves.
+        /// </summary>
+        /// <remarks>When finalizing a turn, this method processes all active player commands (e.g., move,
+        /// remove, or spawn commands), converts them into chess moves, and adds them to the move sequence. If the
+        /// command is an undo operation, the most recent moves are removed from the sequence.  After execution, the
+        /// <see cref="ChessMoveSequence"/> property is updated to reflect the current state of the game on the UI.
+        /// Note that the end turn command is triggered for regular moves. But for undo case, end turn command is extecuted
+        /// at the beginning, then the individual commands are executed in reverse order.
+        /// </remarks>
+        /// <param name="endTurnCommand">The command representing the end of a turn. If <see cref="EndTurnCommand.IsUndo"/> is <see
+        /// langword="true"/>, the method will undo the most recent moves. Otherwise, it will finalize the current
+        /// player's active commands and update the move sequence.</param>
+        public void Execute(EndTurnCommand endTurnCommand)
+        {
+            if (endTurnCommand.IsUndo)
+            {
+                var movesToBeRemoved = this.ChessMoveSequence.ChessMoves
+                    .Where(move => move.MoveNumber == chessMoveSequenceIndex)
+                    .ToList();
+                
+                foreach (var move in movesToBeRemoved)
+                    this.ChessMoveSequence.ChessMoves.Remove(move);
+
+                chessMoveSequenceIndex--;
+            }
+            else
+            {
+                chessMoveSequenceIndex++;
+                foreach (var command in this.activePlayerCommands)
+                {
+                    ChessMoveVM chessMove = null;
+                    if (command is MoveCommand moveCommand)
+                    {
+                        chessMove = new ChessMoveVM
+                        (
+                            new PositionVM(moveCommand.Source),
+                            new PositionVM(moveCommand.Target),
+                            moveCommand.Piece,
+                            chessMoveSequenceIndex,
+                            "Moved"
+                        );
+                    }
+                    else if (command is RemoveCommand removeCommand)
+                    {
+                        chessMove = new ChessMoveVM
+                        (
+                            new PositionVM(removeCommand.Position),
+                            null,
+                            removeCommand.Piece,
+                            chessMoveSequenceIndex,
+                            "Captured"
+                        );
+                    }
+                    else if (command is SpawnCommand spawnCommand)
+                    {
+                        chessMove = new ChessMoveVM
+                        (
+                            new PositionVM(spawnCommand.Position),
+                            null,
+                            spawnCommand.Piece,
+                            chessMoveSequenceIndex,
+                            "Appeared"
+                        );
+                    }
+
+                    if (chessMove != null)
+                    {
+                        // Insert the move at the beginning of the sequence to
+                        // ensure the most recent move is at the top.
+                        this.ChessMoveSequence.ChessMoves.Insert(0, chessMove);
+                    }
+                }
+                activePlayerCommands.Clear();
+            }
+
+            OnPropertyChanged(nameof(ChessMoveSequence));
+        }
+
+        /// <summary>
         /// Executes a move command and repositions the chess piece.
         /// </summary>
         /// <param name="command">The move command to be executed.</param>
@@ -282,6 +417,8 @@ namespace Chess.ViewModel.Game
             {
                 piece.Position = new PositionVM(command.Target);
             }
+
+            UpdateMoveSequenceForMoveCommand(command);
         }
 
         /// <summary>
@@ -299,6 +436,8 @@ namespace Chess.ViewModel.Game
             {
                 piece.Removed = true;
             }
+
+            UpdateMoveSequenceForRemoveCommand(command);
         }
 
         /// <summary>
@@ -308,6 +447,85 @@ namespace Chess.ViewModel.Game
         public void Execute(SpawnCommand command)
         {
             this.Pieces.Add(new PlacedPieceVM(command.Position, command.Piece));
+
+            UpdateMoveSequenceForSpawnCommand(command);
+        }
+
+        /// <summary>
+        /// Updates the active players command list with the specified move command.
+        /// </summary>
+        /// <remarks>If the move command is not an undo operation, the method creates a new chess move
+        /// representation and adds the command to the active player commands list.</remarks>
+        /// <param name="moveCommand">The move command to process. This command represents a chess move and contains details such as the source
+        /// and target positions, the piece being moved, and whether the move is an undo operation.</param>
+        private void UpdateMoveSequenceForMoveCommand(MoveCommand moveCommand)
+        {
+            if (!moveCommand.IsUndo)
+            {
+                var move = new ChessMoveVM
+                (
+                    new PositionVM(moveCommand.Source),
+                    new PositionVM(moveCommand.Target),
+                    moveCommand.Piece,
+                    chessMoveSequenceIndex,
+                    "Moved"
+                );
+                this.activePlayerCommands.Add(moveCommand);
+            }
+        }
+
+        /// <summary>
+        /// Updates the move sequence to account for a remove command.
+        /// </summary>
+        /// <remarks>If the <paramref name="removeCommand"/> is not an undo operation, this method adds a
+        /// new move  to the sequence representing the removal of a piece and includes the command 
+        /// in the current active players command list </remarks>
+        /// <param name="removeCommand">The remove command to process. Must not be null.</param>
+        private void UpdateMoveSequenceForRemoveCommand(RemoveCommand removeCommand)
+        {
+            if (!removeCommand.IsUndo)
+            {
+                var move = new ChessMoveVM
+                (
+                    new PositionVM(removeCommand.Position),
+                    null,
+                    removeCommand.Piece,
+                    chessMoveSequenceIndex,
+                    "Captured"
+                );
+                this.activePlayerCommands.Add(removeCommand);
+            }
+        }
+
+        /// <summary>
+        /// Updates the move sequence to include a spawn command for a chess piece.
+        /// </summary>
+        /// <remarks>This method processes the provided <paramref name="spawnCommand"/> and adds it to the
+        /// active player commands if it is not marked as an undo operation. </remarks>
+        /// <param name="spawnCommand">The spawn command containing the details of the piece to be added to the move sequence.</param>
+        private void UpdateMoveSequenceForSpawnCommand(SpawnCommand spawnCommand)
+        {
+            if (!spawnCommand.IsUndo)
+            {
+                var move = new ChessMoveVM
+                (
+                    new PositionVM(spawnCommand.Position),
+                    null,
+                    spawnCommand.Piece,
+                    chessMoveSequenceIndex,
+                    "Appeared"
+                );
+                this.activePlayerCommands.Add(spawnCommand);
+            }
+        }
+
+        /// <summary>
+        /// Fires the <see cref="PropertyChanged"/> event.
+        /// </summary>
+        /// <param name="propertyName">The name of the property that has been changed.</param>
+        protected void OnPropertyChanged(string propertyName)
+        {
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

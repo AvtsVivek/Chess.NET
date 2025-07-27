@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 namespace Chess.Model.Rule
 {
-    using Chess.Model.Data;
     using Chess.Model.Game;
     using System.Collections.Generic;
 

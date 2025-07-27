@@ -9,7 +9,6 @@ namespace Chess.View.Window
     using Chess.Model.Piece;
     using System.Collections.Generic;
     using System.Windows;
-    using System.Windows.Controls;
 
     /// <summary>
     /// Interaction logic for the <see cref="PieceWindow"/> window.

@@ -36,7 +36,7 @@ namespace Chess.ViewModel.Game
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Gets the distance from the left boundary of the board, based on column in double units
+        /// Gets the distance of the column from the left boundary of the board, in double units
         /// </summary>
         /// <value>The distance of the field from the left of the board</value>
         public double DistanceFromLeft 
@@ -48,7 +48,7 @@ namespace Chess.ViewModel.Game
         }
 
         /// <summary>
-        /// Gets the distance from the bottom of the board, based on row in double units
+        /// Gets the distance of the row from the bottom of the board, in double units
         /// </summary>
         /// <value>The distance of the field from the bottom of the board</value>
         public double DistanceFromBottom

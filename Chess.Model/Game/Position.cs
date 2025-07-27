@@ -8,10 +8,12 @@ namespace Chess.Model.Game
 {
     using Chess.Model.Data;
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// Represents a position on a chess board.
     /// </summary>
+    [DebuggerDisplay("{Row + 1}, {Column + 1}")]
     public class Position : IEquatable<Position>
     {
         /// <summary>
