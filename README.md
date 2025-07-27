@@ -13,3 +13,21 @@
 * Provides a fully immutable implementation of the chess game model.
 * Provides an undo command to restore previous chess game states.
 * Provides a full code documentation.
+
+ToDo
+
+1. To add visual identifier to rows and columns.
+
+<p align="center">
+<img src="./TempChessDotComeScreenShot.png">
+</p>
+
+2. For rows, its numbers 1 to 8, and for columns, its letters A to H. - Done
+3. Need to add something similar to FieldVM to represent the row and column identifier of the chess board.
+   1. Done, added RowColumnLableVM class. - Done
+4. Need to add a new property to the BoardVM class to hold the visual identifiers for the rows and columns.
+   1. Done, added RowColumnLabels property to the BoardVM class. -Done
+5. And finally in the MainWindow.xaml, added new ItemsControl to display the row and column identifiers.
+6. But the textblock text is not displaying properly, need to fix it. - Done
+   
+

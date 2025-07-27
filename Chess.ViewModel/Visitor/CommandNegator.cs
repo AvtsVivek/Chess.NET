@@ -38,7 +38,7 @@ namespace Chess.ViewModel.Visitor
         /// <returns>The command that has the inverted effect on the chess game.</returns>
         public ICommand Visit(EndTurnCommand command)
         {
-            return command;
+            return new EndTurnCommand(true);
         }
 
         /// <summary>
@@ -53,12 +53,12 @@ namespace Chess.ViewModel.Visitor
             {
                 return new SequenceCommand
                 (
-                    new RemoveCommand(command.Target, command.Piece),
-                    new SpawnCommand(command.Source, command.Piece)
+                    new RemoveCommand(command.Target, command.Piece, true),
+                    new SpawnCommand(command.Source, command.Piece, true)
                 );
             }
 
-            return new MoveCommand(command.Target, command.Source, command.Piece);
+            return new MoveCommand(command.Target, command.Source, command.Piece, true);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Chess.ViewModel.Visitor
         /// <returns>The command that has the inverted effect on the chess game.</returns>
         public ICommand Visit(RemoveCommand command)
         {
-            return new SpawnCommand(command.Position, command.Piece);
+            return new SpawnCommand(command.Position, command.Piece, true);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Chess.ViewModel.Visitor
         /// <returns>The command that has the inverted effect on the chess game.</returns>
         public ICommand Visit(SpawnCommand command)
         {
-            return new RemoveCommand(command.Position, command.Piece);
+            return new RemoveCommand(command.Position, command.Piece, true);
         }
 
         /// <summary>

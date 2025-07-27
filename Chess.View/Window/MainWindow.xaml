@@ -1,21 +1,89 @@
-﻿<Window x:Class="Chess.View.Window.MainWindow"
+﻿<mah:MetroWindow x:Class="Chess.View.Window.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:conv="clr-namespace:Chess.View.Converter"
         xmlns:icon="clr-namespace:Chess.View.Icon"
         xmlns:select="clr-namespace:Chess.View.Selector"
         xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
         d:DataContext="{d:DesignInstance Type=game:ChessGameVM}"
         mc:Ignorable="d"
+        ResizeMode="CanResizeWithGrip"
+        ShowIconOnTitleBar="True"
         WindowStartupLocation="CenterScreen"
         Background="DarkGray" Icon="/Icon/appIcon.png"
         Title="Chess.NET" Height="700" Width="700">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <Style x:Key="AppThemeMenuItemStyle" TargetType="{x:Type MenuItem}">
+                <Setter Property="Height" Value="20" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewCommand}" />
         <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding UndoCommand}" />
     </Window.InputBindings>
+
+    <mah:MetroWindow.IconTemplate>
+        <DataTemplate>
+            <iconPacks:PackIconGameIcons Width="{TemplateBinding Width}"
+                                      Height="{TemplateBinding Height}"
+                                      Margin="4"
+                                      Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                                      Kind="ChessQueen" />
+        </DataTemplate>
+    </mah:MetroWindow.IconTemplate>
+
+    <mah:MetroWindow.TitleTemplate>
+        <DataTemplate>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <TextBlock Margin="0 -1 8 0"
+                           VerticalAlignment="Center"
+                           FontFamily="{DynamicResource MahApps.Fonts.Family.Window.Title}"
+                           FontSize="{DynamicResource MahApps.Font.Size.Window.Title}"
+                           Text="{TemplateBinding Content}"
+                           TextTrimming="CharacterEllipsis" />
+
+            </StackPanel>
+        </DataTemplate>
+    </mah:MetroWindow.TitleTemplate>
+
+    <mah:MetroWindow.LeftWindowCommands>
+        <mah:WindowCommands>
+            <Button Click="LaunchGitHubSite" ToolTip="Open up the GitHub site">
+                <iconPacks:PackIconModern Width="22"
+                                  Height="22"
+                                  Kind="SocialGithubOctocat" />
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.LeftWindowCommands>
+
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <Button Click="DeployCupCakes" Content="Deploy CupCakes">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconModern Width="22"
+                                        Height="22"
+                                        VerticalAlignment="Center"
+                                        Kind="FoodCupcake" />
+                            <TextBlock Margin="4 0 0 0"
+                         VerticalAlignment="Center"
+                         Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+
     <DockPanel>
         <DockPanel.Resources>
             <conv:StatusConverter x:Key="statusConverter" />
@@ -27,18 +95,21 @@
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
             <MenuItem Header="Game">
-                <MenuItem Header="New" Command="{Binding NewCommand}" InputGestureText="Ctrl+N">
+                <MenuItem Header="New" Command="{Binding NewCommand}" InputGestureText="Ctrl+N" 
+                          Style="{StaticResource AppThemeMenuItemStyle}">
                     <MenuItem.Icon>
                         <icon:NewIcon />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z">
+                <MenuItem Header="Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z"
+                          Style="{StaticResource AppThemeMenuItemStyle}">
                     <MenuItem.Icon>
                         <icon:UndoIcon />
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Exit" Click="ExitClick">
+                <MenuItem Header="Exit" Click="ExitClick" 
+                          Style="{StaticResource AppThemeMenuItemStyle}">
                     <MenuItem.Icon>
                         <icon:ExitIcon />
                     </MenuItem.Icon>
@@ -50,41 +121,50 @@
                 </MenuItem.Header>
             </MenuItem>
         </Menu>
-        <Viewbox Margin="20">
-            <Border BorderThickness="0.2" BorderBrush="White">
-                <Border.Resources>
-                    <Duration x:Key="duration">0:0:0.5</Duration>
-                    <Storyboard x:Key="fadeWhite">
-                        <ColorAnimation
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="ChessGameColumn" Width="*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition x:Name="ConsoleColumn" Width="*" />
+            </Grid.ColumnDefinitions>
+                        
+            <Viewbox Margin="10">
+                <Border BorderThickness="0.2" BorderBrush="White">
+                    <Border.Resources>
+                        <Duration x:Key="duration">0:0:0.5</Duration>
+                        <Storyboard x:Key="fadeWhite">
+                            <ColorAnimation
                             Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"
                             Duration="{StaticResource duration}" To="White" />
-                    </Storyboard>
-                    <Storyboard x:Key="fadeBlack">
-                        <ColorAnimation
+                        </Storyboard>
+                        <Storyboard x:Key="fadeBlack">
+                            <ColorAnimation
                             Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"
                             Duration="{StaticResource duration}" To="Black" />
-                    </Storyboard>
-                </Border.Resources>
-                <Border.Triggers>
-                    <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <ColorAnimation
+                        </Storyboard>
+                    </Border.Resources>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation
                                     Duration="{StaticResource duration}"
                                     To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
                                     Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </EventTrigger>
-                </Border.Triggers>
-                <Border.ToolTip>
-                    <ToolTip Visibility="{Binding Status, Converter={StaticResource statusConverter}}">
-                        <TextBlock Text="{Binding Status, Converter={StaticResource statusConverter}}"
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                    <Border.ToolTip>
+                        <ToolTip Visibility="{Binding Status, Converter={StaticResource statusConverter}}">
+                            <TextBlock Text="{Binding Status, Converter={StaticResource statusConverter}}"
                                    Margin="5"/>
-                    </ToolTip>
-                </Border.ToolTip>
-                <Border BorderThickness="0.05" BorderBrush="#808080">
-                    <Canvas Width="8" Height="8" MouseDown="BoardMouseDown">
+                        </ToolTip>
+                    </Border.ToolTip>
+                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" 
+                        Height="{x:Static game:BoardConstants.FullCanvasLength}" 
+                        MouseDown="BoardMouseDown">
                         <Canvas.Resources>
                             <PowerEase x:Key="ease" EasingMode="EaseInOut" />
                             <Storyboard x:Key="fadeIn">
@@ -103,6 +183,41 @@
                                 Storyboard.TargetProperty="Opacity" />
                             </Storyboard>
                         </Canvas.Resources>
+
+                        <!-- Row Column Labels -->
+                        <ItemsControl ItemsSource="{Binding Board.RowColumnLabels}">
+                            <ItemsControl.Resources>
+                                <select:RowColumnIdSelector x:Key="rowColumnIdSelector" />
+                                <RelativeSource
+                                x:Key="parent"
+                                Mode="FindAncestor"
+                                AncestorType="{x:Type ContentPresenter}" />
+                            </ItemsControl.Resources>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" 
+                                            Height="{x:Static game:BoardConstants.FullCanvasLength}" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Width" Value="{Binding Width}" />
+                                    <Setter Property="Height" Value="{Binding Height}" />
+                                    <Setter Property="Canvas.Bottom" Value="{Binding DistanceFromBottom}" />
+                                    <Setter Property="Canvas.Left" Value="{Binding DistanceFromLeft}" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ContentControl Content="{Binding}">
+                                        <ContentControl.ContentTemplateSelector>
+                                            <StaticResource ResourceKey="rowColumnIdSelector" />
+                                        </ContentControl.ContentTemplateSelector>
+                                    </ContentControl>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
                         <!-- Board fields -->
                         <ItemsControl ItemsSource="{Binding Board.Fields}">
                             <ItemsControl.Resources>
@@ -117,8 +232,8 @@
                                 <Style TargetType="ContentPresenter">
                                     <Setter Property="Width" Value="1" />
                                     <Setter Property="Height" Value="1" />
-                                    <Setter Property="Canvas.Bottom" Value="{Binding Row}" />
-                                    <Setter Property="Canvas.Left" Value="{Binding Column}" />
+                                    <Setter Property="Canvas.Bottom" Value="{Binding DistanceFromBottom}" />
+                                    <Setter Property="Canvas.Left" Value="{Binding DistanceFromLeft}" />
                                 </Style>
                             </ItemsControl.ItemContainerStyle>
                             <ItemsControl.ItemTemplate>
@@ -154,6 +269,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+
                         <!-- Board pieces -->
                         <ItemsControl ItemsSource="{Binding Board.Pieces}">
                             <ItemsControl.Resources>
@@ -173,8 +289,8 @@
                                     <Setter Property="Width" Value="1" />
                                     <Setter Property="Height" Value="1" />
                                     <Setter Property="Opacity" Value="0" />
-                                    <Setter Property="Canvas.Bottom" Value="{Binding Position.Row, Mode=OneTime}" />
-                                    <Setter Property="Canvas.Left" Value="{Binding Position.Column, Mode=OneTime}" />
+                                    <Setter Property="Canvas.Bottom" Value="{Binding Position.DistanceFromBottom, Mode=OneTime}" />
+                                    <Setter Property="Canvas.Left" Value="{Binding Position.DistanceFromLeft, Mode=OneTime}" />
                                     <Style.Triggers>
                                         <Trigger Property="Visibility" Value="Visible">
                                             <Trigger.EnterActions>
@@ -205,13 +321,13 @@
                                                     <Storyboard>
                                                         <DoubleAnimation
                                                         Duration="{StaticResource duration}"
-                                                        To="{Binding Position.Row, NotifyOnTargetUpdated=True}"
+                                                        To="{Binding Position.DistanceFromBottom, NotifyOnTargetUpdated=True}"
                                                         Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
                                                         Storyboard.TargetProperty="(Canvas.Bottom)"
                                                         EasingFunction="{StaticResource ease}"/>
                                                         <DoubleAnimation
                                                         Duration="{StaticResource duration}"
-                                                        To="{Binding Position.Column, NotifyOnTargetUpdated=True}"
+                                                        To="{Binding Position.DistanceFromLeft, NotifyOnTargetUpdated=True}"
                                                         Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
                                                         Storyboard.TargetProperty="(Canvas.Left)"
                                                         EasingFunction="{StaticResource ease}"/>
@@ -225,7 +341,34 @@
                         </ItemsControl>
                     </Canvas>
                 </Border>
-            </Border>
-        </Viewbox>
+            </Viewbox>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" 
+                          DragCompleted="GridSplitter_DragCompleted" />
+            <ListView Grid.Column="2" x:Name="myListView" 
+                        ItemsSource="{Binding Path=Board.ChessMoveSequence.ChessMoves}"
+                        Height="Auto" Margin="10" Width="Auto"
+                        VerticalAlignment="Top" Background="AliceBlue">
+                <ListView.Resources>
+                    <select:PieceSelectorForMoveSequenceListView x:Key="pieceSelectorForMoveSequenceListView" />
+                </ListView.Resources>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Text="{Binding MoveNumber}" Margin="10" FontWeight="Bold"/>
+                            <ContentControl Content="{Binding}">
+                                <ContentControl.ContentTemplateSelector>
+                                    <StaticResource ResourceKey="pieceSelectorForMoveSequenceListView" />
+                                </ContentControl.ContentTemplateSelector>
+                            </ContentControl>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding PieceColor}" Margin="10" />
+                            <TextBlock VerticalAlignment="Center" Text="{Binding PieceName}" Margin="10" />
+                            <TextBlock VerticalAlignment="Center" Text="{Binding SourceString}" Margin="10"/>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding TargetString}" Margin="10"/>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding ShortDescription}" Margin="10"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
     </DockPanel>
-</Window>
+</mah:MetroWindow>

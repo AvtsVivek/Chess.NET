@@ -7,10 +7,12 @@
 namespace Chess.Model.Piece
 {
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// Represents a chess piece.
     /// </summary>
+    [DebuggerDisplay("{Color} {GetType().Name}")]
     public abstract class ChessPiece : IChessPieceVisitable, IEquatable<ChessPiece>
     {
         /// <summary>

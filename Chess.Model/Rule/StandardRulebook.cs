@@ -115,7 +115,7 @@ namespace Chess.Model.Rule
                 p =>
                 {
                     var moves = this.movementRule.GetCommands(game, p);
-                    var turnEnds = moves.Select(c => new SequenceCommand(c, EndTurnCommand.Instance));
+                    var turnEnds = moves.Select(c => new SequenceCommand(c, new EndTurnCommand()));
                     var records = turnEnds.Select
                     (
                         c => new SequenceCommand(c, new SetLastUpdateCommand(new Update(game, c)))

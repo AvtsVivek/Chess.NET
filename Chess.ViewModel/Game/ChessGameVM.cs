@@ -125,6 +125,7 @@ namespace Chess.ViewModel.Game
                         this.Game = this.rulebook.CreateGame();
                         this.Board = new BoardVM(this.Game.Board);
                         this.OnPropertyChanged(nameof(this.Status));
+                        this.Board.ClearChessMoveSequence();
                     }
                 );
             }
@@ -155,6 +156,7 @@ namespace Chess.ViewModel.Game
                 }
             }
         }
+
 
         /// <summary>
         /// Selects a specific field of the chess board.
@@ -203,8 +205,19 @@ namespace Chess.ViewModel.Game
         /// Executes a <see cref="EndTurnCommand"/> in order to change the presented game state.
         /// </summary>
         /// <param name="command">The <see cref="EndTurnCommand"/> to be executed.</param>
+        /// <remarks>This method is executed once all of the commands are done executing the end of a player's turn.
+        /// For example, castling involves both the king and one rook, and here two move commands are executed in sequence.
+        /// Then the <see cref="EndTurnCommand"/> is executed to indicate the end of the player's turn.
+        /// In a more common scenario, the <see cref="EndTurnCommand"/> is executed after a capture occurred, or a pawn was promoted.
+        /// When a capture occurs, a move command and a remove command is executed. 
+        /// Then the <see cref="EndTurnCommand"/> is executed to indicate the end of the player's turn.
+        /// So the end command can be used to indicate the end of a player's turn in a chess game.
+        /// And so this can be used to update the game state, such as switching the active player, this.Status
+        /// Also this can be used to count the number of turns in a game.
+        /// </remarks>
         public void Visit(EndTurnCommand command)
         {
+            this.Board.Execute(command);
             this.OnPropertyChanged(nameof(this.Status));
         }
 
@@ -232,7 +245,7 @@ namespace Chess.ViewModel.Game
         /// <param name="command">The <see cref="SetLastUpdateCommand"/> to be executed.</param>
         public void Visit(SetLastUpdateCommand command)
         {
-            // Not used at the moment, can be used to dispay the game history in the GUI.
+            // Not used at the moment, can be used to display the game history in the GUI.
         }
 
         /// <summary>
