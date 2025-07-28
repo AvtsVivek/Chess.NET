@@ -13,7 +13,7 @@ namespace Chess.Model.Piece
     /// Represents a chess piece.
     /// </summary>
     [DebuggerDisplay("{Color} {GetType().Name}")]
-    public abstract class ChessPiece : IChessPieceVisitable, IEquatable<ChessPiece>
+    public abstract class ChessPiece : IChessPieceVisitable, IEquatable<ChessPiece>, IComparable<ChessPiece>
     {
         /// <summary>
         /// Represents the color of the chess piece.
@@ -78,6 +78,35 @@ namespace Chess.Model.Piece
             hashCodeBuilder.Add(this.GetType());
             hashCodeBuilder.Add(this.Color);
             return hashCodeBuilder.ToHashCode();
+        }
+
+        public virtual int Weight
+        {
+            get
+            {
+                int baseWeight = this switch
+                {
+                    Pawn _ => 1,
+                    Knight _ => 3,
+                    Bishop _ => 4,
+                    Rook _ => 5,
+                    Queen _ => 9,
+                    King _ => 10,
+                    _ => throw new NotSupportedException($"Unsupported chess piece type: {this.GetType().Name}"),
+                };
+
+                return this.Color == Color.White ? baseWeight : 20 + baseWeight;
+            }
+        }
+
+        public int CompareTo(ChessPiece otherPiece)
+        {
+            return this.Weight - otherPiece.Weight;
+        }
+
+        public override string ToString()
+        {
+            return $"{this.Color} {this.GetType().Name}";
         }
     }
 }

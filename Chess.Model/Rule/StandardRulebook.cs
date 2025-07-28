@@ -13,6 +13,7 @@ namespace Chess.Model.Rule
     using Chess.Model.Visitor;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics;
     using System.Linq;
 
     /// <summary>
@@ -86,9 +87,23 @@ namespace Chess.Model.Rule
             var whitePieces = makePieces(1, 0, Color.White);
             var blackPlayer = new Player(Color.Black);
             var blackPieces = makePieces(6, 7, Color.Black);
-            var board = new Board(whitePieces.AddRange(blackPieces));
+            var allPieces = whitePieces.AddRange(blackPieces);
+
+            var emptyPieceSetForTesting = ImmutableSortedDictionary<Position, ChessPiece>.Empty;
+
+            var board = new Board(allPieces);
+
+            // PrintPiecesForTesting(board);
 
             return new ChessGame(board, whitePlayer, blackPlayer);
+        }
+
+        private void PrintPiecesForTesting(Board board)
+        {
+            foreach (var placedPiece in board.OrderBy(p => p.Piece))
+            {
+                Debug.WriteLine($"Piece: {placedPiece.Piece} - {placedPiece.Piece.Weight}");
+            }
         }
 
         /// <summary>
