@@ -45,6 +45,7 @@ namespace Chess.Model.Command
         /// <returns>The new chess game state, if the command succeeds.</returns>
         public IMaybe<ChessGame> Execute(ChessGame game)
         {
+            // Its not clear whats happening here.
             return this.FirstCommand.Execute(game).Bind(g => this.SecondCommand.Execute(g));
         }
 

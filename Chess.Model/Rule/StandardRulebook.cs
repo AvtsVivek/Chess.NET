@@ -90,20 +90,10 @@ namespace Chess.Model.Rule
             var allPieces = whitePieces.AddRange(blackPieces);
 
             var emptyPieceSetForTesting = ImmutableSortedDictionary<Position, ChessPiece>.Empty;
-
             var board = new Board(allPieces);
 
             // PrintPiecesForTesting(board);
-
             return new ChessGame(board, whitePlayer, blackPlayer);
-        }
-
-        private void PrintPiecesForTesting(Board board)
-        {
-            foreach (var placedPiece in board.OrderBy(p => p.Piece))
-            {
-                Debug.WriteLine($"Piece: {placedPiece.Piece} - {placedPiece.Piece.Weight}");
-            }
         }
 
         /// <summary>
@@ -129,13 +119,18 @@ namespace Chess.Model.Rule
             var updates = piece.Map(
                 p =>
                 {
-                    var moves = this.movementRule.GetCommands(game, p);
-                    var turnEnds = moves.Select(c => new SequenceCommand(c, new EndTurnCommand()));
-                    var records = turnEnds.Select
+                    IEnumerable<ICommand> moves = this.movementRule.GetCommands(game, p);
+
+                    IEnumerable<SequenceCommand> turnEnds = moves.Select(c => new SequenceCommand(c, new EndTurnCommand()));
+
+                    IEnumerable<SequenceCommand> records = turnEnds.Select
                     (
-                        c => new SequenceCommand(c, new SetLastUpdateCommand(new Update(game, c)))
+                        c => new SequenceCommand(c, new SetLastUpdateCommand(new Update(game, c, "records")))
                     );
-                    var futures = records.Select(c => c.Execute(game).Map(g => new Update(g, c)));
+
+                    // I am not sure whats happening here.
+                    var futures = records.Select(c => c.Execute(game).Map(g => new Update(g, c, "futures")));
+
                     return futures.FilterMaybes().Where
                     (
                         e => !this.checkRule.Check(e.Game, e.Game.PassivePlayer)
@@ -143,7 +138,25 @@ namespace Chess.Model.Rule
                 }
             );
 
-            return updates.GetOrElse(Enumerable.Empty<Update>());
+            var updateList = updates.GetOrElse(Enumerable.Empty<Update>()).ToList();
+
+            // return updates.GetOrElse(Enumerable.Empty<Update>());
+            
+            return updateList;
+        }
+
+        /// <summary>
+        /// Outputs the pieces on the board to the debug console, ordered by their type.
+        /// </summary>
+        /// <remarks>Each piece is displayed in the debug output along with its weight.  This method is
+        /// intended for testing and debugging purposes only.</remarks>
+        /// <param name="board">The board containing the pieces to be printed. Must not be null.</param>
+        private void PrintPiecesForTesting(Board board)
+        {
+            foreach (var placedPiece in board.OrderBy(p => p.Piece))
+            {
+                Debug.WriteLine($"Piece: {placedPiece.Piece} - {placedPiece.Piece.Weight}");
+            }
         }
     }
 }
