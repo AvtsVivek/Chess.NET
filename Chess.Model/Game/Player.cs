@@ -7,12 +7,14 @@
 namespace Chess.Model.Game
 {
     using Chess.Model.Piece;
+    using System.Diagnostics;
 
     /// <summary>
     /// Represents a player who participates in a chess game.
     /// Currently, a player is only identified by the color of his/her controlled chess pieces.
     /// In the future, a player could have more attributes, like name, ELO rating, etc.
     /// </summary>
+    [DebuggerDisplay("{Color} Player")]
     public class Player
     {
         /// <summary>
