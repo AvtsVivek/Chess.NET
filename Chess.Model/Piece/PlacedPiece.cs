@@ -9,10 +9,12 @@ namespace Chess.Model.Piece
     using Chess.Model.Data;
     using Chess.Model.Game;
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// Represents a chess piece that is positioned on a chess board.
     /// </summary>
+    [DebuggerDisplay("Row: {this.Position.Row + 1}, Column: {this.Position.Row + 1} - {this.Color} {this.GetType().Name}")]
     public class PlacedPiece : ChessPiece
     {
         /// <summary>
@@ -120,6 +122,11 @@ namespace Chess.Model.Piece
             hashCodeBuilder.Add(this.Position);
             hashCodeBuilder.Add(this.Piece);
             return hashCodeBuilder.ToHashCode();
+        }
+
+        public override string ToString()
+        {
+            return $"Row: {this.Position.Row + 1}, Column: {this.Position.Row + 1} - {this.Color} {this.GetType().Name}";
         }
     }
 }

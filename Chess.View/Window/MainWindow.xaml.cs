@@ -109,6 +109,7 @@ namespace Chess.View.Window
             
             if (updates.Count == 1)
             {
+                updates[0].IsSelected = true;
                 return updates[0];
             }
 
@@ -117,10 +118,17 @@ namespace Chess.View.Window
             var pieceWindow = new PieceWindow() { Owner = this };
             var selectedPiece = pieceWindow.Show(promotions.Keys);
 
-            return
-                selectedPiece != null
+            // return
+            var update = selectedPiece != null
                     ? promotions[selectedPiece]
                     : null;
+
+            if (update != null)
+            {
+                update.IsSelected = true;
+            }
+
+            return update;
         }
 
         private void LaunchGitHubSite(object sender, RoutedEventArgs e)
@@ -142,6 +150,11 @@ namespace Chess.View.Window
             ChessAppSettings.Default.ChessGameColumnWidth = chessGameColumnWidth;
             ChessAppSettings.Default.ConsoleColumnWidth = consoleColumnWidth;
             ChessAppSettings.Default.Save();
+        }
+
+        private void btnRecord_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

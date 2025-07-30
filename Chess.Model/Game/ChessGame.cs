@@ -8,13 +8,21 @@ namespace Chess.Model.Game
 {
     using Chess.Model.Data;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
 
     /// <summary>
     /// Represents a chess game.
     /// </summary>
+    [DebuggerDisplay("GameId: {GameId}")]
     public class ChessGame
     {
+        // Just for debugging and understanding purposes.
+        public static int InstanceCounter;
+
+        // Just for debugging and understanding purposes.
+        public int GameId { get; set; }
+
         /// <summary>
         /// Represents the current state of the chess board.
         /// </summary>
@@ -53,7 +61,7 @@ namespace Chess.Model.Game
         /// <param name="activePlayer">The player who has currently the right to move.</param>
         /// <param name="passivePlayer">The player who is currently waiting for the opponent's move.</param>
         /// <param name="lastUpdate">The update that has led to the newly created game state.</param>
-        public ChessGame(Board board, Player activePlayer, Player passivePlayer, IMaybe<Update> lastUpdate)
+        private ChessGame(Board board, Player activePlayer, Player passivePlayer, IMaybe<Update> lastUpdate)
         {
             Validation.NotNull(board, nameof(board));
             Validation.NotNull(activePlayer, nameof(activePlayer));
@@ -64,6 +72,9 @@ namespace Chess.Model.Game
             this.ActivePlayer = activePlayer;
             this.PassivePlayer = passivePlayer;
             this.LastUpdate = lastUpdate;
+            InstanceCounter++;
+            
+            this.GameId = InstanceCounter;
         }
 
         /// <summary>
@@ -76,7 +87,13 @@ namespace Chess.Model.Game
             {
                 return this.LastUpdate.GetOrElse
                 (
-                    u => Enumerable.Prepend(u.Game.History, u),
+                    u =>
+                    {
+                        var history = u.Game.History;
+                        var prependedHistory = Enumerable.Prepend(history, u);
+                        return prependedHistory;
+                    },
+                    
                     Enumerable.Empty<Update>()
                 );
             }

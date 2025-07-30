@@ -7,6 +7,7 @@
 namespace Chess.ViewModel.Game
 {
     using Chess.Model.Command;
+    using Chess.Model.Data;
     using Chess.Model.Game;
     using Chess.ViewModel.Piece;
     using Chess.ViewModel.Visitor;
@@ -449,6 +450,28 @@ namespace Chess.ViewModel.Game
             this.Pieces.Add(new PlacedPieceVM(command.Position, command.Piece));
 
             UpdateMoveSequenceForSpawnCommand(command);
+        }
+
+
+        /// <summary>
+        /// Executes the specified command to update the last update.
+        /// </summary>
+        /// <remarks>This method processes the provided <see cref="SetLastUpdateCommand"/> to update the
+        /// relevant state. Ensure that the <paramref name="command"/> contains valid data before invoking this
+        /// method.</remarks>
+        /// <param name="command">The command containing the necessary data to set the last update timestamp. Cannot be null.</param>
+        public void Execute(SetLastUpdateCommand command)
+        {
+            // Need to understand more. 
+            if(command.Update.HasValue)
+            {
+                // This is a temporary to understand the game history.
+                // var history = command.Update.GetOrElse((Update)null)?.Game.History.ToList();
+            }
+            else
+            {
+
+            }
         }
 
         /// <summary>

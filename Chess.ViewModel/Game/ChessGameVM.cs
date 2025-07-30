@@ -7,6 +7,7 @@
 namespace Chess.ViewModel.Game
 {
     using Chess.Model.Command;
+    using Chess.Model.Data;
     using Chess.Model.Game;
     using Chess.Model.Rule;
     using Chess.ViewModel.Command;
@@ -14,6 +15,7 @@ namespace Chess.ViewModel.Game
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Linq;
 
     /// <summary>
     /// Represents the view model of a chess game.
@@ -175,12 +177,18 @@ namespace Chess.ViewModel.Game
             }
 
             var updates = this.Board.GetUpdates(field);
+            var updateCount = updates.Count;
             var selectedUpdate = this.updateSelector(updates);
             this.Board.ClearUpdates();
 
             if (selectedUpdate != null)
             {
                 this.Game = selectedUpdate.Game;
+
+                // This is a temporary to understand the game history.
+                Update u = this.Game.LastUpdate.Yield().ToList().FirstOrDefault();
+                u = selectedUpdate;
+                
                 selectedUpdate.Command.Accept(this);
             }
             else if (this.game.Board.IsOccupied(position, this.game.ActivePlayer.Color))
@@ -246,6 +254,12 @@ namespace Chess.ViewModel.Game
         public void Visit(SetLastUpdateCommand command)
         {
             // Not used at the moment, can be used to display the game history in the GUI.
+            // Not clear how to use this to display the game history in the GUI.
+            // this.Board.Execute(command);
+
+            //var history = this.Game.History;
+
+            //var historyList = history.ToList();
         }
 
         /// <summary>
