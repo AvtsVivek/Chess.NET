@@ -465,14 +465,25 @@ namespace Chess.ViewModel.Game
             // Need to understand more. 
             if(command.Update.HasValue)
             {
-                // This is a temporary to understand the game history.
-                // var history = command.Update.GetOrElse((Update)null)?.Game.History.ToList();
-            }
-            else
-            {
+                var update = command.Update.Yield().FirstOrDefault();
 
+                var updateId = update.UpdateId.ToString();
+
+                LastUpdateInfo = $"Update: {updateId}  GameId: {update.Game.GameId}";
+
+                this.OnPropertyChanged(nameof(this.LastUpdateInfo));
+
+                var moves = this.ChessMoveSequence.ChessMoves
+                    .Where(move => move.MoveNumber == chessMoveSequenceIndex);
+
+                foreach (var move in moves)
+                {
+                    move.GameAndUpdateInfo = LastUpdateInfo;
+                }
             }
         }
+
+        public string LastUpdateInfo { get; set; }
 
         /// <summary>
         /// Updates the active players command list with the specified move command.
@@ -485,14 +496,6 @@ namespace Chess.ViewModel.Game
         {
             if (!moveCommand.IsUndo)
             {
-                var move = new ChessMoveVM
-                (
-                    new PositionVM(moveCommand.Source),
-                    new PositionVM(moveCommand.Target),
-                    moveCommand.Piece,
-                    chessMoveSequenceIndex,
-                    "Moved"
-                );
                 this.activePlayerCommands.Add(moveCommand);
             }
         }
@@ -508,14 +511,6 @@ namespace Chess.ViewModel.Game
         {
             if (!removeCommand.IsUndo)
             {
-                var move = new ChessMoveVM
-                (
-                    new PositionVM(removeCommand.Position),
-                    null,
-                    removeCommand.Piece,
-                    chessMoveSequenceIndex,
-                    "Captured"
-                );
                 this.activePlayerCommands.Add(removeCommand);
             }
         }
@@ -530,14 +525,6 @@ namespace Chess.ViewModel.Game
         {
             if (!spawnCommand.IsUndo)
             {
-                var move = new ChessMoveVM
-                (
-                    new PositionVM(spawnCommand.Position),
-                    null,
-                    spawnCommand.Piece,
-                    chessMoveSequenceIndex,
-                    "Appeared"
-                );
                 this.activePlayerCommands.Add(spawnCommand);
             }
         }
