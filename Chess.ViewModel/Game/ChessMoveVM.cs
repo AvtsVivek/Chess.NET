@@ -170,9 +170,26 @@ namespace Chess.ViewModel.Game
             {
                 if (this.moveNumber != value)
                 {
-                    // this.moveNumber = value ?? throw new ArgumentNullException(nameof(this.MoveNumber));
                     this.moveNumber = value;
                     this.OnPropertyChanged(nameof(this.MoveNumber));
+                }
+            }
+        }
+
+        private string gameAndUpdateInfo;
+
+        public string GameAndUpdateInfo 
+        {
+            get
+            {
+                return this.gameAndUpdateInfo;
+            }
+            set
+            {
+                if (this.gameAndUpdateInfo != value)
+                {
+                    this.gameAndUpdateInfo = value;
+                    this.OnPropertyChanged(nameof(this.GameAndUpdateInfo));
                 }
             }
         }
@@ -226,7 +243,6 @@ namespace Chess.ViewModel.Game
             return (row + 1).ToString() + columnId;
         }
 
-
         /// <summary>
         /// Fires the <see cref="PropertyChanged"/> event.
         /// </summary>
@@ -235,7 +251,6 @@ namespace Chess.ViewModel.Game
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
     }
 }
 
