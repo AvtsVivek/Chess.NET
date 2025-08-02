@@ -215,22 +215,10 @@ namespace Chess.ViewModel.Game
             var selectedUpdate = this.updateSelector(updates);
             this.Board.ClearUpdates();
 
-
-            // The following is temp, to be removed. 
-            // Just for debugging.
-            var lastUpdateId = this.Game.LastUpdateId;
-            var nextUpdateId = this.Game.NextUpdateId;
-
-
             if (selectedUpdate != null)
             {
                 this.Game.NextUpdate = new Just<Update>(selectedUpdate);
-                this.Game = selectedUpdate.Game;
-
-                // This is a temporary to understand the game history.
-                Update u = this.Game.LastUpdate.Yield().ToList().FirstOrDefault();
-                u = selectedUpdate;
-                
+                this.Game = selectedUpdate.Game;                
                 selectedUpdate.Command.Accept(this);
             }
             else if (this.game.Board.IsOccupied(position, this.game.ActivePlayer.Color))
