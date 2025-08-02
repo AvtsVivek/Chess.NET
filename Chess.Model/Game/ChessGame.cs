@@ -14,14 +14,52 @@ namespace Chess.Model.Game
     /// <summary>
     /// Represents a chess game.
     /// </summary>
-    [DebuggerDisplay("GameId: {GameId}")]
+    [DebuggerDisplay("GameId: {GameId}, LastUpdateId: {LastUpdateId} , NextUpdateId: {NextUpdateId}")]
     public class ChessGame
     {
         // Just for debugging and understanding purposes.
+        // Represents a counter for the number of instances of <see cref="ChessGame"/> created so far.
         public static int InstanceCounter;
 
         // Just for debugging and understanding purposes.
+        // Represents a unique identifier for the current instance.
         public int GameId { get; set; }
+
+        // Just for debugging and understanding purposes.
+        // Represents the id of the last update that has led to this game state.
+        public int LastUpdateId 
+        {
+            get
+            {
+                var update = this.LastUpdate;
+                if (update != null && update.HasValue)
+                {
+                    return update.Yield().ToList().FirstOrDefault().UpdateId;
+                }
+                else
+                {
+                    return -1; // represents null.
+                }
+            }
+        }
+
+        // Just for debugging and understanding purposes.
+        // Represents the id of the next update that will lead to the next game state.
+        public int NextUpdateId
+        {
+            get
+            {
+                var update = this.NextUpdate;
+                if (update != null && update.HasValue)
+                {
+                    return update.Yield().ToList().FirstOrDefault().UpdateId;
+                }
+                else
+                {
+                    return -1; // represents null.
+                }
+            }
+        }
 
         /// <summary>
         /// Represents the current state of the chess board.
@@ -54,6 +92,12 @@ namespace Chess.Model.Game
         {
         }
 
+
+        private ChessGame(Board board, Player activePlayer, Player passivePlayer, IMaybe<Update> lastUpdate)
+            : this(board, activePlayer, passivePlayer, lastUpdate, Nothing<Update>.Instance)
+        {
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ChessGame"/> class.
         /// </summary>
@@ -61,21 +105,30 @@ namespace Chess.Model.Game
         /// <param name="activePlayer">The player who has currently the right to move.</param>
         /// <param name="passivePlayer">The player who is currently waiting for the opponent's move.</param>
         /// <param name="lastUpdate">The update that has led to the newly created game state.</param>
-        private ChessGame(Board board, Player activePlayer, Player passivePlayer, IMaybe<Update> lastUpdate)
+        /// <param name="nextUpdate">The update that will lead next game state.</param>
+        private ChessGame(Board board, Player activePlayer, Player passivePlayer, IMaybe<Update> lastUpdate, IMaybe<Update> nextUpdate)
         {
             Validation.NotNull(board, nameof(board));
             Validation.NotNull(activePlayer, nameof(activePlayer));
             Validation.NotNull(passivePlayer, nameof(passivePlayer));
             Validation.NotNull(lastUpdate, nameof(lastUpdate));
+            Validation.NotNull(nextUpdate, nameof(nextUpdate));
 
             this.Board = board;
             this.ActivePlayer = activePlayer;
             this.PassivePlayer = passivePlayer;
             this.LastUpdate = lastUpdate;
+            this.NextUpdate = nextUpdate;
+
             InstanceCounter++;
             
             this.GameId = InstanceCounter;
         }
+
+        /// <summary>
+        /// Represents the update that will lead to the next game state.
+        /// </summary>
+        public IMaybe<Update> NextUpdate { get; set; }
 
         /// <summary>
         /// Gets the history of updates that led to this game state.
@@ -89,9 +142,10 @@ namespace Chess.Model.Game
                 (
                     u =>
                     {
-                        var history = u.Game.History;
-                        var prependedHistory = Enumerable.Prepend(history, u);
-                        return prependedHistory;
+                        //var history = u.Game.History;
+                        //var prependedHistory = Enumerable.Prepend(history, u);
+                        //return prependedHistory;
+                        return Enumerable.Prepend(u.Game.History, u);
                     },
                     
                     Enumerable.Empty<Update>()
@@ -113,7 +167,8 @@ namespace Chess.Model.Game
                 this.Board,
                 this.ActivePlayer,
                 this.PassivePlayer,
-                update
+                update,
+                this.NextUpdate
             );
         }
 
@@ -131,7 +186,8 @@ namespace Chess.Model.Game
                 board,
                 this.ActivePlayer,
                 this.PassivePlayer,
-                this.LastUpdate
+                this.LastUpdate,
+                this.NextUpdate
             );
         }
 
@@ -147,7 +203,8 @@ namespace Chess.Model.Game
                 this.Board,
                 this.PassivePlayer,
                 this.ActivePlayer,
-                this.LastUpdate
+                this.LastUpdate,
+                this.NextUpdate
             );
         }
     }

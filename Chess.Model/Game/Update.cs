@@ -18,7 +18,7 @@ namespace Chess.Model.Game
     {
         /// <summary>
         /// Gets or sets the unique identifier for the current instance.
-        /// This is temporarily, just for debugging and understanding purposes.
+        /// This is temporary, just for debugging and understanding purposes.
         /// Will be removed in the future.
         /// </summary>
         private static int InstanceCounter;
@@ -64,8 +64,6 @@ namespace Chess.Model.Game
             this.UpdateId = InstanceCounter;
 
             Description = description;
-
-            Debug.WriteLine($"Update created: {InstanceCounter} - {this.Command.GetType().Name}");
         }
     }
 }

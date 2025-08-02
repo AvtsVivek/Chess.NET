@@ -43,6 +43,11 @@ namespace Chess.ViewModel.Game
         private readonly GenericCommand undoCommand;
 
         /// <summary>
+        /// Represents the redo command, which reverts the previous undo.
+        /// </summary>
+        private readonly GenericCommand redoCommand;
+
+        /// <summary>
         /// Represents the current game state.
         /// </summary>
         private ChessGame game;
@@ -74,6 +79,21 @@ namespace Chess.ViewModel.Game
                         this.Game = e.Game;
                         this.Board.ClearUpdates();
                         e.Command.Accept(this.negator).Accept(this);
+                    }
+                )
+            );
+
+            this.redoCommand = new GenericCommand
+            (
+                () => this.Game.NextUpdate.HasValue,
+                () => this.Game.NextUpdate.Do
+                (
+                    e =>
+                    {
+                        var t = this.Game.NextUpdate.HasValue;
+                        this.Game = e.Game;
+                        this.Board.ClearUpdates();
+                        e.Command.Accept(this);
                     }
                 )
             );
@@ -140,6 +160,12 @@ namespace Chess.ViewModel.Game
         public GenericCommand UndoCommand => this.undoCommand;
 
         /// <summary>
+        /// Gets the command that reverts the last undo
+        /// </summary>
+        /// <value>The command that reverts the last undo.</value>
+        public GenericCommand RedoCommand => this.redoCommand;
+
+        /// <summary>
         /// Gets or sets the current chess game state.
         /// </summary>
         private ChessGame Game
@@ -155,9 +181,16 @@ namespace Chess.ViewModel.Game
                 {
                     this.game = value ?? throw new ArgumentNullException(nameof(this.Game));
                     this.UndoCommand?.FireCanExecuteChanged();
+                    this.RedoCommand?.FireCanExecuteChanged();
                 }
+                UpdateMoveCount();
             }
         }
+
+        /// <summary>
+        /// Temp to be removed. GameCount.
+        /// </summary>
+        public int GameMoveCount { get; set; }
 
 
         /// <summary>
@@ -167,6 +200,7 @@ namespace Chess.ViewModel.Game
         /// <param name="column">The column of the field.</param>
         public void Select(int row, int column)
         {
+            UpdateMoveCount();
             var position = new Position(row, column);
             var field = this.Board.GetField(position);
 
@@ -175,14 +209,22 @@ namespace Chess.ViewModel.Game
                 this.Board.ClearUpdates();
                 return;
             }
-
+            
             var updates = this.Board.GetUpdates(field);
             var updateCount = updates.Count;
             var selectedUpdate = this.updateSelector(updates);
             this.Board.ClearUpdates();
 
+
+            // The following is temp, to be removed. 
+            // Just for debugging.
+            var lastUpdateId = this.Game.LastUpdateId;
+            var nextUpdateId = this.Game.NextUpdateId;
+
+
             if (selectedUpdate != null)
             {
+                this.Game.NextUpdate = new Just<Update>(selectedUpdate);
                 this.Game = selectedUpdate.Game;
 
                 // This is a temporary to understand the game history.
@@ -255,11 +297,7 @@ namespace Chess.ViewModel.Game
         {
             // Not used at the moment, can be used to display the game history in the GUI.
             // Not clear how to use this to display the game history in the GUI.
-            // this.Board.Execute(command);
-
-            //var history = this.Game.History;
-
-            //var historyList = history.ToList();
+            this.Board.Execute(command);
         }
 
         /// <summary>
@@ -278,6 +316,17 @@ namespace Chess.ViewModel.Game
         protected void OnPropertyChanged(string propertyName)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary>
+        /// Temp. Will be removed.
+        /// Just to update move count.
+        /// </summary>
+        private void UpdateMoveCount()
+        {
+            GameMoveCount = this.Game.History.Count();
+
+            OnPropertyChanged(nameof(GameMoveCount));
         }
     }
 }
