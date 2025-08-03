@@ -142,6 +142,7 @@ namespace Chess.Model.Game
                 (
                     u =>
                     {
+                        // Just for debugging and understanding purposes.
                         //var history = u.Game.History;
                         //var prependedHistory = Enumerable.Prepend(history, u);
                         //return prependedHistory;
