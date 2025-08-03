@@ -209,10 +209,15 @@ namespace Chess.ViewModel.Game
                 {
                     _selectedAppModeValue = value;
                     Debug.WriteLine($"Selected App Mode: {_selectedAppModeValue}");
+                    AppModeChangedHandler();
                     OnPropertyChanged(nameof(SelectedAppModeValue));
+                    
                 }
             }
         }
+
+
+        public string FilePath { get; set; } 
 
 
         /// <summary>
@@ -342,6 +347,78 @@ namespace Chess.ViewModel.Game
             GameMoveCount = this.Game.History.Count();
 
             OnPropertyChanged(nameof(GameMoveCount));
+        }
+
+        /// <summary>
+        /// Handles App Mode Changed Event
+        /// </summary>
+        private void AppModeChangedHandler()
+        {
+            switch (_selectedAppModeValue)
+            {
+                case AppMode.Play:
+                    AppModeChangedToPlayMode();
+                    break;
+                case AppMode.Record:
+                    AppModeChangedToRecordMode();
+                    break;
+                case AppMode.Review:
+                    AppModeChangedToReviewMode();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Handles the change to Play Mode.
+        /// </summary>
+        private void AppModeChangedToPlayMode()
+        {
+
+        }
+
+        /// <summary>
+        /// Handles the change to Record Mode.
+        /// </summary>
+        private void AppModeChangedToRecordMode()
+        {
+            // In Record Mode, we can record the game state and the moves made by the players.
+            // This can be used to create a game history, which can be used to review the game later.
+
+
+            // First ensure we have a valid file path to save the game history.
+
+            if (string.IsNullOrWhiteSpace(FilePath))
+            {
+                Debug.WriteLine("File path is not set. Cannot record game history.");
+                return;
+            }
+
+
+
+
+            // For now, we just print the current game state to the debug console.
+
+
+            List<Update> history = this.Game.History.ToList();
+
+            if (history.Count != 0)
+            {
+                var lastUpdate = history.Last();
+                lastUpdate.Game.Board.OrderBy(placedPiece => placedPiece.Color).ToList().ForEach
+                (
+                    placedPiece => Debug.WriteLine($"Field: {placedPiece.Position.ToString()}, Piece: {placedPiece.Piece}, Color: {placedPiece.Piece?.Color}")
+                );
+            }
+        }
+
+        /// <summary>
+        /// Handles the change to Review Mode.
+        /// </summary>
+        private void AppModeChangedToReviewMode()
+        {
+
         }
 
         /// <summary>
