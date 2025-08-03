@@ -15,6 +15,7 @@ namespace Chess.ViewModel.Game
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Diagnostics;
     using System.Linq;
 
     /// <summary>
@@ -76,7 +77,9 @@ namespace Chess.ViewModel.Game
                 (
                     e =>
                     {
+                        // PrintCurrentGameStateForDebuggingPurposes("Undo");
                         this.Game = e.Game;
+                        // PrintCurrentGameStateForDebuggingPurposes("Undo");
                         this.Board.ClearUpdates();
                         e.Command.Accept(this.negator).Accept(this);
                     }
@@ -90,13 +93,16 @@ namespace Chess.ViewModel.Game
                 (
                     e =>
                     {
-                        var t = this.Game.NextUpdate.HasValue;
+                        // PrintCurrentGameStateForDebuggingPurposes("Redo");
                         this.Game = e.Game;
+                        // PrintCurrentGameStateForDebuggingPurposes("Redo");
                         this.Board.ClearUpdates();
                         e.Command.Accept(this);
                     }
                 )
             );
+
+            SelectedAppModeValue = AppMode.Play; // Default mode is Play
         }
 
         /// <summary>
@@ -193,6 +199,22 @@ namespace Chess.ViewModel.Game
         public int GameMoveCount { get; set; }
 
 
+        private AppMode _selectedAppModeValue;
+        public AppMode SelectedAppModeValue
+        {
+            get { return _selectedAppModeValue; }
+            set
+            {
+                if (_selectedAppModeValue != value)
+                {
+                    _selectedAppModeValue = value;
+                    Debug.WriteLine($"Selected App Mode: {_selectedAppModeValue}");
+                    OnPropertyChanged(nameof(SelectedAppModeValue));
+                }
+            }
+        }
+
+
         /// <summary>
         /// Selects a specific field of the chess board.
         /// </summary>
@@ -201,6 +223,7 @@ namespace Chess.ViewModel.Game
         public void Select(int row, int column)
         {
             UpdateMoveCount();
+
             var position = new Position(row, column);
             var field = this.Board.GetField(position);
 
@@ -209,7 +232,7 @@ namespace Chess.ViewModel.Game
                 this.Board.ClearUpdates();
                 return;
             }
-            
+
             var updates = this.Board.GetUpdates(field);
             var updateCount = updates.Count;
             var selectedUpdate = this.updateSelector(updates);
@@ -217,12 +240,16 @@ namespace Chess.ViewModel.Game
 
             if (selectedUpdate != null)
             {
+                // PrintCurrentGameStateForDebuggingPurposes("Regular");
                 this.Game.NextUpdate = new Just<Update>(selectedUpdate);
-                this.Game = selectedUpdate.Game;                
+                this.Game = selectedUpdate.Game;
+                // PrintCurrentGameStateForDebuggingPurposes("Regular");
                 selectedUpdate.Command.Accept(this);
             }
             else if (this.game.Board.IsOccupied(position, this.game.ActivePlayer.Color))
             {
+                // Not sure about the following. Need to check if this is correct.
+                this.Game.NextUpdate = new Nothing<Update>();
                 var newUpdates = this.rulebook.GetUpdates(this.Game, position);
                 this.Board.SetSource(position);
                 this.Board.SetTargets(newUpdates);
@@ -315,6 +342,27 @@ namespace Chess.ViewModel.Game
             GameMoveCount = this.Game.History.Count();
 
             OnPropertyChanged(nameof(GameMoveCount));
+        }
+
+        /// <summary>
+        /// Prints the current game state to the debug console for debugging purposes.
+        /// </summary>
+        /// <param name="moveType"></param>
+        private void PrintCurrentGameStateForDebuggingPurposes(string moveType)
+        {
+            var lastUpdate = this.Game.LastUpdate.Yield().FirstOrDefault();
+            if (lastUpdate != null)
+            {
+                var debugString =
+                    $"Move Type: {moveType}, " +
+                    $"MoveCount: {this.GameMoveCount}, " +
+                    $"LastUpdateId: {lastUpdate.Game.LastUpdateId}, " +
+                    $"LastUpdateGameId: {lastUpdate.Game.GameId}, " +
+                    $"Current Update: {lastUpdate.UpdateId}, " +
+                    $"Current GameId: {this.Game.GameId}, " +
+                    $"NextUpdateId: {lastUpdate.Game.NextUpdateId}, ";
+                Debug.WriteLine(debugString);
+            }
         }
     }
 }

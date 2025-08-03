@@ -151,10 +151,5 @@ namespace Chess.View.Window
             ChessAppSettings.Default.ConsoleColumnWidth = consoleColumnWidth;
             ChessAppSettings.Default.Save();
         }
-
-        private void btnRecord_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }
