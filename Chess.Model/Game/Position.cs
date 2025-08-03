@@ -106,5 +106,10 @@ namespace Chess.Model.Game
             hashCodeBuilder.Add(this.Column);
             return hashCodeBuilder.ToHashCode();
         }
+
+        public override string ToString()
+        {
+            return $"({this.Row + 1}, {this.Column + 1})";
+        }
     }
 }
