@@ -90,7 +90,7 @@ namespace Chess.ViewModel.Game
 
             this.rowColumnLabels = new List<RowColumnLabelVM>();
 
-            for(int row = 0; row < 8; row++) 
+            for (int row = 0; row < 8; row++)
             {
                 var labelVM = new RowColumnLabelVM
                 {
@@ -189,12 +189,12 @@ namespace Chess.ViewModel.Game
         /// <value>The current pieces on the chess board.</value>
         public ObservableCollection<PlacedPieceVM> Pieces { get; }
 
-        public IEnumerable<RowColumnLabelVM> RowColumnLabels 
+        public IEnumerable<RowColumnLabelVM> RowColumnLabels
         {
             get
-            { 
-                return rowColumnLabels; 
-            } 
+            {
+                return rowColumnLabels;
+            }
         }
 
         /// <summary>
@@ -341,63 +341,11 @@ namespace Chess.ViewModel.Game
         {
             if (endTurnCommand.IsUndo)
             {
-                var movesToBeRemoved = this.ChessMoveSequence.ChessMoves
-                    .Where(move => move.MoveNumber == chessMoveSequenceIndex)
-                    .ToList();
-                
-                foreach (var move in movesToBeRemoved)
-                    this.ChessMoveSequence.ChessMoves.Remove(move);
-
-                chessMoveSequenceIndex--;
+                UnPopulateChecssMoveSequence();
             }
             else
             {
-                chessMoveSequenceIndex++;
-                foreach (var command in this.activePlayerCommands)
-                {
-                    ChessMoveVM chessMove = null;
-                    if (command is MoveCommand moveCommand)
-                    {
-                        chessMove = new ChessMoveVM
-                        (
-                            new PositionVM(moveCommand.Source),
-                            new PositionVM(moveCommand.Target),
-                            moveCommand.Piece,
-                            chessMoveSequenceIndex,
-                            "Moved"
-                        );
-                    }
-                    else if (command is RemoveCommand removeCommand)
-                    {
-                        chessMove = new ChessMoveVM
-                        (
-                            new PositionVM(removeCommand.Position),
-                            null,
-                            removeCommand.Piece,
-                            chessMoveSequenceIndex,
-                            "Captured"
-                        );
-                    }
-                    else if (command is SpawnCommand spawnCommand)
-                    {
-                        chessMove = new ChessMoveVM
-                        (
-                            new PositionVM(spawnCommand.Position),
-                            null,
-                            spawnCommand.Piece,
-                            chessMoveSequenceIndex,
-                            "Appeared"
-                        );
-                    }
-
-                    if (chessMove != null)
-                    {
-                        // Insert the move at the beginning of the sequence to
-                        // ensure the most recent move is at the top.
-                        this.ChessMoveSequence.ChessMoves.Insert(0, chessMove);
-                    }
-                }
-                activePlayerCommands.Clear();
+                PopulateChecssMoveSequence();
             }
 
             OnPropertyChanged(nameof(ChessMoveSequence));
@@ -463,13 +411,16 @@ namespace Chess.ViewModel.Game
         public void Execute(SetLastUpdateCommand command)
         {
             // Need to understand more. 
-            if(command.Update.HasValue)
+            if (command.Update.HasValue)
             {
                 var update = command.Update.Yield().FirstOrDefault();
 
-                var updateId = update.UpdateId.ToString();
+                // The following is for debugging purposes only.
+                // Comment it out in production code.
 
-                LastUpdateInfo = $"Update: {updateId}  GameId: {update.Game.GameId}";
+                //LastUpdateInfo = $"Update: {update.UpdateId} " +
+                //    $"GameId: {update.Game.GameId} LastUpdateId: {update.Game.LastUpdateId} " +
+                //    $"NextUpdateId: {update.Game.NextUpdateId}";
 
                 this.OnPropertyChanged(nameof(this.LastUpdateInfo));
 
@@ -527,6 +478,68 @@ namespace Chess.ViewModel.Game
             {
                 this.activePlayerCommands.Add(spawnCommand);
             }
+        }
+
+        private void UnPopulateChecssMoveSequence()
+        {
+            var movesToBeRemoved = this.ChessMoveSequence.ChessMoves
+                .Where(move => move.MoveNumber == chessMoveSequenceIndex)
+                .ToList();
+
+            foreach (var move in movesToBeRemoved)
+                this.ChessMoveSequence.ChessMoves.Remove(move);
+
+            chessMoveSequenceIndex--;
+        }
+
+        private void PopulateChecssMoveSequence()
+        {
+            chessMoveSequenceIndex++;
+            foreach (var command in this.activePlayerCommands)
+            {
+                ChessMoveVM chessMove = null;
+                if (command is MoveCommand moveCommand)
+                {
+                    chessMove = new ChessMoveVM
+                    (
+                        new PositionVM(moveCommand.Source),
+                        new PositionVM(moveCommand.Target),
+                        moveCommand.Piece,
+                        chessMoveSequenceIndex,
+                        "Moved"
+                    );
+                }
+                else if (command is RemoveCommand removeCommand)
+                {
+                    chessMove = new ChessMoveVM
+                    (
+                        new PositionVM(removeCommand.Position),
+                        null,
+                        removeCommand.Piece,
+                        chessMoveSequenceIndex,
+                        "Captured"
+                    );
+                }
+                else if (command is SpawnCommand spawnCommand)
+                {
+                    chessMove = new ChessMoveVM
+                    (
+                        new PositionVM(spawnCommand.Position),
+                        null,
+                        spawnCommand.Piece,
+                        chessMoveSequenceIndex,
+                        "Appeared"
+                    );
+                }
+
+                if (chessMove != null)
+                {
+                    // Insert the move at the beginning of the sequence to
+                    // ensure the most recent move is at the top.
+                    this.ChessMoveSequence.ChessMoves.Insert(0, chessMove);
+                }
+            }
+            activePlayerCommands.Clear();
         }
 
         /// <summary>
