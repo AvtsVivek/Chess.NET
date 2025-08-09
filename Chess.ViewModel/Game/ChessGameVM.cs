@@ -9,14 +9,21 @@ namespace Chess.ViewModel.Game
     using Chess.Model.Command;
     using Chess.Model.Data;
     using Chess.Model.Game;
+    using Chess.Model.Piece;
     using Chess.Model.Rule;
     using Chess.ViewModel.Command;
+    using Chess.ViewModel.Piece;
     using Chess.ViewModel.Visitor;
+    using Microsoft.Win32;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
+    using System.Text;
+    using System.Windows;
+    using System.Xml;
 
     /// <summary>
     /// Represents the view model of a chess game.
@@ -211,13 +218,13 @@ namespace Chess.ViewModel.Game
                     Debug.WriteLine($"Selected App Mode: {_selectedAppModeValue}");
                     AppModeChangedHandler();
                     OnPropertyChanged(nameof(SelectedAppModeValue));
-                    
+
                 }
             }
         }
 
 
-        public string FilePath { get; set; } 
+        public string FilePath { get; set; }
 
 
         /// <summary>
@@ -253,7 +260,6 @@ namespace Chess.ViewModel.Game
             }
             else if (this.game.Board.IsOccupied(position, this.game.ActivePlayer.Color))
             {
-                // Not sure about the following. Need to check if this is correct.
                 this.Game.NextUpdate = new Nothing<Update>();
                 var newUpdates = this.rulebook.GetUpdates(this.Game, position);
                 this.Board.SetSource(position);
@@ -378,6 +384,49 @@ namespace Chess.ViewModel.Game
 
         }
 
+        private string GetFileName()
+        {
+            DateTime now = DateTime.Now;
+            string fileName = $"ChessGame-{now:yyyy-MM-dd-HH-mm-ss}.xml";
+            return fileName;
+        }
+
+        private string GetXmlFolderPath()
+        {
+            var initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.XmlFolderPath)
+                && Directory.Exists(ChessAppSettings.Default.XmlFolderPath)
+                )
+            {
+                initialDirectory = ChessAppSettings.Default.XmlFolderPath;
+            }
+
+            var folderDialog = new OpenFolderDialog
+            {
+                Title = "Select Folder",
+                InitialDirectory = initialDirectory
+            };
+
+
+            if (folderDialog.ShowDialog() == true)
+            {
+                var folderName = folderDialog.FolderName;
+
+                if (!ArePathsSame(ChessAppSettings.Default.XmlFolderPath, folderName))
+                {
+                    ChessAppSettings.Default.XmlFolderPath = folderName;
+                    ChessAppSettings.Default.Save();
+                }
+            }
+            else
+            {
+                Debug.WriteLine("No folder selected. Cannot record game history.");
+                return null;
+            }
+
+            return folderDialog.FolderName;
+        }
+
         /// <summary>
         /// Handles the change to Record Mode.
         /// </summary>
@@ -385,32 +434,26 @@ namespace Chess.ViewModel.Game
         {
             // In Record Mode, we can record the game state and the moves made by the players.
             // This can be used to create a game history, which can be used to review the game later.
-
-
             // First ensure we have a valid file path to save the game history.
 
             if (string.IsNullOrWhiteSpace(FilePath))
             {
                 Debug.WriteLine("File path is not set. Cannot record game history.");
-                return;
+                var folderPath = GetXmlFolderPath();
+
+                if (string.IsNullOrWhiteSpace(folderPath))
+                {
+                    Debug.WriteLine("Folder path is still not set. Cannot record game history.");
+                    return;
+                }
+
+                var fileName = GetFileName();
+
+                FilePath = Path.Combine(folderPath, fileName);
+
             }
 
-
-
-
-            // For now, we just print the current game state to the debug console.
-
-
-            List<Update> history = this.Game.History.ToList();
-
-            if (history.Count != 0)
-            {
-                var lastUpdate = history.Last();
-                lastUpdate.Game.Board.OrderBy(placedPiece => placedPiece.Color).ToList().ForEach
-                (
-                    placedPiece => Debug.WriteLine($"Field: {placedPiece.Position.ToString()}, Piece: {placedPiece.Piece}, Color: {placedPiece.Piece?.Color}")
-                );
-            }
+            WriteXmlFile(FilePath);
         }
 
         /// <summary>
@@ -421,25 +464,113 @@ namespace Chess.ViewModel.Game
 
         }
 
-        /// <summary>
-        /// Prints the current game state to the debug console for debugging purposes.
-        /// </summary>
-        /// <param name="moveType"></param>
-        private void PrintCurrentGameStateForDebuggingPurposes(string moveType)
+        private void WriteXmlFile(string filePath)
         {
-            var lastUpdate = this.Game.LastUpdate.Yield().FirstOrDefault();
-            if (lastUpdate != null)
+            Debug.WriteLine($"Writing game state to XML file: {filePath}");
+            XmlWriterSettings settings = new();
+            settings.Indent = true;
+            settings.IndentChars = ("\t");
+            settings.OmitXmlDeclaration = true;
+
+            XmlDocument doc = new();
+
+            using (XmlWriter writer = XmlWriter.Create(filePath, settings))
             {
-                var debugString =
-                    $"Move Type: {moveType}, " +
-                    $"MoveCount: {this.GameMoveCount}, " +
-                    $"LastUpdateId: {lastUpdate.Game.LastUpdateId}, " +
-                    $"LastUpdateGameId: {lastUpdate.Game.GameId}, " +
-                    $"Current Update: {lastUpdate.UpdateId}, " +
-                    $"Current GameId: {this.Game.GameId}, " +
-                    $"NextUpdateId: {lastUpdate.Game.NextUpdateId}, ";
-                Debug.WriteLine(debugString);
+                writer.WriteStartElement("ChessMoves");
+
+                WriteStartPositionsToXmlFile(writer);
+
+                writer.WriteEndElement();
+
+                doc.Save(writer);
             }
+        }
+
+        /// <summary>
+        /// Writes the starting positions of the game pieces to an XML file using the specified <see cref="XmlWriter"/>.
+        /// </summary>
+        /// <remarks>This method generates an XML structure representing the starting positions of the
+        /// game pieces for both black and white players. If the game history is empty, no piece information is written.
+        /// The pieces are grouped by color and ordered by type.</remarks>
+        /// <param name="writer">The <see cref="XmlWriter"/> used to write the XML content. Cannot be <see langword="null"/>.</param>
+        private void WriteStartPositionsToXmlFile(XmlWriter writer)
+        {
+            writer.WriteStartElement("Start");
+
+            List<Update> history = this.Game.History.ToList();
+
+            var board = this.Game.Board;
+
+            if (history.Count != 0)
+            {
+                var lastUpdate = history.Last();
+                board = lastUpdate.Game.Board;
+            }
+
+            var whitePiecesOrdered = board.Where(placedPiece
+                => placedPiece.Color == Color.White)
+                .OrderBy(placedPiece => placedPiece.Piece);
+
+            var blackPiecesOrdered = board.Where(placedPiece
+                => placedPiece.Color == Color.Black)
+                .OrderBy(placedPiece => placedPiece.Piece);
+
+            writer.WriteStartElement("Pieces");
+
+            writer.WriteStartElement("Black");
+
+            WritePieces(blackPiecesOrdered, writer);
+
+            writer.WriteEndElement(); // End of Black
+
+            writer.WriteStartElement("White");
+
+            WritePieces(whitePiecesOrdered, writer);
+
+            writer.WriteEndElement(); // End of White
+
+            writer.WriteEndElement(); // End of Pieces
+
+            writer.WriteEndElement();
+        }
+
+        private void WritePieces(IEnumerable<PlacedPiece> placedPieces, XmlWriter writer)
+        {
+            var groupedPlacedPieces = placedPieces.GroupBy(
+                    placedPiece => placedPiece.Piece.Weight,
+                    placedPiece => placedPiece,
+                    (key, g) => new
+                    {
+                        Weight = key,
+                        PlacedPieces = g.ToList()
+                    });
+
+            foreach (var group in groupedPlacedPieces.OrderBy(g => g.Weight))
+            {
+                writer.WriteStartElement(group.PlacedPieces.First().Piece.GetType().Name);
+
+                foreach (var piece in group.PlacedPieces.OrderByDescending(placedPiece => placedPiece.Position.Row))
+                {
+                    writer.WriteStartElement("Position");
+                    writer.WriteAttributeString("Row", (piece.Position.Row + 1).ToString());
+                    writer.WriteAttributeString("Column", (piece.Position.Column + 1).ToString());
+                    writer.WriteEndElement();
+                }
+
+                writer.WriteEndElement(); // End of group (e.g., Pawn, Knight, etc.)
+            }
+        }
+
+        private bool ArePathsSame(string path1, string path2)
+        {
+            return NormalizePath(path1) == NormalizePath(path2);
+        }
+
+        private string NormalizePath(string path)
+        {
+            return Path.GetFullPath(new Uri(path).LocalPath)
+                       .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                       .ToUpperInvariant();
         }
     }
 }
