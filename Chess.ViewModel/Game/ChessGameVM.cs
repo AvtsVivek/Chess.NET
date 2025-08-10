@@ -517,13 +517,13 @@ namespace Chess.ViewModel.Game
 
             writer.WriteStartElement("Pieces");
 
-            writer.WriteStartElement("Black");
+            writer.WriteStartElement("Blacks");
 
             WritePieces(blackPiecesOrdered, writer);
 
             writer.WriteEndElement(); // End of Black
 
-            writer.WriteStartElement("White");
+            writer.WriteStartElement("Whites");
 
             WritePieces(whitePiecesOrdered, writer);
 
@@ -547,7 +547,14 @@ namespace Chess.ViewModel.Game
 
             foreach (var group in groupedPlacedPieces.OrderBy(g => g.Weight))
             {
-                writer.WriteStartElement(group.PlacedPieces.First().Piece.GetType().Name);
+                var typeName = group.PlacedPieces.First().Piece.GetType().Name;
+
+                if(typeName != "King")
+                {
+                    typeName = typeName + "s"; // Pluralize the type name for all except King
+                }
+
+                writer.WriteStartElement(typeName);
 
                 foreach (var piece in group.PlacedPieces.OrderByDescending(placedPiece => placedPiece.Position.Row))
                 {
