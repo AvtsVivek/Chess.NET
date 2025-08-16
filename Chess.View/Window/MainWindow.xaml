@@ -138,7 +138,7 @@
             </Grid.ColumnDefinitions>
 
             <Viewbox Margin="10">
-                <Border BorderThickness="0.2" BorderBrush="White">
+                <Border BorderThickness="{Binding BoardBorderThickness}" BorderBrush="White">
                     <Border.Resources>
                         <Duration x:Key="duration">0:0:0.5</Duration>
                         <Storyboard x:Key="fadeWhite">
@@ -166,29 +166,21 @@
                     </Border.Triggers>
                     <Border.ToolTip>
                         <ToolTip Visibility="{Binding Status, Converter={StaticResource statusConverter}}">
-                            <TextBlock Text="{Binding Status, Converter={StaticResource statusConverter}}"
-                                   Margin="5"/>
+                            <TextBlock Text="{Binding Status, Converter={StaticResource statusConverter}}" Margin="5"/>
                         </ToolTip>
                     </Border.ToolTip>
                     <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" 
-                        Height="{x:Static game:BoardConstants.FullCanvasLength}" 
-                        MouseDown="BoardMouseDown">
+                            Height="{x:Static game:BoardConstants.FullCanvasLength}" MouseDown="BoardMouseDown">
                         <Canvas.Resources>
                             <PowerEase x:Key="ease" EasingMode="EaseInOut" />
                             <Storyboard x:Key="fadeIn">
-                                <DoubleAnimation
-                                Duration="{StaticResource duration}" To="1"
-                                Storyboard.TargetProperty="Opacity" />
+                                <DoubleAnimation Duration="{StaticResource duration}" To="1" Storyboard.TargetProperty="Opacity" />
                             </Storyboard>
                             <Storyboard x:Key="fadeOut">
-                                <DoubleAnimation
-                                Duration="{StaticResource duration}" To="0"
-                                Storyboard.TargetProperty="Opacity" />
+                                <DoubleAnimation Duration="{StaticResource duration}" To="0" Storyboard.TargetProperty="Opacity" />
                             </Storyboard>
                             <Storyboard x:Key="fadeOutWithEvent" Completed="RemoveCompleted">
-                                <DoubleAnimation
-                                Duration="{StaticResource duration}" To="0"
-                                Storyboard.TargetProperty="Opacity" />
+                                <DoubleAnimation Duration="{StaticResource duration}" To="0" Storyboard.TargetProperty="Opacity" />
                             </Storyboard>
                         </Canvas.Resources>
 
@@ -196,15 +188,11 @@
                         <ItemsControl ItemsSource="{Binding Board.RowColumnLabels}">
                             <ItemsControl.Resources>
                                 <select:RowColumnIdSelector x:Key="rowColumnIdSelector" />
-                                <RelativeSource
-                                x:Key="parent"
-                                Mode="FindAncestor"
-                                AncestorType="{x:Type ContentPresenter}" />
+                                <RelativeSource x:Key="parent" Mode="FindAncestor" AncestorType="{x:Type ContentPresenter}" />
                             </ItemsControl.Resources>
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" 
-                                            Height="{x:Static game:BoardConstants.FullCanvasLength}" />
+                                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" Height="{x:Static game:BoardConstants.FullCanvasLength}" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemContainerStyle>
@@ -282,10 +270,7 @@
                         <ItemsControl ItemsSource="{Binding Board.Pieces}">
                             <ItemsControl.Resources>
                                 <select:PieceSymbolSelector x:Key="symbolSelector" />
-                                <RelativeSource
-                                x:Key="parent"
-                                Mode="FindAncestor"
-                                AncestorType="{x:Type ContentPresenter}" />
+                                <RelativeSource x:Key="parent" Mode="FindAncestor" AncestorType="{x:Type ContentPresenter}" />
                             </ItemsControl.Resources>
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -327,14 +312,12 @@
                                             <EventTrigger RoutedEvent="Binding.TargetUpdated">
                                                 <BeginStoryboard>
                                                     <Storyboard>
-                                                        <DoubleAnimation
-                                                        Duration="{StaticResource duration}"
+                                                        <DoubleAnimation Duration="{StaticResource duration}" 
                                                         To="{Binding Position.DistanceFromBottom, NotifyOnTargetUpdated=True}"
                                                         Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
                                                         Storyboard.TargetProperty="(Canvas.Bottom)"
                                                         EasingFunction="{StaticResource ease}"/>
-                                                        <DoubleAnimation
-                                                        Duration="{StaticResource duration}"
+                                                        <DoubleAnimation Duration="{StaticResource duration}"
                                                         To="{Binding Position.DistanceFromLeft, NotifyOnTargetUpdated=True}"
                                                         Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
                                                         Storyboard.TargetProperty="(Canvas.Left)"
@@ -351,8 +334,7 @@
                 </Border>
             </Viewbox>
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" 
-                          DragCompleted="GridSplitter_DragCompleted" />
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted" />
 
             <Border Grid.Column="2" BorderThickness="2" Margin="10" BorderBrush="Green" CornerRadius="5" >
                 <DockPanel>

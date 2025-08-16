@@ -222,12 +222,6 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        ///// <summary>
-        ///// Temp to be removed. GameCount.
-        ///// </summary>
-        //public int GameMoveCount { get; set; }
-
-
         private AppMode selectedAppModeValue;
         public AppMode SelectedAppModeValue
         {
@@ -244,11 +238,11 @@ namespace Chess.ViewModel.Game
             }
         }
 
+        public double BoardBorderThickness => BoardConstants.BoardMarginForId;
 
         public string FilePath { get; set; }
 
         public string FolderPath { get; set; }
-
 
         /// <summary>
         /// Selects a specific field of the chess board.
