@@ -35,7 +35,7 @@ namespace Chess.Model.Rule
                     {
                         yield return new SequenceCommand
                         (
-                            new RemoveCommand(position, pawn),
+                            new RemoveCommand(position, pawn, isUndo: false, isPromotion: true),
                             new SpawnCommand(position, form)
                         );
                     }

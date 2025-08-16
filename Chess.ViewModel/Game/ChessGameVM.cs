@@ -9,10 +9,9 @@ namespace Chess.ViewModel.Game
     using Chess.Model.Command;
     using Chess.Model.Data;
     using Chess.Model.Game;
-    using Chess.Model.Piece;
     using Chess.Model.Rule;
+    using Chess.Services;
     using Chess.ViewModel.Command;
-    using Chess.ViewModel.Piece;
     using Chess.ViewModel.Visitor;
     using Microsoft.Win32;
     using System;
@@ -21,9 +20,6 @@ namespace Chess.ViewModel.Game
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Text;
-    using System.Windows;
-    using System.Xml;
 
     /// <summary>
     /// Represents the view model of a chess game.
@@ -66,6 +62,19 @@ namespace Chess.ViewModel.Game
         private BoardVM board;
 
         /// <summary>
+        /// Provides functionality for managing and interacting with XML files.
+        /// </summary>
+        /// <remarks>This service is used internally to handle operations such as reading, writing,  and
+        /// processing XML files. It is not exposed publicly and is intended for internal use only.</remarks>
+        private XmlFileService xmlFileService;
+
+        private PlayModeViewModel PlayModeVM;
+
+        private RecordModeViewModel RecordModeVM;
+
+        private ReviewModeViewModel ReviewModeVM;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ChessGameVM"/> class.
         /// </summary>
         /// <param name="updateSelector">The disambiguation mechanism if multiple updates are available for a target field.</param>
@@ -84,9 +93,7 @@ namespace Chess.ViewModel.Game
                 (
                     e =>
                     {
-                        // PrintCurrentGameStateForDebuggingPurposes("Undo");
                         this.Game = e.Game;
-                        // PrintCurrentGameStateForDebuggingPurposes("Undo");
                         this.Board.ClearUpdates();
                         e.Command.Accept(this.negator).Accept(this);
                     }
@@ -100,9 +107,7 @@ namespace Chess.ViewModel.Game
                 (
                     e =>
                     {
-                        // PrintCurrentGameStateForDebuggingPurposes("Redo");
                         this.Game = e.Game;
-                        // PrintCurrentGameStateForDebuggingPurposes("Redo");
                         this.Board.ClearUpdates();
                         e.Command.Accept(this);
                     }
@@ -110,6 +115,12 @@ namespace Chess.ViewModel.Game
             );
 
             SelectedAppModeValue = AppMode.Play; // Default mode is Play
+
+            xmlFileService = new();
+
+            CurrentAppModeViewModel = PlayModeVM = new PlayModeViewModel();
+            RecordModeVM = new RecordModeViewModel();
+            ReviewModeVM = new ReviewModeViewModel();
         }
 
         /// <summary>
@@ -200,31 +211,43 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        /// <summary>
-        /// Temp to be removed. GameCount.
-        /// </summary>
-        public int GameMoveCount { get; set; }
-
-
-        private AppMode _selectedAppModeValue;
-        public AppMode SelectedAppModeValue
+        private object _currentAppModeViewModel;
+        public object CurrentAppModeViewModel
         {
-            get { return _selectedAppModeValue; }
+            get { return _currentAppModeViewModel; }
             set
             {
-                if (_selectedAppModeValue != value)
+                _currentAppModeViewModel = value;
+                OnPropertyChanged(nameof(CurrentAppModeViewModel));
+            }
+        }
+
+        ///// <summary>
+        ///// Temp to be removed. GameCount.
+        ///// </summary>
+        //public int GameMoveCount { get; set; }
+
+
+        private AppMode selectedAppModeValue;
+        public AppMode SelectedAppModeValue
+        {
+            get { return selectedAppModeValue; }
+            set
+            {
+                if (selectedAppModeValue != value)
                 {
-                    _selectedAppModeValue = value;
-                    Debug.WriteLine($"Selected App Mode: {_selectedAppModeValue}");
+                    selectedAppModeValue = value;
+                    Debug.WriteLine($"Selected App Mode: {selectedAppModeValue}");
                     AppModeChangedHandler();
                     OnPropertyChanged(nameof(SelectedAppModeValue));
-
                 }
             }
         }
 
 
         public string FilePath { get; set; }
+
+        public string FolderPath { get; set; }
 
 
         /// <summary>
@@ -252,11 +275,10 @@ namespace Chess.ViewModel.Game
 
             if (selectedUpdate != null)
             {
-                // PrintCurrentGameStateForDebuggingPurposes("Regular");
                 this.Game.NextUpdate = new Just<Update>(selectedUpdate);
                 this.Game = selectedUpdate.Game;
-                // PrintCurrentGameStateForDebuggingPurposes("Regular");
                 selectedUpdate.Command.Accept(this);
+                AddUpdateXmlToFile(selectedUpdate);
             }
             else if (this.game.Board.IsOccupied(position, this.game.ActivePlayer.Color))
             {
@@ -265,6 +287,12 @@ namespace Chess.ViewModel.Game
                 this.Board.SetSource(position);
                 this.Board.SetTargets(newUpdates);
             }
+        }
+
+        private void AddUpdateXmlToFile(Update update)
+        {
+            if(SelectedAppModeValue == AppMode.Record && xmlFileService != null)
+                xmlFileService.AddUpdateXmlToFile(update);
         }
 
         /// <summary>
@@ -350,9 +378,12 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void UpdateMoveCount()
         {
-            GameMoveCount = this.Game.History.Count();
+            // GameMoveCount = this.Game.History.Count();
 
-            OnPropertyChanged(nameof(GameMoveCount));
+            if(PlayModeVM != null)
+                PlayModeVM.GameMoveCount = this.Game.History.Count();
+
+            // OnPropertyChanged(nameof(GameMoveCount));
         }
 
         /// <summary>
@@ -360,7 +391,7 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedHandler()
         {
-            switch (_selectedAppModeValue)
+            switch (selectedAppModeValue)
             {
                 case AppMode.Play:
                     AppModeChangedToPlayMode();
@@ -381,14 +412,43 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedToPlayMode()
         {
-
+            CurrentAppModeViewModel = PlayModeVM;
         }
 
-        private string GetFileName()
+        /// <summary>
+        /// Handles the change to Record Mode.
+        /// </summary>
+        private void AppModeChangedToRecordMode()
         {
-            DateTime now = DateTime.Now;
-            string fileName = $"ChessGame-{now:yyyy-MM-dd-HH-mm-ss}.xml";
-            return fileName;
+            CurrentAppModeViewModel = RecordModeVM;
+            // In Record Mode, we can record the game state and the moves made by the players.
+            // This can be used to create a game history, which can be used to review the game later.
+            // First ensure we have a valid file path to save the game history.
+
+            //if (string.IsNullOrWhiteSpace(FolderPath))
+            //{
+            //    Debug.WriteLine("File path is not set. Cannot record game history.");
+
+            //    FolderPath = GetXmlFolderPath();
+
+            //    if (string.IsNullOrWhiteSpace(FolderPath))
+            //    {
+            //        Debug.WriteLine("Folder path is still not set. Cannot record game history.");
+            //        // Reset back to Play Mode
+            //        SelectedAppModeValue = AppMode.Play;
+            //        return;
+            //    }
+            //}
+
+            //xmlFileService.WriteXmlFile(FolderPath, this.Game);
+        }
+
+        /// <summary>
+        /// Handles the change to Review Mode.
+        /// </summary>
+        private void AppModeChangedToReviewMode()
+        {
+            CurrentAppModeViewModel = ReviewModeVM;
         }
 
         private string GetXmlFolderPath()
@@ -427,146 +487,6 @@ namespace Chess.ViewModel.Game
             return folderDialog.FolderName;
         }
 
-        /// <summary>
-        /// Handles the change to Record Mode.
-        /// </summary>
-        private void AppModeChangedToRecordMode()
-        {
-            // In Record Mode, we can record the game state and the moves made by the players.
-            // This can be used to create a game history, which can be used to review the game later.
-            // First ensure we have a valid file path to save the game history.
-
-            if (string.IsNullOrWhiteSpace(FilePath))
-            {
-                Debug.WriteLine("File path is not set. Cannot record game history.");
-                var folderPath = GetXmlFolderPath();
-
-                if (string.IsNullOrWhiteSpace(folderPath))
-                {
-                    Debug.WriteLine("Folder path is still not set. Cannot record game history.");
-                    return;
-                }
-
-                var fileName = GetFileName();
-
-                FilePath = Path.Combine(folderPath, fileName);
-
-            }
-
-            WriteXmlFile(FilePath);
-        }
-
-        /// <summary>
-        /// Handles the change to Review Mode.
-        /// </summary>
-        private void AppModeChangedToReviewMode()
-        {
-
-        }
-
-        private void WriteXmlFile(string filePath)
-        {
-            Debug.WriteLine($"Writing game state to XML file: {filePath}");
-            XmlWriterSettings settings = new();
-            settings.Indent = true;
-            settings.IndentChars = ("\t");
-            settings.OmitXmlDeclaration = true;
-
-            XmlDocument doc = new();
-
-            using (XmlWriter writer = XmlWriter.Create(filePath, settings))
-            {
-                writer.WriteStartElement("ChessMoves");
-
-                WriteStartPositionsToXmlFile(writer);
-
-                writer.WriteEndElement();
-
-                doc.Save(writer);
-            }
-        }
-
-        /// <summary>
-        /// Writes the starting positions of the game pieces to an XML file using the specified <see cref="XmlWriter"/>.
-        /// </summary>
-        /// <remarks>This method generates an XML structure representing the starting positions of the
-        /// game pieces for both black and white players. If the game history is empty, no piece information is written.
-        /// The pieces are grouped by color and ordered by type.</remarks>
-        /// <param name="writer">The <see cref="XmlWriter"/> used to write the XML content. Cannot be <see langword="null"/>.</param>
-        private void WriteStartPositionsToXmlFile(XmlWriter writer)
-        {
-            writer.WriteStartElement("Start");
-
-            List<Update> history = this.Game.History.ToList();
-
-            var board = this.Game.Board;
-
-            if (history.Count != 0)
-            {
-                var lastUpdate = history.Last();
-                board = lastUpdate.Game.Board;
-            }
-
-            var whitePiecesOrdered = board.Where(placedPiece
-                => placedPiece.Color == Color.White)
-                .OrderBy(placedPiece => placedPiece.Piece);
-
-            var blackPiecesOrdered = board.Where(placedPiece
-                => placedPiece.Color == Color.Black)
-                .OrderBy(placedPiece => placedPiece.Piece);
-
-            writer.WriteStartElement("Pieces");
-
-            writer.WriteStartElement("Blacks");
-
-            WritePieces(blackPiecesOrdered, writer);
-
-            writer.WriteEndElement(); // End of Black
-
-            writer.WriteStartElement("Whites");
-
-            WritePieces(whitePiecesOrdered, writer);
-
-            writer.WriteEndElement(); // End of White
-
-            writer.WriteEndElement(); // End of Pieces
-
-            writer.WriteEndElement();
-        }
-
-        private void WritePieces(IEnumerable<PlacedPiece> placedPieces, XmlWriter writer)
-        {
-            var groupedPlacedPieces = placedPieces.GroupBy(
-                    placedPiece => placedPiece.Piece.Weight,
-                    placedPiece => placedPiece,
-                    (key, g) => new
-                    {
-                        Weight = key,
-                        PlacedPieces = g.ToList()
-                    });
-
-            foreach (var group in groupedPlacedPieces.OrderBy(g => g.Weight))
-            {
-                var typeName = group.PlacedPieces.First().Piece.GetType().Name;
-
-                if(typeName != "King")
-                {
-                    typeName = typeName + "s"; // Pluralize the type name for all except King
-                }
-
-                writer.WriteStartElement(typeName);
-
-                foreach (var piece in group.PlacedPieces.OrderByDescending(placedPiece => placedPiece.Position.Row))
-                {
-                    writer.WriteStartElement("Position");
-                    writer.WriteAttributeString("Row", (piece.Position.Row + 1).ToString());
-                    writer.WriteAttributeString("Column", (piece.Position.Column + 1).ToString());
-                    writer.WriteEndElement();
-                }
-
-                writer.WriteEndElement(); // End of group (e.g., Pawn, Knight, etc.)
-            }
-        }
 
         private bool ArePathsSame(string path1, string path2)
         {
