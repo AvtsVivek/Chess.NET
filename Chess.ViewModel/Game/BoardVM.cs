@@ -517,7 +517,7 @@ namespace Chess.ViewModel.Game
                         null,
                         removeCommand.Piece,
                         chessMoveSequenceIndex,
-                        "Captured"
+                        removeCommand.IsPromotion? "Promoted" : "Captured"
                     );
                 }
                 else if (command is SpawnCommand spawnCommand)

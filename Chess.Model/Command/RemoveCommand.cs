@@ -29,7 +29,7 @@ namespace Chess.Model.Command
         /// Initializes a new instance of the <see cref="RemoveCommand"/> class.
         /// </summary>
         /// <param name="piece">The placed chess piece to be removed.</param>
-        public RemoveCommand(PlacedPiece piece, bool isUndo = false) : this(piece.Position, piece.Piece, isUndo)
+        public RemoveCommand(PlacedPiece piece, bool isUndo = false, bool isPromotion = false) : this(piece.Position, piece.Piece, isUndo, isPromotion)
         {
         }
 
@@ -38,7 +38,9 @@ namespace Chess.Model.Command
         /// </summary>
         /// <param name="position">The position of the chess piece to be removed.</param>
         /// <param name="piece">The chess piece to be removed.</param>
-        public RemoveCommand(Position position, ChessPiece piece, bool isUndo = false)
+        /// <param name="isUndo">Determines whether the command is being executed during undo.</param>
+        /// <param name="isPromotion">Determines whether the command is a part of promotion.</param>
+        public RemoveCommand(Position position, ChessPiece piece, bool isUndo = false, bool isPromotion = false)
         {
             Validation.NotNull(position, nameof(position));
             Validation.NotNull(piece, nameof(piece));
@@ -46,12 +48,19 @@ namespace Chess.Model.Command
             this.Position = position;
             this.Piece = piece;
             this.IsUndo = isUndo;
+            this.IsPromotion = isPromotion;
         }
 
         /// <summary>
         /// Determines the sequence should be executed in reverse order
         /// </summary>
         public bool IsUndo { get; private set; } = false;
+
+
+        /// <summary>
+        /// Gets a value indicating whether the current remove command is a part of promotion.
+        /// </summary>
+        public bool IsPromotion { get; private set; } = false;
 
         /// <summary>
         /// Applies the command to a chess game state.
