@@ -3,9 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:piece="clr-namespace:Chess.View.Piece"
              xmlns:rowColumnId="clr-namespace:Chess.View.RowColumnId"
+             xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
+             xmlns:window="clr-namespace:Chess.View.Window"
              StartupUri="Window/MainWindow.xaml">
     <Application.Resources>
-
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
@@ -14,6 +15,19 @@
                 <!-- Theme setting -->
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+
+            <DataTemplate DataType="{x:Type game:PlayModeViewModel}">
+                <window:PlayModeView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type game:RecordModeViewModel}">
+                <window:RecordModeView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type game:ReviewModeViewModel}">
+                <window:ReviewModeView/>
+            </DataTemplate>
 
             <!-- White pieces -->
             <DataTemplate x:Key="whiteBishop">
