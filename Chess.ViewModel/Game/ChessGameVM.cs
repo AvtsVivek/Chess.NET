@@ -13,13 +13,12 @@ namespace Chess.ViewModel.Game
     using Chess.Services;
     using Chess.ViewModel.Command;
     using Chess.ViewModel.Visitor;
-    using Microsoft.Win32;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
+    using System.Windows;
 
     /// <summary>
     /// Represents the view model of a chess game.
@@ -68,17 +67,17 @@ namespace Chess.ViewModel.Game
         /// processing XML files. It is not exposed publicly and is intended for internal use only.</remarks>
         private XmlFileService xmlFileService;
 
-        private PlayModeViewModel PlayModeVM;
+        private PlayModeVM PlayModeVM;
 
-        private RecordModeViewModel RecordModeVM;
+        private RecordModeVM RecordModeVM;
 
-        private ReviewModeViewModel ReviewModeVM;
+        private ReviewModeVM ReviewModeVM;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChessGameVM"/> class.
         /// </summary>
         /// <param name="updateSelector">The disambiguation mechanism if multiple updates are available for a target field.</param>
-        public ChessGameVM(Func<IList<Update>, Update> updateSelector)
+        public ChessGameVM(Func<IList<Update>, Update> updateSelector, IWindowService windowService)
         {
             this.rulebook = new StandardRulebook();
             this.Game = this.rulebook.CreateGame();
@@ -118,9 +117,9 @@ namespace Chess.ViewModel.Game
 
             xmlFileService = new();
 
-            CurrentAppModeViewModel = PlayModeVM = new PlayModeViewModel();
-            RecordModeVM = new RecordModeViewModel();
-            ReviewModeVM = new ReviewModeViewModel();
+            CurrentAppModeViewModel = PlayModeVM = new PlayModeVM();
+            RecordModeVM = new RecordModeVM(windowService);
+            ReviewModeVM = new ReviewModeVM(); ;
         }
 
         /// <summary>
@@ -285,8 +284,30 @@ namespace Chess.ViewModel.Game
 
         private void AddUpdateXmlToFile(Update update)
         {
-            if(SelectedAppModeValue == AppMode.Record && xmlFileService != null)
-                xmlFileService.AddUpdateXmlToFile(update);
+            if (update == null)
+            {
+                Debug.WriteLine("No update available to record.");
+                MessageBox.Show("No update available to record.");
+                return;
+            }
+
+            if (SelectedAppModeValue != AppMode.Record)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(RecordModeVM.FullFilePath))
+            {
+                Debug.WriteLine("No file available for recording.");
+                MessageBox.Show("File Path Does not exist");
+                return;
+            }
+
+            if (SelectedAppModeValue == AppMode.Record && xmlFileService != null)
+            {
+                xmlFileService.WriteToXmlFile(update, RecordModeVM.FullFilePath);
+                RecordModeVM.RecordingInProgress = true;
+            }
         }
 
         /// <summary>
@@ -372,12 +393,8 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void UpdateMoveCount()
         {
-            // GameMoveCount = this.Game.History.Count();
-
             if(PlayModeVM != null)
                 PlayModeVM.GameMoveCount = this.Game.History.Count();
-
-            // OnPropertyChanged(nameof(GameMoveCount));
         }
 
         /// <summary>
@@ -415,26 +432,6 @@ namespace Chess.ViewModel.Game
         private void AppModeChangedToRecordMode()
         {
             CurrentAppModeViewModel = RecordModeVM;
-            // In Record Mode, we can record the game state and the moves made by the players.
-            // This can be used to create a game history, which can be used to review the game later.
-            // First ensure we have a valid file path to save the game history.
-
-            //if (string.IsNullOrWhiteSpace(FolderPath))
-            //{
-            //    Debug.WriteLine("File path is not set. Cannot record game history.");
-
-            //    FolderPath = GetXmlFolderPath();
-
-            //    if (string.IsNullOrWhiteSpace(FolderPath))
-            //    {
-            //        Debug.WriteLine("Folder path is still not set. Cannot record game history.");
-            //        // Reset back to Play Mode
-            //        SelectedAppModeValue = AppMode.Play;
-            //        return;
-            //    }
-            //}
-
-            //xmlFileService.WriteXmlFile(FolderPath, this.Game);
         }
 
         /// <summary>
@@ -443,55 +440,6 @@ namespace Chess.ViewModel.Game
         private void AppModeChangedToReviewMode()
         {
             CurrentAppModeViewModel = ReviewModeVM;
-        }
-
-        private string GetXmlFolderPath()
-        {
-            var initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.XmlFolderPath)
-                && Directory.Exists(ChessAppSettings.Default.XmlFolderPath)
-                )
-            {
-                initialDirectory = ChessAppSettings.Default.XmlFolderPath;
-            }
-
-            var folderDialog = new OpenFolderDialog
-            {
-                Title = "Select Folder",
-                InitialDirectory = initialDirectory
-            };
-
-
-            if (folderDialog.ShowDialog() == true)
-            {
-                var folderName = folderDialog.FolderName;
-
-                if (!ArePathsSame(ChessAppSettings.Default.XmlFolderPath, folderName))
-                {
-                    ChessAppSettings.Default.XmlFolderPath = folderName;
-                    ChessAppSettings.Default.Save();
-                }
-            }
-            else
-            {
-                Debug.WriteLine("No folder selected. Cannot record game history.");
-                return null;
-            }
-
-            return folderDialog.FolderName;
-        }
-
-
-        private bool ArePathsSame(string path1, string path2)
-        {
-            return NormalizePath(path1) == NormalizePath(path2);
-        }
-
-        private string NormalizePath(string path)
-        {
-            return Path.GetFullPath(new Uri(path).LocalPath)
-                       .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                       .ToUpperInvariant();
         }
     }
 }

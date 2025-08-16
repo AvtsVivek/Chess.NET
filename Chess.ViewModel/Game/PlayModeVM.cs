@@ -2,7 +2,7 @@
 
 namespace Chess.ViewModel.Game
 {
-    public class PlayModeViewModel : INotifyPropertyChanged
+    public class PlayModeVM : INotifyPropertyChanged
     {
         private int gameMoveCount;
         public int GameMoveCount
