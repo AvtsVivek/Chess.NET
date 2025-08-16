@@ -42,7 +42,7 @@ namespace Chess.View.Window
         public MainWindow()
         {
             this.InitializeComponent();
-            this.game = new ChessGameVM(this.Choose);
+            this.game = new ChessGameVM(this.Choose, new WindowService());
             this.promotionSelector = new PromotionSelector();
             this.DataContext = this.game;
 
