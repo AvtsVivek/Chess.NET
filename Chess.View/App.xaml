@@ -17,15 +17,15 @@
             </ResourceDictionary.MergedDictionaries>
 
 
-            <DataTemplate DataType="{x:Type game:PlayModeViewModel}">
+            <DataTemplate DataType="{x:Type game:PlayModeVM}">
                 <window:PlayModeView/>
             </DataTemplate>
 
-            <DataTemplate DataType="{x:Type game:RecordModeViewModel}">
+            <DataTemplate DataType="{x:Type game:RecordModeVM}">
                 <window:RecordModeView/>
             </DataTemplate>
 
-            <DataTemplate DataType="{x:Type game:ReviewModeViewModel}">
+            <DataTemplate DataType="{x:Type game:ReviewModeVM}">
                 <window:ReviewModeView/>
             </DataTemplate>
 

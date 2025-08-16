@@ -12,8 +12,6 @@ namespace Chess.Services
 
         private XmlWriterSettings settings;
 
-        private string filePath = string.Empty;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlFileService"/> class.
         /// </summary>
@@ -23,54 +21,32 @@ namespace Chess.Services
         public XmlFileService()
         {
             this.xmlDocument = new();
-
             this.settings = new();
             this.settings.Indent = true;
             this.settings.IndentChars = ("\t");
             this.settings.OmitXmlDeclaration = true;
         }
 
-        public void AddUpdateXmlToFile(Update update)
+        public void WriteToXmlFile(Update update, string filePath)
         {
-            CreateAndAddUpdateCommandXmlElement(update);
-
-            using (XmlWriter writer = XmlWriter.Create(filePath, settings))
-            {
-                this.xmlDocument.Save(writer);
-            }
-        }
-
-        /// <summary>
-        /// Writes the state of the specified chess game to an XML file in the specified folder.
-        /// </summary>
-        /// <remarks>The method generates a file name for the XML file and writes the chess game's state,
-        /// including the starting positions, to the file. The XML file is formatted with indentation for readability,
-        /// and the XML declaration is omitted.</remarks>
-        /// <param name="folderPath">The path to the folder where the XML file will be created. This must be a valid, writable directory path.</param>
-        /// <param name="game">The <see cref="ChessGame"/> object representing the current state of the chess game to be written to the XML
-        /// file. Cannot be <see langword="null"/>.</param>
-        public void WriteXmlFile(string folderPath, ChessGame game)
-        {
-            var fileName = GetFileName();
-
-            filePath = Path.Combine(folderPath, fileName);
-
             Debug.WriteLine($"Writing game state to XML file: {filePath}");
+
+            this.xmlDocument.RemoveAll();
 
             using (XmlWriter writer = XmlWriter.Create(filePath, settings))
             {
                 writer.WriteStartElement(XmlConstants.RootElementName);
                 writer.WriteStartElement(XmlConstants.MoveCommandsElementName);
                 writer.WriteEndElement();
-
-                WriteStartPositionsToXmlFile(writer, game);
+                
+                WriteStartPositionsToXmlFile(writer, update.Game);
 
                 writer.WriteEndElement();
 
                 xmlDocument.Save(writer);
             }
 
-            WriteCommandsToXmlFile(game);
+            WriteCommandsToXmlFile(update.Game, filePath);
         }
 
         /// <summary>
@@ -78,7 +54,7 @@ namespace Chess.Services
         /// </summary>
         /// <returns>A string representing the file name in the format "ChessGame-yyyy-MM-dd-HH-mm-ss.xml", where the timestamp
         /// corresponds to the current date and time.</returns>
-        private string GetFileName()
+        public string GetFileName()
         {
             DateTime now = DateTime.Now;
             string fileName = $"ChessGame-{now:yyyy-MM-dd-HH-mm-ss}.xml";
@@ -179,7 +155,7 @@ namespace Chess.Services
             }
         }
 
-        private void WriteCommandsToXmlFile(ChessGame game)
+        private void WriteCommandsToXmlFile(ChessGame game, string filePath)
         {
             xmlDocument.Load(filePath);
 

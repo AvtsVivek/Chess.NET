@@ -1,6 +1,6 @@
 ﻿namespace Chess.ViewModel.Game
 {
-    public class ReviewModeViewModel
+    public class ReviewModeVM
     {
     }
 }
