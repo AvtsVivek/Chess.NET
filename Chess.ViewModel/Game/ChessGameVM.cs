@@ -19,7 +19,6 @@ namespace Chess.ViewModel.Game
     using System.Diagnostics;
     using System.Linq;
     using System.Windows;
-    using System.Windows.Media;
 
     /// <summary>
     /// Represents the view model of a chess game.
@@ -68,11 +67,13 @@ namespace Chess.ViewModel.Game
         /// processing XML files. It is not exposed publicly and is intended for internal use only.</remarks>
         private XmlFileService xmlFileService;
 
-        private PlayModeVM PlayModeVM;
+        private PlayModeVM playModeVM;
 
-        private RecordModeVM RecordModeVM;
+        private RecordModeVM recordModeVM;
 
-        private ReviewModeVM ReviewModeVM;
+        private ReviewModeVM reviewModeVM;
+
+        private readonly IWindowService windowService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChessGameVM"/> class.
@@ -80,6 +81,7 @@ namespace Chess.ViewModel.Game
         /// <param name="updateSelector">The disambiguation mechanism if multiple updates are available for a target field.</param>
         public ChessGameVM(Func<IList<Update>, Update> updateSelector, IWindowService windowService)
         {
+            this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
             this.rulebook = new StandardRulebook();
             this.Game = this.rulebook.CreateGame();
             this.board = new BoardVM(this.Game.Board);
@@ -118,9 +120,9 @@ namespace Chess.ViewModel.Game
 
             xmlFileService = new();
 
-            CurrentAppModeViewModel = PlayModeVM = new PlayModeVM();
-            RecordModeVM = new RecordModeVM(windowService);
-            ReviewModeVM = new ReviewModeVM(); ;
+            CurrentAppModeViewModel = playModeVM = new PlayModeVM();
+            recordModeVM = new RecordModeVM(windowService);
+            reviewModeVM = new ReviewModeVM();
         }
 
         /// <summary>
@@ -294,7 +296,7 @@ namespace Chess.ViewModel.Game
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(RecordModeVM.FullFilePath))
+            if (string.IsNullOrWhiteSpace(recordModeVM.FullFilePath))
             {
                 Debug.WriteLine("No file available for recording.");
                 MessageBox.Show("File Path Does not exist");
@@ -303,8 +305,8 @@ namespace Chess.ViewModel.Game
 
             if (SelectedAppModeValue == AppMode.Record && xmlFileService != null)
             {
-                xmlFileService.WriteToXmlFile(update, RecordModeVM.FullFilePath);
-                RecordModeVM.RecordingInProgress = true;
+                xmlFileService.WriteToXmlFile(update, recordModeVM.FullFilePath);
+                recordModeVM.RecordingInProgress = true;
             }
         }
 
@@ -392,8 +394,8 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void UpdateMoveCount()
         {
-            if(PlayModeVM != null)
-                PlayModeVM.GameMoveCount = this.Game.History.Count();
+            if(playModeVM != null)
+                playModeVM.GameMoveCount = this.Game.History.Count();
         }
 
         /// <summary>
@@ -422,7 +424,7 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedToPlayMode()
         {
-            CurrentAppModeViewModel = PlayModeVM;
+            CurrentAppModeViewModel = playModeVM;
         }
 
         /// <summary>
@@ -430,7 +432,11 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedToRecordMode()
         {
-            CurrentAppModeViewModel = RecordModeVM;
+            if (recordModeVM.RecordingInProgress)
+            {
+                recordModeVM.ResetRecordingState();
+            }
+            CurrentAppModeViewModel = recordModeVM;
         }
 
         /// <summary>
@@ -438,7 +444,7 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedToReviewMode()
         {
-            CurrentAppModeViewModel = ReviewModeVM;
+            CurrentAppModeViewModel = reviewModeVM;
         }
     }
 }

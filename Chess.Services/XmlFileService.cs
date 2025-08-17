@@ -54,7 +54,7 @@ namespace Chess.Services
         /// </summary>
         /// <returns>A string representing the file name in the format "ChessGame-yyyy-MM-dd-HH-mm-ss.xml", where the timestamp
         /// corresponds to the current date and time.</returns>
-        public string GetFileName()
+        public static string GetFileName()
         {
             DateTime now = DateTime.Now;
             string fileName = $"ChessGame-{now:yyyy-MM-dd-HH-mm-ss}.xml";

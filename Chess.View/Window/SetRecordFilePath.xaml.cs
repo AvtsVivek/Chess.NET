@@ -84,8 +84,7 @@ namespace Chess.View.Window
         }
         private void btnGenerateFileName_Click(object sender, RoutedEventArgs e)
         {
-            XmlFileService xmlFileService = new();
-            txtFileName.Text = xmlFileService.GetFileName();
+            txtFileName.Text = XmlFileService.GetFileName();
         }
 
         private bool IsFileNameValid(string fileName)
