@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:gameModel="clr-namespace:Chess.Model.Game;assembly=Chess.Model"
+                    xmlns:window="clr-namespace:Chess.View.Window" 
+                    xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel">
+
+    <DataTemplate DataType="{x:Type game:PlayModeVM}">
+        <window:PlayModeView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type game:RecordModeVM}">
+        <window:RecordModeView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type game:ReviewModeVM}">
+        <window:ReviewModeView/>
+    </DataTemplate>
+
+</ResourceDictionary>
