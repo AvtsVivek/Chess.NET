@@ -7,7 +7,7 @@
                 <Canvas.Clip>
                     <RectangleGeometry Rect="0.0,0.0,8.5,8.5"/>
                 </Canvas.Clip>
-                <Path Fill="{Binding PathFill}">
+                <Path Style="{StaticResource ChessPathStyle}">
                     <Path.Data>
                         <PathGeometry Figures="M 8.01402 8.36461 H 6.8439 L 6.03424 6.06319 H 2.46287 L 1.65321 8.36461 H 0.538543 L 3.54426 0.107206 H 5.0083 Z M 5.69596 5.12043 L 4.24855 1.0666 L 2.7956 5.12043 Z" FillRule="Nonzero"/>
                     </Path.Data>
