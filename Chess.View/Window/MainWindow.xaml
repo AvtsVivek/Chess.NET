@@ -23,6 +23,7 @@
                 <Setter Property="Height" Value="20" />
             </Style>
             <conv:AppModeConverter x:Key="AppModeConverter"/>
+            <Duration x:Key="duration">0:0:0.5</Duration>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -138,38 +139,7 @@
             </Grid.ColumnDefinitions>
 
             <Viewbox Margin="10">
-                <Border BorderThickness="{Binding BoardBorderThickness}" BorderBrush="White">
-                    <Border.Resources>
-                        <Duration x:Key="duration">0:0:0.5</Duration>
-                        <Storyboard x:Key="fadeWhite">
-                            <ColorAnimation
-                            Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"
-                            Duration="{StaticResource duration}" To="White" />
-                        </Storyboard>
-                        <Storyboard x:Key="fadeBlack">
-                            <ColorAnimation
-                            Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"
-                            Duration="{StaticResource duration}" To="Black" />
-                        </Storyboard>
-                    </Border.Resources>
-                    <Border.Triggers>
-                        <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <ColorAnimation
-                                    Duration="{StaticResource duration}"
-                                    To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
-                                    Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Border.Triggers>
-                    <Border.ToolTip>
-                        <ToolTip Visibility="{Binding Status, Converter={StaticResource statusConverter}}">
-                            <TextBlock Text="{Binding Status, Converter={StaticResource statusConverter}}" Margin="5"/>
-                        </ToolTip>
-                    </Border.ToolTip>
-                    <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" 
+                <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" 
                             Height="{x:Static game:BoardConstants.FullCanvasLength}" MouseDown="BoardMouseDown">
                         <Canvas.Resources>
                             <PowerEase x:Key="ease" EasingMode="EaseInOut" />
@@ -205,11 +175,13 @@
                             </ItemsControl.ItemContainerStyle>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <ContentControl Content="{Binding}">
-                                        <ContentControl.ContentTemplateSelector>
-                                            <StaticResource ResourceKey="rowColumnIdSelector" />
-                                        </ContentControl.ContentTemplateSelector>
-                                    </ContentControl>
+                                    <Border Background="{Binding RowColumnLabelBackground}">
+                                        <ContentControl Content="{Binding}">
+                                            <ContentControl.ContentTemplateSelector>
+                                                <StaticResource ResourceKey="rowColumnIdSelector" />
+                                            </ContentControl.ContentTemplateSelector>
+                                        </ContentControl>
+                                    </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -331,7 +303,6 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Canvas>
-                </Border>
             </Viewbox>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted" />
@@ -341,11 +312,34 @@
                     <Grid DockPanel.Dock="Top" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            
                             <ColumnDefinition Width="*" />
-                            
                         </Grid.ColumnDefinitions>
-                        <Border Background="LightGray" Margin="10" BorderBrush="DarkBlue" BorderThickness="2" CornerRadius="5">
+                        <Border Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
+                            <Border.Resources>
+                                <Duration x:Key="duration">0:0:0.5</Duration>
+                                <Storyboard x:Key="fadeWhite">
+                                    <ColorAnimation
+                            Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"
+                            Duration="{StaticResource duration}" To="White" />
+                                </Storyboard>
+                                <Storyboard x:Key="fadeBlack">
+                                    <ColorAnimation
+                            Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"
+                            Duration="{StaticResource duration}" To="Black" />
+                                </Storyboard>
+                            </Border.Resources>
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation
+                                                Duration="{StaticResource duration}"
+                                                To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
+                                                Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
                             <StackPanel Margin="5" Orientation="Horizontal">
                                 <RadioButton Margin="5" Background="Transparent" Content="Play" Name="PlayRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Play}}"/>
                                 <RadioButton Margin="5" Background="Transparent" Content="Record" Name="RecordRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Record}}" />

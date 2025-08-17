@@ -104,6 +104,9 @@ namespace Chess.ViewModel.Game
                     LabelResourceKey = "digit" + (row + 1).ToString()
                 };
 
+                if (row == 7)
+                    labelVM.Height = labelVM.Height + BoardConstants.BoardMarginForId;
+
                 rowColumnLabels.Add(labelVM);
 
                 labelVM = new RowColumnLabelVM
@@ -117,6 +120,9 @@ namespace Chess.ViewModel.Game
                     DistanceFromLeft = BoardConstants.BoardMarginForId + 8,
                     LabelResourceKey = "digit" + (row + 1).ToString()
                 };
+
+                if (row == 7)
+                    labelVM.Height = labelVM.Height + BoardConstants.BoardMarginForId;
 
                 rowColumnLabels.Add(labelVM);
             }
@@ -134,6 +140,15 @@ namespace Chess.ViewModel.Game
                     DistanceFromLeft = BoardConstants.BoardMarginForId + column,
                     LabelResourceKey = "char" + (column + 1).ToString()
                 };
+
+                if (column == 7)
+                    labelVM.Width = labelVM.Width + BoardConstants.BoardMarginForId;
+
+                if (column == 0)
+                {
+                    labelVM.Width = labelVM.Width + BoardConstants.BoardMarginForId;
+                    labelVM.DistanceFromLeft = labelVM.DistanceFromLeft - BoardConstants.BoardMarginForId;
+                }
 
                 rowColumnLabels.Add(labelVM);
 

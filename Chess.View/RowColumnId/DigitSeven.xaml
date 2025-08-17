@@ -8,7 +8,7 @@
                     <Canvas.Clip>
                         <RectangleGeometry Rect="0.0,0.0,8.5,8.5"/>
                     </Canvas.Clip>
-                    <Path Fill="White">
+                    <Path Fill="{Binding PathFill}">
                         <Path.Data>
                             <PathGeometry Figures="M 7.15723 1.38564 L 3.41719 8.41069 H 2.2297 L 6.20835 1.11928 H 1.50278 V 0.148209 h 5.65445 z" FillRule="Nonzero"/>
                         </Path.Data>

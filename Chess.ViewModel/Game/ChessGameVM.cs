@@ -19,6 +19,7 @@ namespace Chess.ViewModel.Game
     using System.Diagnostics;
     using System.Linq;
     using System.Windows;
+    using System.Windows.Media;
 
     /// <summary>
     /// Represents the view model of a chess game.
@@ -206,7 +207,6 @@ namespace Chess.ViewModel.Game
                     this.UndoCommand?.FireCanExecuteChanged();
                     this.RedoCommand?.FireCanExecuteChanged();
                 }
-                UpdateMoveCount();
             }
         }
 
@@ -250,8 +250,6 @@ namespace Chess.ViewModel.Game
         /// <param name="column">The column of the field.</param>
         public void Select(int row, int column)
         {
-            UpdateMoveCount();
-
             var position = new Position(row, column);
             var field = this.Board.GetField(position);
 
@@ -337,6 +335,7 @@ namespace Chess.ViewModel.Game
         public void Visit(EndTurnCommand command)
         {
             this.Board.Execute(command);
+            UpdateMoveCount();
             this.OnPropertyChanged(nameof(this.Status));
         }
 
@@ -395,6 +394,21 @@ namespace Chess.ViewModel.Game
         {
             if(PlayModeVM != null)
                 PlayModeVM.GameMoveCount = this.Game.History.Count();
+
+            foreach (var rowColumnLable in Board.RowColumnLabels)
+            {
+                if (this.Status == Status.BlackTurn)
+                {
+                    rowColumnLable.RowColumnLabelBackground = Brushes.Black;
+                    rowColumnLable.PathFill = Brushes.White; // Path fill for black turn
+                }
+
+                if (this.Status == Status.WhiteTurn)
+                {
+                    rowColumnLable.RowColumnLabelBackground = Brushes.White;
+                    rowColumnLable.PathFill = Brushes.Black; // Path fill for white turn
+                }
+            }
         }
 
         /// <summary>
