@@ -1,4 +1,5 @@
-﻿using Chess.Services;
+﻿using Chess.Model.Game;
+using Chess.Services;
 using Chess.ViewModel.Command;
 using System;
 using System.ComponentModel;
@@ -50,7 +51,7 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        public bool RecordingInProgress { get; set; } = false;
+        public bool RecordingInProgress { get; private set; } = false;
 
         public void ResetRecordingState()
         {
@@ -111,6 +112,17 @@ namespace Chess.ViewModel.Game
                 ChessAppSettings.Default.XmlFolderPath = Path.GetDirectoryName(selectedPath);
                 ChessAppSettings.Default.Save();
             }
+        }
+
+        public void WriteToXmlFile(ChessGame chessGame)
+        {
+            if (string.IsNullOrWhiteSpace(FullFilePath))
+            {
+                throw new InvalidOperationException("Full file path must be set before writing to XML file.");
+            }
+
+            new XmlFileService().WriteToXmlFile(chessGame, FullFilePath);
+            this.RecordingInProgress = true;
         }
 
         /// <summary>
