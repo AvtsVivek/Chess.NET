@@ -394,21 +394,6 @@ namespace Chess.ViewModel.Game
         {
             if(PlayModeVM != null)
                 PlayModeVM.GameMoveCount = this.Game.History.Count();
-
-            foreach (var rowColumnLable in Board.RowColumnLabels)
-            {
-                if (this.Status == Status.BlackTurn)
-                {
-                    rowColumnLable.RowColumnLabelBackground = Brushes.Black;
-                    rowColumnLable.PathFill = Brushes.White; // Path fill for black turn
-                }
-
-                if (this.Status == Status.WhiteTurn)
-                {
-                    rowColumnLable.RowColumnLabelBackground = Brushes.White;
-                    rowColumnLable.PathFill = Brushes.Black; // Path fill for white turn
-                }
-            }
         }
 
         /// <summary>
