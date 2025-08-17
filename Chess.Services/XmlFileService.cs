@@ -27,7 +27,7 @@ namespace Chess.Services
             this.settings.OmitXmlDeclaration = true;
         }
 
-        public void WriteToXmlFile(Update update, string filePath)
+        public void WriteToXmlFile(ChessGame game, string filePath)
         {
             Debug.WriteLine($"Writing game state to XML file: {filePath}");
 
@@ -39,14 +39,14 @@ namespace Chess.Services
                 writer.WriteStartElement(XmlConstants.MoveCommandsElementName);
                 writer.WriteEndElement();
                 
-                WriteStartPositionsToXmlFile(writer, update.Game);
+                WriteStartPositionsToXmlFile(writer, game);
 
                 writer.WriteEndElement();
 
                 xmlDocument.Save(writer);
             }
 
-            WriteCommandsToXmlFile(update.Game, filePath);
+            WriteCommandsToXmlFile(game, filePath);
         }
 
         /// <summary>
