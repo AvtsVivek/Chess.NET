@@ -271,7 +271,6 @@ namespace Chess.ViewModel.Game
                 this.Game.NextUpdate = new Just<Update>(selectedUpdate);
                 this.Game = selectedUpdate.Game;
                 selectedUpdate.Command.Accept(this);
-                AddUpdateXmlToFile(selectedUpdate);
             }
             else if (this.game.Board.IsOccupied(position, this.game.ActivePlayer.Color))
             {
@@ -282,15 +281,8 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        private void AddUpdateXmlToFile(Update update)
+        private void AddUpdateXmlToFile()
         {
-            if (update == null)
-            {
-                Debug.WriteLine("No update available to record.");
-                MessageBox.Show("No update available to record.");
-                return;
-            }
-
             if (SelectedAppModeValue != AppMode.Record)
             {
                 return;
@@ -305,8 +297,7 @@ namespace Chess.ViewModel.Game
 
             if (SelectedAppModeValue == AppMode.Record && xmlFileService != null)
             {
-                xmlFileService.WriteToXmlFile(update, recordModeVM.FullFilePath);
-                recordModeVM.RecordingInProgress = true;
+                recordModeVM.WriteToXmlFile(this.Game);
             }
         }
 
@@ -337,8 +328,12 @@ namespace Chess.ViewModel.Game
         public void Visit(EndTurnCommand command)
         {
             this.Board.Execute(command);
-            UpdateMoveCount();
+
             this.OnPropertyChanged(nameof(this.Status));
+
+            UpdateMoveCount();
+
+            AddUpdateXmlToFile();
         }
 
         /// <summary>
