@@ -137,7 +137,7 @@
             </MenuItem>
             <MenuItem HorizontalAlignment="Right">
                 <MenuItem.Header>
-                    <TextBlock Text="{Binding Status, Converter={StaticResource statusConverter}}" />
+                    <ContentControl Margin="5" Content="{Binding ModeAndPlayerStatusDisplayVM}" />
                 </MenuItem.Header>
             </MenuItem>
         </Menu>
@@ -385,7 +385,7 @@
                                     </BeginStoryboard>
                                 </EventTrigger>
                             </Border.Triggers>
-                            <ContentControl Margin="5" Content="{Binding CurrentAppModeViewModel}"/>
+                            <ContentControl Margin="5" Content="{Binding CurrentAppModeVM}"/>
                         </Border>
                     </Grid>
                     <ListView x:Name="myListView"

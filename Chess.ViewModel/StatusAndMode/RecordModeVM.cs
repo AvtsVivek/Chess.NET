@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 
-namespace Chess.ViewModel.Game
+namespace Chess.ViewModel.StatusAndMode
 {
     public class RecordModeVM : INotifyPropertyChanged
     {
@@ -27,25 +27,25 @@ namespace Chess.ViewModel.Game
 
             FullFilePath = Path.Combine(initialDirectory, fileName);
 
-            this.setFullFilePathCommand = new GenericCommand(() => true, ResetRecordingState);
+            setFullFilePathCommand = new GenericCommand(() => true, ResetRecordingState);
         }
 
         private readonly GenericCommand setFullFilePathCommand;
 
-        public GenericCommand SetFullFilePathCommand => this.setFullFilePathCommand;
+        public GenericCommand SetFullFilePathCommand => setFullFilePathCommand;
 
         private string fullFilePath;
         public string FullFilePath 
         {
             get 
             {
-                return this.fullFilePath;
+                return fullFilePath;
             }
             set
             {
-                if (this.fullFilePath != value)
+                if (fullFilePath != value)
                 {
-                    this.fullFilePath = value ?? throw new ArgumentNullException(nameof(this.FullFilePath));
+                    fullFilePath = value ?? throw new ArgumentNullException(nameof(FullFilePath));
                 }
                 OnPropertyChanged(nameof(FullFilePath));
             }
@@ -57,11 +57,15 @@ namespace Chess.ViewModel.Game
         {
             var selectedPath = string.Empty;
 
-            if (this.RecordingInProgress)
+            if (RecordingInProgress)
             {
                 var oldRecordingPath = FullFilePath;
-                var result = this.windowService.ShowMessageBox(
-                    "Recording is in progress. Do you want to go ahead to change folder and file name?",
+                var result = windowService.ShowMessageBox(
+                    "Recording is in progress at the following file location " + Environment.NewLine +
+                    $"{oldRecordingPath}" + Environment.NewLine +
+                    "Do you want to go ahead and use the same file to record?" + Environment.NewLine +
+                    "Click Yes, set a new file for recording." + Environment.NewLine +
+                    "Click No, to continue to use the same file for recording." + Environment.NewLine,
                     "Recording in Progress",
                     MessageBoxButton.YesNo
                 );
@@ -73,7 +77,7 @@ namespace Chess.ViewModel.Game
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    selectedPath = this.windowService.ShowSetRecordFilePathWindow(Path.GetDirectoryName(FullFilePath), Path.GetFileName(FullFilePath));
+                    selectedPath = windowService.ShowSetRecordFilePathWindow(Path.GetDirectoryName(FullFilePath), Path.GetFileName(FullFilePath));
 
                     if (string.IsNullOrWhiteSpace(selectedPath))
                     {
@@ -82,7 +86,7 @@ namespace Chess.ViewModel.Game
 
                     if (selectedPath == oldRecordingPath)
                     {
-                        this.windowService.ShowMessageBox(
+                        windowService.ShowMessageBox(
                             "The file path is same as before. No changes made.",
                             "No Changes Made",
                             MessageBoxButton.OK
@@ -90,9 +94,9 @@ namespace Chess.ViewModel.Game
                         return;
                     }
 
-                    this.RecordingInProgress = false;
+                    RecordingInProgress = false;
 
-                    this.windowService.ShowMessageBox(
+                    windowService.ShowMessageBox(
                         $"Recording will now be done to this new path {selectedPath}"
                         + Environment.NewLine +
                         $"instead of the old path {oldRecordingPath}",
@@ -122,7 +126,7 @@ namespace Chess.ViewModel.Game
             }
 
             new XmlFileService().WriteToXmlFile(chessGame, FullFilePath);
-            this.RecordingInProgress = true;
+            RecordingInProgress = true;
         }
 
         /// <summary>
@@ -136,7 +140,7 @@ namespace Chess.ViewModel.Game
         /// <param name="propertyName">The name of the property that has been changed.</param>
         protected void OnPropertyChanged(string propertyName)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
