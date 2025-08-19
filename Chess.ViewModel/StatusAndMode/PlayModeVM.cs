@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Chess.ViewModel.Game
+namespace Chess.ViewModel.StatusAndMode
 {
     public class PlayModeVM : INotifyPropertyChanged
     {
@@ -26,7 +26,7 @@ namespace Chess.ViewModel.Game
         /// <param name="propertyName">The name of the property that has been changed.</param>
         protected void OnPropertyChanged(string propertyName)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

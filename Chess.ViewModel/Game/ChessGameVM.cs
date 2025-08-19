@@ -12,6 +12,7 @@ namespace Chess.ViewModel.Game
     using Chess.Model.Rule;
     using Chess.Services;
     using Chess.ViewModel.Command;
+    using Chess.ViewModel.StatusAndMode;
     using Chess.ViewModel.Visitor;
     using System;
     using System.Collections.Generic;
@@ -73,6 +74,10 @@ namespace Chess.ViewModel.Game
 
         private ReviewModeVM reviewModeVM;
 
+        private StatusDisplayVM statusDisplayVM;
+
+        private ReviewModeHeaderDisplayVM reviewModeHeaderDisplyVM;
+
         private readonly IWindowService windowService;
 
         /// <summary>
@@ -120,9 +125,13 @@ namespace Chess.ViewModel.Game
 
             xmlFileService = new();
 
-            CurrentAppModeViewModel = playModeVM = new PlayModeVM();
+            CurrentAppModeVM = playModeVM = new PlayModeVM();
             recordModeVM = new RecordModeVM(windowService);
             reviewModeVM = new ReviewModeVM();
+            reviewModeHeaderDisplyVM = new ReviewModeHeaderDisplayVM();
+
+            ModeAndPlayerStatusDisplayVM = statusDisplayVM 
+                = new StatusDisplayVM(Status.WhiteTurn); ; // Default display is Status Display
         }
 
         /// <summary>
@@ -212,14 +221,25 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        private object _currentAppModeViewModel;
-        public object CurrentAppModeViewModel
+        private object _currentAppModeVM;
+        public object CurrentAppModeVM
         {
-            get { return _currentAppModeViewModel; }
+            get { return _currentAppModeVM; }
             set
             {
-                _currentAppModeViewModel = value;
-                OnPropertyChanged(nameof(CurrentAppModeViewModel));
+                _currentAppModeVM = value;
+                OnPropertyChanged(nameof(CurrentAppModeVM));
+            }
+        }
+
+        private object _modeAndPlayerStatusDisplayVM;
+        public object ModeAndPlayerStatusDisplayVM
+        {
+            get { return _modeAndPlayerStatusDisplayVM; }
+            set
+            {
+                _modeAndPlayerStatusDisplayVM = value;
+                OnPropertyChanged(nameof(ModeAndPlayerStatusDisplayVM));
             }
         }
 
@@ -252,6 +272,12 @@ namespace Chess.ViewModel.Game
         /// <param name="column">The column of the field.</param>
         public void Select(int row, int column)
         {
+            if (SelectedAppModeValue == AppMode.Review)
+            {
+                Debug.WriteLine("Review Mode: Select is not allowed in Review Mode.");
+                return;
+            }
+
             var position = new Position(row, column);
             var field = this.Board.GetField(position);
 
@@ -333,6 +359,8 @@ namespace Chess.ViewModel.Game
 
             UpdateMoveCount();
 
+            statusDisplayVM.UpdateStatus(this.Status);
+
             AddUpdateXmlToFile();
         }
 
@@ -398,7 +426,7 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedHandler()
         {
-            switch (selectedAppModeValue)
+            switch (SelectedAppModeValue)
             {
                 case AppMode.Play:
                     AppModeChangedToPlayMode();
@@ -419,7 +447,8 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedToPlayMode()
         {
-            CurrentAppModeViewModel = playModeVM;
+            CurrentAppModeVM = playModeVM;
+            ModeAndPlayerStatusDisplayVM = statusDisplayVM;
         }
 
         /// <summary>
@@ -431,7 +460,8 @@ namespace Chess.ViewModel.Game
             {
                 recordModeVM.ResetRecordingState();
             }
-            CurrentAppModeViewModel = recordModeVM;
+            CurrentAppModeVM = recordModeVM;
+            ModeAndPlayerStatusDisplayVM = statusDisplayVM;
         }
 
         /// <summary>
@@ -439,7 +469,17 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedToReviewMode()
         {
-            CurrentAppModeViewModel = reviewModeVM;
+            if (CurrentAppModeVM != null
+                && CurrentAppModeVM is RecordModeVM)
+            {
+                if (recordModeVM.RecordingInProgress)
+                {
+                    reviewModeVM.FullFilePath = recordModeVM.FullFilePath;
+                    reviewModeVM.IsReviewFileInRecording = true;
+                }
+            }
+            CurrentAppModeVM = reviewModeVM;
+            ModeAndPlayerStatusDisplayVM = reviewModeHeaderDisplyVM;
         }
     }
 }
