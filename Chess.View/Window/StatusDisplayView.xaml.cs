@@ -3,11 +3,11 @@
 namespace Chess.View.Window
 {
     /// <summary>
-    /// Interaction logic for RecordModeView.xaml
+    /// Interaction logic for StatusDisplayView.xaml
     /// </summary>
-    public partial class RecordModeView : UserControl
+    public partial class StatusDisplayView : UserControl
     {
-        public RecordModeView()
+        public StatusDisplayView()
         {
             InitializeComponent();
         }

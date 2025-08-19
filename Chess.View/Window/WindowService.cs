@@ -1,5 +1,4 @@
 ﻿using Chess.Services;
-using System;
 using System.Windows;
 
 namespace Chess.View.Window
