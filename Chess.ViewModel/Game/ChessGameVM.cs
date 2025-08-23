@@ -125,13 +125,14 @@ namespace Chess.ViewModel.Game
 
             xmlFileService = new();
 
-            CurrentAppModeVM = playModeVM = new PlayModeVM();
-            recordModeVM = new RecordModeVM(windowService);
-            reviewModeVM = new ReviewModeVM();
-            reviewModeHeaderDisplyVM = new ReviewModeHeaderDisplayVM();
+            CurrentAppModeVM = playModeVM = new();
+            recordModeVM = new(windowService);
+            reviewModeVM = new();
+            reviewModeHeaderDisplyVM = new(this.undoCommand, this.redoCommand);
 
-            ModeAndPlayerStatusDisplayVM = statusDisplayVM 
-                = new StatusDisplayVM(Status.WhiteTurn); ; // Default display is Status Display
+            ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn);
+
+            MessageVM = new();
         }
 
         /// <summary>
@@ -243,6 +244,17 @@ namespace Chess.ViewModel.Game
             }
         }
 
+        private MessageVM _messageVM;
+        public MessageVM MessageVM
+        {
+            get { return _messageVM; }
+            set
+            {
+                _messageVM = value;
+                OnPropertyChanged(nameof(MessageVM));
+            }
+        }
+
         private AppMode selectedAppModeValue;
         public AppMode SelectedAppModeValue
         {
@@ -251,9 +263,10 @@ namespace Chess.ViewModel.Game
             {
                 if (selectedAppModeValue != value)
                 {
+                    var oldAppMode = selectedAppModeValue;
                     selectedAppModeValue = value;
                     Debug.WriteLine($"Selected App Mode: {selectedAppModeValue}");
-                    AppModeChangedHandler();
+                    AppModeChangedHandler(oldAppMode);
                     OnPropertyChanged(nameof(SelectedAppModeValue));
                 }
             }
@@ -275,6 +288,7 @@ namespace Chess.ViewModel.Game
             if (SelectedAppModeValue == AppMode.Review)
             {
                 Debug.WriteLine("Review Mode: Select is not allowed in Review Mode.");
+                MessageVM.MessageText = "Chess Moves cannot be done in Review Mode";
                 return;
             }
 
@@ -417,14 +431,14 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void UpdateMoveCount()
         {
-            if(playModeVM != null)
+            if (playModeVM != null)
                 playModeVM.GameMoveCount = this.Game.History.Count();
         }
 
         /// <summary>
         /// Handles App Mode Changed Event
         /// </summary>
-        private void AppModeChangedHandler()
+        private void AppModeChangedHandler(AppMode oldAppMode)
         {
             switch (SelectedAppModeValue)
             {
@@ -435,7 +449,7 @@ namespace Chess.ViewModel.Game
                     AppModeChangedToRecordMode();
                     break;
                 case AppMode.Review:
-                    AppModeChangedToReviewMode();
+                    AppModeChangedToReviewMode(oldAppMode);
                     break;
                 default:
                     break;
@@ -467,8 +481,34 @@ namespace Chess.ViewModel.Game
         /// <summary>
         /// Handles the change to Review Mode.
         /// </summary>
-        private void AppModeChangedToReviewMode()
+        private void AppModeChangedToReviewMode(AppMode oldAppMode)
         {
+            if (oldAppMode == AppMode.Play && this.Game.History.Count() != 0)
+            {
+                var result = windowService.ShowMessageBox(
+                   "A play is in progress." + Environment.NewLine + 
+                   "Do you want to stop the play and switch to review?" + Environment.NewLine + 
+                   "Switching to review will reset the board." + Environment.NewLine +
+                   "Click OK to Stop the play and reset the board." + Environment.NewLine +
+                   "Click Cancel to continue the play.," + Environment.NewLine,
+                   "Play in progress", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Cancel)    
+                {
+                    SelectedAppModeValue = AppMode.Play; // Revert back to Play Mode
+                    return;
+                }
+
+                if (result == MessageBoxResult.OK)
+                {
+                    this.Game = this.rulebook.CreateGame();
+                    this.Board = new BoardVM(this.Game.Board);
+                    this.OnPropertyChanged(nameof(this.Status));
+                    this.Board.ClearChessMoveSequence();
+                }
+            }
+
+            this.Board.ClearUpdates();
             if (CurrentAppModeVM != null
                 && CurrentAppModeVM is RecordModeVM)
             {
@@ -480,6 +520,27 @@ namespace Chess.ViewModel.Game
             }
             CurrentAppModeVM = reviewModeVM;
             ModeAndPlayerStatusDisplayVM = reviewModeHeaderDisplyVM;
+            SetReviewMode();
+        }
+
+        private void SetReviewMode()
+        {
+            var manualAutoReview = ChessAppSettings.Default.ManualAutoReview;
+            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ManualAutoReview))
+            {
+                if (manualAutoReview.Equals("Manual", StringComparison.OrdinalIgnoreCase))
+                {
+                    reviewModeHeaderDisplyVM.SelectedReviewModeValue = ReviewMode.Manual;
+                }
+                else if (manualAutoReview.Equals("Auto", StringComparison.OrdinalIgnoreCase))
+                {
+                    reviewModeHeaderDisplyVM.SelectedReviewModeValue = ReviewMode.Auto;
+                }
+            }
+            else
+            {
+                reviewModeHeaderDisplyVM.SelectedReviewModeValue = ReviewMode.Manual;
+            }
         }
     }
 }

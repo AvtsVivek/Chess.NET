@@ -7,8 +7,10 @@
         xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:conv="clr-namespace:Chess.View.Converter"
         xmlns:icon="clr-namespace:Chess.View.Icon"
+        xmlns:localView="clr-namespace:Chess.View.Window"
         xmlns:select="clr-namespace:Chess.View.Selector"
         xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
+        xmlns:statusAndMode="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel"
         xmlns:gameModel="clr-namespace:Chess.Model.Game;assembly=Chess.Model"
         d:DataContext="{d:DesignInstance Type=game:ChessGameVM}"
         mc:Ignorable="d"
@@ -102,45 +104,67 @@
         <DockPanel.Resources>
             <conv:StatusConverter x:Key="statusConverter" />
         </DockPanel.Resources>
-        <Menu DockPanel.Dock="Top">
-            <Menu.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <DockPanel HorizontalAlignment="Stretch"/>
-                </ItemsPanelTemplate>
-            </Menu.ItemsPanel>
-            <MenuItem Header="Game">
-                <MenuItem Header="New" Command="{Binding NewCommand}" InputGestureText="Ctrl+N" 
+
+        <Grid DockPanel.Dock="Top" Background="White">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50" />
+            </Grid.RowDefinitions>
+            
+            <Menu>
+                <Menu.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <DockPanel HorizontalAlignment="Stretch"/>
+                    </ItemsPanelTemplate>
+                </Menu.ItemsPanel>
+                <MenuItem Header="Game Menu" Margin="10" HorizontalAlignment="Left">
+                    <MenuItem Header="New" Command="{Binding NewCommand}" InputGestureText="Ctrl+N" 
                           Style="{StaticResource AppThemeMenuItemStyle}">
-                    <MenuItem.Icon>
-                        <icon:NewIcon />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z"
+                        <MenuItem.Icon>
+                            <icon:NewIcon />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z"
                           Style="{StaticResource AppThemeMenuItemStyle}">
-                    <MenuItem.Icon>
-                        <icon:UndoIcon />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Redo" Command="{Binding RedoCommand}" InputGestureText="Ctrl+Y"
+                        <MenuItem.Icon>
+                            <icon:UndoIcon />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Redo" Command="{Binding RedoCommand}" InputGestureText="Ctrl+Y"
                           Style="{StaticResource AppThemeMenuItemStyle}">
-                    <MenuItem.Icon>
-                        <icon:RedoIcon />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <MenuItem Header="Exit" Click="ExitClick" 
+                        <MenuItem.Icon>
+                            <icon:RedoIcon />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Exit" Click="ExitClick" 
                           Style="{StaticResource AppThemeMenuItemStyle}">
-                    <MenuItem.Icon>
-                        <icon:ExitIcon />
-                    </MenuItem.Icon>
+                        <MenuItem.Icon>
+                            <icon:ExitIcon />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
-            </MenuItem>
-            <MenuItem HorizontalAlignment="Right">
-                <MenuItem.Header>
-                    <ContentControl Margin="5" Content="{Binding ModeAndPlayerStatusDisplayVM}" />
-                </MenuItem.Header>
-            </MenuItem>
-        </Menu>
+            </Menu>
+
+            <localView:MessageView Grid.Column="1" Margin="5" 
+                                   DataContext="{Binding MessageVM}"
+                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+
+            <Menu Grid.Column="2" >
+                <MenuItem HorizontalAlignment="Right">
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Margin="5" Content="{Binding ModeAndPlayerStatusDisplayVM}" />
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+            </Menu>
+        </Grid>
 
         <Grid>
             <Grid.ColumnDefinitions>

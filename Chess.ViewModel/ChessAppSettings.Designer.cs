@@ -34,5 +34,29 @@ namespace Chess.ViewModel {
                 this["XmlFolderPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ManualAutoReview {
+            get {
+                return ((string)(this["ManualAutoReview"]));
+            }
+            set {
+                this["ManualAutoReview"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double AutoReviewTimeInterval {
+            get {
+                return ((double)(this["AutoReviewTimeInterval"]));
+            }
+            set {
+                this["AutoReviewTimeInterval"] = value;
+            }
+        }
     }
 }
