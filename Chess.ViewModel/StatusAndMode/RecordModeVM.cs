@@ -67,7 +67,8 @@ namespace Chess.ViewModel.StatusAndMode
                     "Click Yes, set a new file for recording." + Environment.NewLine +
                     "Click No, to continue to use the same file for recording." + Environment.NewLine,
                     "Recording in Progress",
-                    MessageBoxButton.YesNo
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information
                 );
 
                 if (result == MessageBoxResult.No)
@@ -89,7 +90,8 @@ namespace Chess.ViewModel.StatusAndMode
                         windowService.ShowMessageBox(
                             "The file path is same as before. No changes made.",
                             "No Changes Made",
-                            MessageBoxButton.OK
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
                         );
                         return;
                     }
@@ -101,7 +103,8 @@ namespace Chess.ViewModel.StatusAndMode
                         + Environment.NewLine +
                         $"instead of the old path {oldRecordingPath}",
                         "Recording Path Changed",
-                        MessageBoxButton.OK
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
                     );
                 }
             }

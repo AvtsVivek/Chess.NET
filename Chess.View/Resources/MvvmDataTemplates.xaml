@@ -24,4 +24,12 @@
         <window:StatusDisplayView/>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type statusAndMode:AutoReviewModeVM}">
+        <window:AutoReviewModeView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type statusAndMode:ManualReviewModeVM}">
+        <window:ManualReviewModeView/>
+    </DataTemplate>
+
 </ResourceDictionary>
