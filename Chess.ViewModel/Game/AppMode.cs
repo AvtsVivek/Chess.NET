@@ -6,4 +6,10 @@
         Record,
         Review
     }
+
+    public enum ReviewMode
+    {
+        Auto,
+        Manual
+    }
 }

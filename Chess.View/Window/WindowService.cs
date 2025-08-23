@@ -5,9 +5,9 @@ namespace Chess.View.Window
 {
     public class WindowService : IWindowService
     {
-        public MessageBoxResult ShowMessageBox(string text, string caption, MessageBoxButton buttons)
+        public MessageBoxResult ShowMessageBox(string text, string caption, MessageBoxButton buttons, MessageBoxImage messageBoxImage)
         {
-            return MessageBox.Show(text, caption, buttons, MessageBoxImage.Information);
+            return MessageBox.Show(text, caption, buttons, messageBoxImage);
         }
 
         public string ShowSetRecordFilePathWindow(string folderPath, string fileName)

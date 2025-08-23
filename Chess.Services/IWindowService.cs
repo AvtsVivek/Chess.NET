@@ -6,6 +6,6 @@ namespace Chess.Services
     {
         string ShowSetRecordFilePathWindow(string folderPath, string fileName);
 
-        MessageBoxResult ShowMessageBox(string text, string caption, MessageBoxButton buttons);
+        MessageBoxResult ShowMessageBox(string text, string caption, MessageBoxButton buttons, MessageBoxImage messageBoxImage);
     }
 }

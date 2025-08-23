@@ -62,36 +62,6 @@ namespace Chess.ViewModel.Game
         /// <value>The resource key for the row or column label.</value>
         public string LabelResourceKey { get; set; }
 
-
-        //private Brush _rowColumnLabelBackground = Brushes.White;
-        //public Brush RowColumnLabelBackground
-        //{
-        //    get => _rowColumnLabelBackground;
-        //    set
-        //    {
-        //        if (_rowColumnLabelBackground != value)
-        //        {
-        //            _rowColumnLabelBackground = value;
-        //            OnPropertyChanged(nameof(RowColumnLabelBackground));
-        //        }
-        //    }
-        //}
-
-        //private Brush _pathFill = Brushes.Red;
-        
-        //public Brush PathFill
-        //{
-        //    get => _pathFill;
-        //    set
-        //    {
-        //        if (_pathFill != value)
-        //        {
-        //            _pathFill = value;
-        //            OnPropertyChanged(nameof(PathFill));
-        //        }
-        //    }
-        //}
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
