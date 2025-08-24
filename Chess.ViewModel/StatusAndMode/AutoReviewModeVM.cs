@@ -1,6 +1,8 @@
 ﻿using Chess.ViewModel.Command;
 using System;
 using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Chess.ViewModel.StatusAndMode
 {
@@ -17,6 +19,8 @@ namespace Chess.ViewModel.StatusAndMode
         private readonly GenericCommand undoCommand;
 
         private readonly GenericCommand redoCommand;
+
+        private CancellationTokenSource autoReviewCts;
 
         public AutoReviewModeVM(GenericCommand undoCommand, GenericCommand redoCommand)
         {
@@ -72,10 +76,6 @@ namespace Chess.ViewModel.StatusAndMode
                 autoReviewTimeInterval = ChessAppSettings.Default.AutoReviewTimeInterval;
         }
 
-        //public GenericCommand UndoCommand => this.undoCommand;
-
-        //public GenericCommand RedoCommand => this.redoCommand;
-
         public GenericCommand IncrementLowCommand => this.incrementLowCommand;
         public GenericCommand IncrementHighCommand => this.incrementHighCommand;
         public GenericCommand DecrementLowCommand => this.decrementLowCommand;
@@ -129,6 +129,73 @@ namespace Chess.ViewModel.StatusAndMode
             ChessAppSettings.Default.Save();
         }
 
+        public void StartAutoReviewLoop()
+        {
+            autoReviewCts = new CancellationTokenSource();
+            
+            bool undoAvailable = true;
+            bool redoAvailable = true;
+            bool undoInProgress = true;
+
+            Task.Run(async () =>
+            {
+                while (!autoReviewCts.IsCancellationRequested)
+                {
+                    if (undoAvailable && undoInProgress)
+                    {
+                        if (System.Windows.Application.Current.Dispatcher.CheckAccess())
+                        {
+                            this.undoCommand.Execute(null);
+                        }
+                        else
+                        {
+                            System.Windows.Application.Current.Dispatcher.Invoke(() => this.undoCommand.Execute(null));
+                        }
+                    }
+
+                    this.undoCommand.CanExecuteChanged += (s, e) =>
+                    {
+                        undoAvailable = this.undoCommand.CanExecute(null);
+                    };
+
+                    if (redoAvailable && !undoInProgress)
+                    {
+                        if (System.Windows.Application.Current.Dispatcher.CheckAccess())
+                        {
+                            this.redoCommand.Execute(null);
+                        }
+                        else
+                        {
+                            System.Windows.Application.Current.Dispatcher.Invoke(() => this.redoCommand.Execute(null));
+                        }
+                    }
+
+                    this.redoCommand.CanExecuteChanged += (s, e) =>
+                    {
+                        redoAvailable = this.redoCommand.CanExecute(null);
+                    };
+
+                    if(!undoAvailable)
+                    {
+                        undoInProgress = false;
+                    }
+
+                    if(!redoAvailable)
+                    {
+                        undoInProgress = true;
+                    }
+
+                    var intervalSeconds = Math.Round(autoReviewTimeInterval, 1);
+
+                    await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), autoReviewCts.Token);
+                }
+            }, autoReviewCts.Token);
+        }
+
+        public void StopAutoReviewLoop()
+        {
+            autoReviewCts?.Cancel();
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -143,12 +210,12 @@ namespace Chess.ViewModel.StatusAndMode
 
         public void ViewLoaded()
         {
-            // this.redoCommand.Execute(null);
+            StartAutoReviewLoop();
         }
 
         public void ViewUnloaded()
         {
-            // No implementation needed currently.
+            StopAutoReviewLoop();
         }
     }
 }

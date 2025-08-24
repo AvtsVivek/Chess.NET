@@ -6,9 +6,7 @@
              xmlns:local="clr-namespace:Chess.View.Window"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
-             
-             Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded"
-             >
+             Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded">
     <StackPanel Orientation="Horizontal" >
         <Button x:Name="DecrementHighButton" Padding="0" Margin="0 0 5 0" Command="{Binding DecrementHighCommand}" >
             <Label Padding="0" FontSize="16" FontWeight="DemiBold" Margin="10 -2 10 0" Content="{Binding DecrementHighValue}"></Label>
