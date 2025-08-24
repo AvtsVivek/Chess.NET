@@ -8,9 +8,10 @@
         xmlns:conv="clr-namespace:Chess.View.Converter"
         xmlns:icon="clr-namespace:Chess.View.Icon"
         xmlns:localView="clr-namespace:Chess.View.Window"
+        xmlns:statusAndMode="clr-namespace:Chess.View.StatusAndMode"
         xmlns:select="clr-namespace:Chess.View.Selector"
         xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
-        xmlns:statusAndMode="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel"
+        xmlns:statusAndModeVm="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel"
         xmlns:gameModel="clr-namespace:Chess.Model.Game;assembly=Chess.Model"
         d:DataContext="{d:DesignInstance Type=game:ChessGameVM}"
         mc:Ignorable="d"
@@ -183,7 +184,7 @@
                 </MenuItem>
             </Menu>
 
-            <localView:MessageView Grid.Column="1" Margin="5" 
+            <statusAndMode:MessageView Grid.Column="1" Margin="5" 
                                    DataContext="{Binding MessageVM}"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
