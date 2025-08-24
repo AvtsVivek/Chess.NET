@@ -5,7 +5,7 @@ using System.Windows.Media.Animation;
 using System.ComponentModel;
 using Chess.ViewModel.StatusAndMode;
 
-namespace Chess.View.Window
+namespace Chess.View.StatusAndMode
 {
     /// <summary>
     /// Interaction logic for MessageView.xaml
