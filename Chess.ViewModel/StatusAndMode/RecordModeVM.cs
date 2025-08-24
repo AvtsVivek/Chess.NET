@@ -3,6 +3,7 @@ using Chess.Services;
 using Chess.ViewModel.Command;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 
@@ -11,6 +12,14 @@ namespace Chess.ViewModel.StatusAndMode
     public class RecordModeVM : INotifyPropertyChanged
     {
         private readonly IWindowService windowService;
+        private string fullFilePath;
+        private string userFolderPath;
+        private readonly GenericCommand setFullFilePathCommand;
+        private readonly GenericCommand openFolderInWindowsExplorerCommand;
+        private readonly GenericCommand openFolderInVsCodeCommand;
+        private readonly GenericCommand setParentFolderCommand;
+        private readonly GenericCommand copyFolderPathCommand;
+
         public RecordModeVM(IWindowService windowService)
         {
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
@@ -28,14 +37,23 @@ namespace Chess.ViewModel.StatusAndMode
             FullFilePath = Path.Combine(initialDirectory, fileName);
 
             setFullFilePathCommand = new GenericCommand(() => true, ResetRecordingState);
+            openFolderInWindowsExplorerCommand = new GenericCommand(() => true, OpenFolderInWindowExplorer);
+            openFolderInVsCodeCommand = new GenericCommand(() => true, OpenFolderInVsCode);
+            setParentFolderCommand = new GenericCommand(() => true, SetParentFolder);
+            copyFolderPathCommand = new GenericCommand(() => true, CopyFolderPath);
         }
-
-        private readonly GenericCommand setFullFilePathCommand;
 
         public GenericCommand SetFullFilePathCommand => setFullFilePathCommand;
 
-        private string fullFilePath;
-        public string FullFilePath 
+        public GenericCommand OpenFolderInWindowsExplorerCommand => openFolderInWindowsExplorerCommand;
+
+        public GenericCommand OpenFolderInVsCodeCommand => openFolderInVsCodeCommand;
+
+        public GenericCommand SetParentFolderCommand => setParentFolderCommand;
+
+        public GenericCommand CopyFolderPathCommand => copyFolderPathCommand;
+
+         public string FullFilePath 
         {
             get 
             {
@@ -46,12 +64,76 @@ namespace Chess.ViewModel.StatusAndMode
                 if (fullFilePath != value)
                 {
                     fullFilePath = value ?? throw new ArgumentNullException(nameof(FullFilePath));
+
+                    CopyFolderPath();
                 }
                 OnPropertyChanged(nameof(FullFilePath));
             }
         }
 
+        private void SetUserFolderPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+            UserFolderPath = path;
+        }
+
+        private void SetParentFolder()
+        {
+            var directoryInfo = Directory.GetParent(UserFolderPath);
+            if (directoryInfo != null && Directory.Exists(directoryInfo.FullName))
+            {
+                SetUserFolderPath(directoryInfo.FullName);
+            }
+        }
+
+        private void CopyFolderPath()
+        {
+            SetUserFolderPath(Path.GetDirectoryName(FullFilePath));
+        }
+
+
+        public string UserFolderPath
+        {
+            get
+            {
+                return userFolderPath;
+            }
+            set
+            {
+                if (userFolderPath != value)
+                {
+                    userFolderPath = value ?? throw new ArgumentNullException(nameof(UserFolderPath));
+                }
+                OnPropertyChanged(nameof(UserFolderPath));
+            }
+        }
+
         public bool RecordingInProgress { get; private set; } = false;
+
+        public void OpenFolderInWindowExplorer()
+        {
+            if (Directory.Exists(UserFolderPath))
+            {
+                Process.Start("explorer.exe", UserFolderPath);
+                return;
+            }
+        }
+
+        public void OpenFolderInVsCode()
+        {
+            if (!Directory.Exists(UserFolderPath))
+                return;
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "code",
+                Arguments = $"\"{UserFolderPath}\"",
+                UseShellExecute = true
+            });
+        }
 
         public void ResetRecordingState()
         {
