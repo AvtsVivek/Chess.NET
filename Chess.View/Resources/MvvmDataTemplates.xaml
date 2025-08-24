@@ -2,18 +2,15 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:gameModel="clr-namespace:Chess.Model.Game;assembly=Chess.Model"
                     xmlns:window="clr-namespace:Chess.View.Window" 
+                    xmlns:statusAndModeWindow="clr-namespace:Chess.View.StatusAndMode" 
                     xmlns:statusAndMode="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel">
 
     <DataTemplate DataType="{x:Type statusAndMode:PlayModeVM}">
         <window:PlayModeView/>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type statusAndMode:RecordModeVM}">
-        <window:RecordModeView/>
-    </DataTemplate>
-
-    <DataTemplate DataType="{x:Type statusAndMode:ReviewModeVM}">
-        <window:ReviewModeView/>
+    <DataTemplate DataType="{x:Type statusAndMode:RecordReviewModeVM}">
+        <statusAndModeWindow:RecordReviewModeView/>
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type statusAndMode:ReviewModeHeaderDisplayVM}">
