@@ -13,7 +13,7 @@ namespace Chess.ViewModel.StatusAndMode
 
         public ReviewModeHeaderDisplayVM(GenericCommand undoCommand, GenericCommand redoCommand)
         {
-            autoReviewModeVM = new();
+            autoReviewModeVM = new(undoCommand, redoCommand);
             manualReviewModeVM = new(undoCommand, redoCommand);
             CurrentReviewModeVM = manualReviewModeVM;
         }
