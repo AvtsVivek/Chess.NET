@@ -37,6 +37,41 @@
                     Duration="{StaticResource duration}" To="Black" />
             </Storyboard>
             <SolidColorBrush x:Key="LabelBackgroundBrush" Color="White"/>
+            <Style x:Key="CustomRadioButtonStyle" TargetType="RadioButton">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Grid Width="16" Height="16">
+                                    <!-- Outer circle -->
+                                    <Ellipse
+                                        Width="16" Height="16"
+                                        Stroke="Gray" StrokeThickness="2"
+                                        Fill="White" />
+                                    <!-- Inner circle, visible only when checked -->
+                                    <Ellipse
+                                        x:Name="InnerCircle"
+                                        Width="8" Height="8"
+                                        Fill="DarkBlue"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Visibility="Collapsed" />
+                                </Grid>
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                                  Margin="0,5,0,0"
+                                                  HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="InnerCircle" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -48,11 +83,8 @@
 
     <mah:MetroWindow.IconTemplate>
         <DataTemplate>
-            <iconPacks:PackIconGameIcons Width="{TemplateBinding Width}"
-                                      Height="{TemplateBinding Height}"
-                                      Margin="4"
-                                      Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
-                                      Kind="ChessQueen" />
+            <iconPacks:PackIconGameIcons Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" 
+                Margin="4" Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" Kind="ChessQueen" />
         </DataTemplate>
     </mah:MetroWindow.IconTemplate>
 
@@ -391,9 +423,9 @@
                                 </EventTrigger>
                             </Border.Triggers>
                             <StackPanel Margin="5" Orientation="Horizontal">
-                                <RadioButton Margin="5" Background="Transparent" Content="Play" Name="PlayRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Play}}"/>
-                                <RadioButton Margin="5" Background="Transparent" Content="Record" Name="RecordRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Record}}" />
-                                <RadioButton Margin="5" Background="Transparent" Content="Review" Name="ReviewRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Review}}" />
+                                <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Play" Name="PlayRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Play}}"/>
+                                <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Record" Name="RecordRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Record}}" />
+                                <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Review" Name="ReviewRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Review}}" />
                             </StackPanel>
                         </Border>
                         <Border Grid.Column="1" Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
@@ -409,7 +441,7 @@
                                     </BeginStoryboard>
                                 </EventTrigger>
                             </Border.Triggers>
-                            <ContentControl Margin="5" Content="{Binding CurrentAppModeVM}"/>
+                            <ContentControl Margin="0" Content="{Binding CurrentAppModeVM}"/>
                         </Border>
                     </Grid>
                     <ListView x:Name="myListView"
