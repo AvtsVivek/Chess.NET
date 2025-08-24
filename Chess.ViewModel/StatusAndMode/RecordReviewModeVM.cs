@@ -1,6 +1,7 @@
 ﻿using Chess.Model.Game;
 using Chess.Services;
 using Chess.ViewModel.Command;
+using Chess.ViewModel.Game;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -9,7 +10,7 @@ using System.Windows;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class RecordModeVM : INotifyPropertyChanged
+    public class RecordReviewModeVM : INotifyPropertyChanged
     {
         private readonly IWindowService windowService;
         private string fullFilePath;
@@ -20,10 +21,11 @@ namespace Chess.ViewModel.StatusAndMode
         private readonly GenericCommand setParentFolderCommand;
         private readonly GenericCommand copyFolderPathCommand;
 
-        public RecordModeVM(IWindowService windowService)
+        public RecordReviewModeVM(IWindowService windowService)
         {
+            IsReviewFileInRecording = false;
+            
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
-
             var initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
             if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.XmlFolderPath)
@@ -43,6 +45,8 @@ namespace Chess.ViewModel.StatusAndMode
             copyFolderPathCommand = new GenericCommand(() => true, CopyFolderPath);
         }
 
+        public bool IsReviewFileInRecording { get; set; }
+
         public GenericCommand SetFullFilePathCommand => setFullFilePathCommand;
 
         public GenericCommand OpenFolderInWindowsExplorerCommand => openFolderInWindowsExplorerCommand;
@@ -53,9 +57,11 @@ namespace Chess.ViewModel.StatusAndMode
 
         public GenericCommand CopyFolderPathCommand => copyFolderPathCommand;
 
-         public string FullFilePath 
+        public AppMode CurrentAppMode { get; set; }
+
+        public string FullFilePath
         {
-            get 
+            get
             {
                 return fullFilePath;
             }
