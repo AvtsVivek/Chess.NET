@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Chess.View.Window
+namespace Chess.View.StatusAndMode
 {
     /// <summary>
     /// Interaction logic for AutoReviewModeView.xaml

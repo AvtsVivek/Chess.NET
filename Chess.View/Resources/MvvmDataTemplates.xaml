@@ -6,7 +6,7 @@
                     xmlns:statusAndMode="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel">
 
     <DataTemplate DataType="{x:Type statusAndMode:PlayModeVM}">
-        <window:PlayModeView/>
+        <statusAndModeWindow:PlayModeView/>
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type statusAndMode:RecordReviewModeVM}">
@@ -14,7 +14,7 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type statusAndMode:ReviewModeHeaderDisplayVM}">
-        <window:ReviewModeHeaderDisplyView/>
+        <statusAndModeWindow:ReviewModeHeaderDisplyView/>
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type statusAndMode:StatusDisplayVM}">
@@ -22,11 +22,11 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type statusAndMode:AutoReviewModeVM}">
-        <window:AutoReviewModeView/>
+        <statusAndModeWindow:AutoReviewModeView/>
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type statusAndMode:ManualReviewModeVM}">
-        <window:ManualReviewModeView/>
+        <statusAndModeWindow:ManualReviewModeView/>
     </DataTemplate>
 
 </ResourceDictionary>
