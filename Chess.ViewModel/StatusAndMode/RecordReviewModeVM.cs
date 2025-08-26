@@ -7,19 +7,19 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Win32;
 using System;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class RecordReviewModeVM : ObservableObject
+    public partial class RecordReviewModeVM : ObservableObject
     {
         private readonly IWindowService windowService;
         private readonly XmlFileService xmlFileService = new XmlFileService();
+
         private string fullFilePath;
+        [ObservableProperty]
         private string userFolderPath;
         private readonly GenericCommand setFullFilePathCommand;
         private readonly GenericCommand openFolderInWindowsExplorerCommand;
@@ -68,57 +68,32 @@ namespace Chess.ViewModel.StatusAndMode
 
         public GenericCommand CopyFolderPathCommand => copyFolderPathCommand;
 
-        private AppMode previousAppMode;
-
         private AppMode currentAppMode;
 
         public AppMode CurrentAppMode
         {
-            get
-            {
-                return currentAppMode;
-            }
+            get => currentAppMode;
             set
             {
                 if (currentAppMode != value)
                 {
-                    previousAppMode = currentAppMode;
-                    currentAppMode = value;
-                    AppModeChanged();
+                    var previousAppMode = currentAppMode;
+                    SetProperty(ref currentAppMode, value);
+                    AppModeChanged(previousAppMode);
                 }
             }
         }
 
+        [ObservableProperty]
         private string firstButtonName;
-
-        public string FirstButtonName
-        {
-            get { return firstButtonName; }
-            set
-            {
-                if (fullFilePath != value)
-                {
-                    firstButtonName = value;
-                }
-                OnPropertyChanged(nameof(FirstButtonName));
-            }
-        }
 
         public string FullFilePath
         {
-            get
-            {
-                return fullFilePath;
-            }
+            get => fullFilePath;
             set
             {
-                if (fullFilePath != value)
-                {
-                    fullFilePath = value ?? throw new ArgumentNullException(nameof(FullFilePath));
-
-                    CopyFolderPath();
-                }
-                OnPropertyChanged(nameof(FullFilePath));
+                SetProperty(ref fullFilePath, value);    
+                CopyFolderPath();
                 OnPropertyChanged(nameof(BrowseButtonsEnabled));
             }
         }
@@ -148,22 +123,6 @@ namespace Chess.ViewModel.StatusAndMode
         private void CopyFolderPath()
         {
             SetUserFolderPath(Path.GetDirectoryName(FullFilePath));
-        }
-
-        public string UserFolderPath
-        {
-            get
-            {
-                return userFolderPath;
-            }
-            set
-            {
-                if (userFolderPath != value)
-                {
-                    userFolderPath = value;
-                }
-                OnPropertyChanged(nameof(UserFolderPath));
-            }
         }
 
         public bool RecordingInProgress { get; private set; } = false;
@@ -322,7 +281,7 @@ namespace Chess.ViewModel.StatusAndMode
             return game;
         }
 
-        private void AppModeChanged()
+        private void AppModeChanged(AppMode previousAppMode)
         {
             if (CurrentAppMode == AppMode.Record)
             {
