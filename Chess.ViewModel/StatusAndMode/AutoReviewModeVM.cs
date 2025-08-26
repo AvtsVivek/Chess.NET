@@ -1,7 +1,6 @@
 ﻿using Chess.ViewModel.Command;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 

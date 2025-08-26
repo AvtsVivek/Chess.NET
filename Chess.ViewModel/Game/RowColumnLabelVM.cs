@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chess.ViewModel.Game

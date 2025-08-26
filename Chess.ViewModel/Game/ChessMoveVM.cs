@@ -1,7 +1,5 @@
 ﻿using Chess.Model.Piece;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System;
-using System.ComponentModel;
 
 namespace Chess.ViewModel.Game
 {
@@ -12,7 +10,7 @@ namespace Chess.ViewModel.Game
     /// <remarks>This class is typically used to encapsulate the details of a single chess move in a user
     /// interface or application logic. It includes the starting position, the destination position, and the piece
     /// being moved.</remarks>
-    public class ChessMoveVM: ObservableObject
+    public partial class ChessMoveVM: ObservableObject
     {
         /// <summary>
         /// Represents the source of the move.
@@ -42,19 +40,11 @@ namespace Chess.ViewModel.Game
 
         public PositionVM Source
         {
-            get
+            get => source;
+            set
             {
-                return this.source;
-            }
-
-            private set
-            {
-                if (this.source != value)
-                {
-                    this.source = value ?? throw new ArgumentNullException(nameof(this.Source));
-                    this.OnPropertyChanged(nameof(this.Source));
-                    this.OnPropertyChanged(nameof(this.SourceString));
-                }
+                SetProperty(ref source, value);
+                this.OnPropertyChanged(nameof(this.SourceString));
             }
         }
 
@@ -83,21 +73,13 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        public PositionVM Target 
+        public PositionVM Target
         {
-            get
+            get => target;
+            set
             {
-                return this.target;
-            }
-
-            private set
-            {
-                if (this.target != value)
-                {
-                    this.target = value ?? throw new ArgumentNullException(nameof(this.Target));
-                    this.OnPropertyChanged(nameof(this.Target));
-                    this.OnPropertyChanged(nameof(this.TargetString));
-                }
+                SetProperty(ref target, value);
+                this.OnPropertyChanged(nameof(this.TargetString));
             }
         }
 
@@ -106,20 +88,13 @@ namespace Chess.ViewModel.Game
         /// </summary>
         public ChessPiece Piece
         {
-            get
-            {
-                return this.piece;
-            }
+            get => this.piece;
 
             private set
             {
-                if (this.piece != value)
-                {
-                    this.piece = value ?? throw new ArgumentNullException(nameof(this.Piece));
-                    this.OnPropertyChanged(nameof(this.Piece));
-                    this.OnPropertyChanged(nameof(this.PieceName));
-                    this.OnPropertyChanged(nameof(this.PieceColor));
-                }
+                SetProperty(ref piece, value);
+                this.OnPropertyChanged(nameof(this.PieceName));
+                this.OnPropertyChanged(nameof(this.PieceColor));
             }
         }
 
@@ -150,45 +125,11 @@ namespace Chess.ViewModel.Game
             }
         }
 
+        [ObservableProperty]
         private int moveNumber;
 
-        /// <summary>
-        /// Gets the chess piece thats currently being moved.
-        /// </summary>
-        public int MoveNumber
-        {
-            get
-            {
-                return this.moveNumber;
-            }
-
-            set
-            {
-                if (this.moveNumber != value)
-                {
-                    this.moveNumber = value;
-                    this.OnPropertyChanged(nameof(this.MoveNumber));
-                }
-            }
-        }
-
+        [ObservableProperty]
         private string gameAndUpdateInfo;
-
-        public string GameAndUpdateInfo 
-        {
-            get
-            {
-                return this.gameAndUpdateInfo;
-            }
-            set
-            {
-                if (this.gameAndUpdateInfo != value)
-                {
-                    this.gameAndUpdateInfo = value;
-                    this.OnPropertyChanged(nameof(this.GameAndUpdateInfo));
-                }
-            }
-        }
 
         private string GetRowColumnId(int row, int column)
         {

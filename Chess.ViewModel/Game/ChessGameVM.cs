@@ -17,10 +17,8 @@ namespace Chess.ViewModel.Game
     using Chess.ViewModel.Visitor;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Messaging;
-    using CommunityToolkit.Mvvm.Messaging.Messages;
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Diagnostics;
     using System.Linq;
     using System.Windows;
@@ -28,7 +26,7 @@ namespace Chess.ViewModel.Game
     /// <summary>
     /// Represents the view model of a chess game.
     /// </summary>
-    public class ChessGameVM : ObservableObject, ICommandVisitor
+    public partial class ChessGameVM : ObservableObject, ICommandVisitor
     {
         /// <summary>
         /// Represents the rulebook for the game.
@@ -63,6 +61,7 @@ namespace Chess.ViewModel.Game
         /// <summary>
         /// Represents the currently presented chess board.
         /// </summary>
+        [ObservableProperty]
         private BoardVM board;
 
         /// <summary>
@@ -149,27 +148,6 @@ namespace Chess.ViewModel.Game
         }
 
         /// <summary>
-        /// Gets the currently presented state of the chess board.
-        /// </summary>
-        /// <value>The current state of the chess board.</value>
-        public BoardVM Board
-        {
-            get
-            {
-                return this.board;
-            }
-
-            private set
-            {
-                if (this.board != value)
-                {
-                    this.board = value ?? throw new ArgumentNullException(nameof(this.Board));
-                    this.OnPropertyChanged(nameof(this.Board));
-                }
-            }
-        }
-
-        /// <summary>
         /// Gets the current status of the chess game.
         /// </summary>
         /// <value>The current status of the presented chess game.</value>
@@ -230,53 +208,24 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        private object _currentAppModeVM;
-        public object CurrentAppModeVM
-        {
-            get { return _currentAppModeVM; }
-            set
-            {
-                _currentAppModeVM = value;
-                OnPropertyChanged(nameof(CurrentAppModeVM));
-            }
-        }
+        [ObservableProperty]
+        private object currentAppModeVM;
 
+        [ObservableProperty]
         private object _modeAndPlayerStatusDisplayVM;
-        public object ModeAndPlayerStatusDisplayVM
-        {
-            get { return _modeAndPlayerStatusDisplayVM; }
-            set
-            {
-                _modeAndPlayerStatusDisplayVM = value;
-                OnPropertyChanged(nameof(ModeAndPlayerStatusDisplayVM));
-            }
-        }
 
+        [ObservableProperty]
         private HeaderNotificationVM _headerNotificationMessage;
-        public HeaderNotificationVM HeaderNotificationMessage
-        {
-            get { return _headerNotificationMessage; }
-            set
-            {
-                _headerNotificationMessage = value;
-                OnPropertyChanged(nameof(HeaderNotificationMessage));
-            }
-        }
 
         private AppMode selectedAppModeValue;
         public AppMode SelectedAppModeValue
         {
-            get { return selectedAppModeValue; }
+            get => selectedAppModeValue;
             set
             {
-                if (selectedAppModeValue != value)
-                {
-                    var previousAppMode = selectedAppModeValue;
-                    selectedAppModeValue = value;
-                    Debug.WriteLine($"Selected App Mode: {selectedAppModeValue}");
-                    AppModeChangedHandler(previousAppMode);
-                    OnPropertyChanged(nameof(SelectedAppModeValue));
-                }
+                var previousAppMode = selectedAppModeValue;
+                SetProperty(ref selectedAppModeValue, value);
+                AppModeChangedHandler(previousAppMode);
             }
         }
 

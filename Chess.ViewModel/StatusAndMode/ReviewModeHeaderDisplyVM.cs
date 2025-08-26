@@ -3,7 +3,6 @@ using Chess.ViewModel.Game;
 using Chess.ViewModel.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using System.ComponentModel;
 using System.Diagnostics;
 
 namespace Chess.ViewModel.StatusAndMode
