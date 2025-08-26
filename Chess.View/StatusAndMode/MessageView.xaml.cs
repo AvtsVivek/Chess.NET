@@ -28,7 +28,7 @@ namespace Chess.View.StatusAndMode
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(MessageVM.MessageText))
+            if (e.PropertyName == nameof(HeaderNotificationVM.MessageText))
             {
                 // Stop any previous animation
                 MessageTextBlock.BeginAnimation(UIElement.OpacityProperty, null);
@@ -46,7 +46,7 @@ namespace Chess.View.StatusAndMode
 
                 fadeOut.Completed += (s, args) =>
                 {
-                    if (this.DataContext is MessageVM vm)
+                    if (this.DataContext is HeaderNotificationVM vm)
                     {
                         vm.MessageText = string.Empty;
                     }

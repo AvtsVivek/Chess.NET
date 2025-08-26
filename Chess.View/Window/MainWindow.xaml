@@ -185,7 +185,7 @@
             </Menu>
 
             <statusAndMode:MessageView Grid.Column="1" Margin="5" 
-                                   DataContext="{Binding MessageVM}"
+                                   DataContext="{Binding HeaderNotificationMessage}"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
             <Menu Grid.Column="2" >
