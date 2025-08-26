@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Chess.Model\Chess.Model.csproj" />
     <ProjectReference Include="..\Chess.Services\Chess.Services.csproj" />
+	<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
   </ItemGroup>
 
   <ItemGroup>

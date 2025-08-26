@@ -58,5 +58,17 @@ namespace Chess.ViewModel {
                 this["AutoReviewTimeInterval"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ReviewXmlLoadFolderPath {
+            get {
+                return ((string)(this["ReviewXmlLoadFolderPath"]));
+            }
+            set {
+                this["ReviewXmlLoadFolderPath"] = value;
+            }
+        }
     }
 }

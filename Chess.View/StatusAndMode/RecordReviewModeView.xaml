@@ -5,7 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Chess.View.StatusAndMode"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded"
+             >
     <UserControl.Resources>
         <Style x:Key="RecordModeButtonStyle" TargetType="Button">
             <Setter Property="Height" Value="20"/>
@@ -30,8 +32,8 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding UserFolderPath}" ToolTip="{Binding UserFolderPath}" TextTrimming="CharacterEllipsis" Margin="0,0,0,0" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Grid.Row="0" x:Name="btnParentFolder" xml:space="preserve" Content="  ..  " Command="{Binding SetParentFolderCommand}" ToolTip="Set Parent Folder" Style="{StaticResource RecordModeButtonStyle}"></Button>
-            <Button Grid.Column="2" Grid.Row="0" x:Name="btnCopy" xml:space="preserve" Content=" Copy " Command="{Binding CopyFolderPathCommand}" ToolTip="Copy Folder path from from above" Style="{StaticResource RecordModeButtonStyle}"></Button>
+            <Button Grid.Column="1" Grid.Row="0" x:Name="btnParentFolder" xml:space="preserve" Content="  ..  " IsEnabled="{Binding BrowseButtonsEnabled}" Command="{Binding SetParentFolderCommand}" ToolTip="Set Parent Folder" Style="{StaticResource RecordModeButtonStyle}"></Button>
+            <Button Grid.Column="2" Grid.Row="0" x:Name="btnCopy" xml:space="preserve" Content=" Copy " IsEnabled="{Binding BrowseButtonsEnabled}" Command="{Binding CopyFolderPathCommand}" ToolTip="Copy Folder path from from above" Style="{StaticResource RecordModeButtonStyle}"></Button>
         </Grid>
 
         <Grid Grid.Column="0" Grid.Row="2" >
@@ -40,9 +42,9 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" x:Name="btnSet" Content="Set" Command="{Binding SetFullFilePathCommand}" ToolTip="Open window to set this path" Style="{StaticResource RecordModeButtonStyle}" />
-            <Button Grid.Column="1" x:Name="btnExplore" Content="Explore" Command="{Binding OpenFolderInWindowsExplorerCommand}" ToolTip="Open this folder in windows explorer" Style="{StaticResource RecordModeButtonStyle}" />
-            <Button Grid.Column="2" x:Name="btnVsCode" Content="VS Code" Command="{Binding OpenFolderInVsCodeCommand}" ToolTip="Open this folder in Visual Studio Code" Style="{StaticResource RecordModeButtonStyle}" />
+            <Button Grid.Column="0" x:Name="btnSet" Content="{Binding FirstButtonName}" Command="{Binding SetFullFilePathCommand}" ToolTip="Open window to set this path" Style="{StaticResource RecordModeButtonStyle}" />
+            <Button Grid.Column="1" x:Name="btnExplore" Content="Explore" IsEnabled="{Binding BrowseButtonsEnabled}" Command="{Binding OpenFolderInWindowsExplorerCommand}" ToolTip="Open this folder in windows explorer" Style="{StaticResource RecordModeButtonStyle}" />
+            <Button Grid.Column="2" x:Name="btnVsCode" Content="VS Code" IsEnabled="{Binding BrowseButtonsEnabled}" Command="{Binding OpenFolderInVsCodeCommand}" ToolTip="Open this folder in Visual Studio Code" Style="{StaticResource RecordModeButtonStyle}" />
         </Grid>
     </Grid>
 </UserControl>

@@ -2,9 +2,9 @@
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class MessageVM: INotifyPropertyChanged
+    public class HeaderNotificationVM: INotifyPropertyChanged
     {
-        public MessageVM()
+        public HeaderNotificationVM()
         {
         }
 

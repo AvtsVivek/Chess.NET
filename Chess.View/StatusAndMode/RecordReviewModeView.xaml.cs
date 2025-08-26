@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Chess.ViewModel.StatusAndMode;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,22 @@ namespace Chess.View.StatusAndMode
     /// </summary>
     public partial class RecordReviewModeView : UserControl
     {
+        private RecordReviewModeVM viewModel;
+
         public RecordReviewModeView()
         {
             InitializeComponent();
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            viewModel = DataContext as RecordReviewModeVM;
+            viewModel?.ViewLoaded();
+        }
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            viewModel?.ViewUnloaded();
         }
     }
 }

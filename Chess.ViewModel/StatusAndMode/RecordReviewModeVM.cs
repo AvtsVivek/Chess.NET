@@ -2,8 +2,12 @@
 using Chess.Services;
 using Chess.ViewModel.Command;
 using Chess.ViewModel.Game;
+using Chess.ViewModel.Messages;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Win32;
 using System;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -13,6 +17,7 @@ namespace Chess.ViewModel.StatusAndMode
     public class RecordReviewModeVM : INotifyPropertyChanged
     {
         private readonly IWindowService windowService;
+        private readonly XmlFileService xmlFileService = new XmlFileService();
         private string fullFilePath;
         private string userFolderPath;
         private readonly GenericCommand setFullFilePathCommand;
@@ -24,8 +29,19 @@ namespace Chess.ViewModel.StatusAndMode
         public RecordReviewModeVM(IWindowService windowService)
         {
             IsReviewFileInRecording = false;
-            
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
+
+            SetFullFilePath();
+
+            setFullFilePathCommand = new GenericCommand(() => true, SetUserFolderPath);
+            openFolderInWindowsExplorerCommand = new GenericCommand(() => true, OpenFolderInWindowExplorer);
+            openFolderInVsCodeCommand = new GenericCommand(() => true, OpenFolderInVsCode);
+            setParentFolderCommand = new GenericCommand(() => true, SetParentFolder);
+            copyFolderPathCommand = new GenericCommand(() => true, CopyFolderPath);
+        }
+
+        public void SetFullFilePath()
+        {
             var initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
             if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.XmlFolderPath)
@@ -37,12 +53,6 @@ namespace Chess.ViewModel.StatusAndMode
             var fileName = XmlFileService.GetFileName();
 
             FullFilePath = Path.Combine(initialDirectory, fileName);
-
-            setFullFilePathCommand = new GenericCommand(() => true, ResetRecordingState);
-            openFolderInWindowsExplorerCommand = new GenericCommand(() => true, OpenFolderInWindowExplorer);
-            openFolderInVsCodeCommand = new GenericCommand(() => true, OpenFolderInVsCode);
-            setParentFolderCommand = new GenericCommand(() => true, SetParentFolder);
-            copyFolderPathCommand = new GenericCommand(() => true, CopyFolderPath);
         }
 
         public bool IsReviewFileInRecording { get; set; }
@@ -57,7 +67,41 @@ namespace Chess.ViewModel.StatusAndMode
 
         public GenericCommand CopyFolderPathCommand => copyFolderPathCommand;
 
-        public AppMode CurrentAppMode { get; set; }
+        private AppMode previousAppMode;
+
+        private AppMode currentAppMode;
+
+        public AppMode CurrentAppMode
+        {
+            get
+            {
+                return currentAppMode;
+            }
+            set
+            {
+                if (currentAppMode != value)
+                {
+                    previousAppMode = currentAppMode;
+                    currentAppMode = value;
+                    AppModeChanged();
+                }
+            }
+        }
+
+        private string firstButtonName;
+
+        public string FirstButtonName
+        {
+            get { return firstButtonName; }
+            set
+            {
+                if (fullFilePath != value)
+                {
+                    firstButtonName = value;
+                }
+                OnPropertyChanged(nameof(FirstButtonName));
+            }
+        }
 
         public string FullFilePath
         {
@@ -74,15 +118,20 @@ namespace Chess.ViewModel.StatusAndMode
                     CopyFolderPath();
                 }
                 OnPropertyChanged(nameof(FullFilePath));
+                OnPropertyChanged(nameof(BrowseButtonsEnabled));
+            }
+        }
+
+        public bool BrowseButtonsEnabled
+        {
+            get
+            {
+                return !string.IsNullOrWhiteSpace(FullFilePath);
             }
         }
 
         private void SetUserFolderPath(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
             UserFolderPath = path;
         }
 
@@ -100,7 +149,6 @@ namespace Chess.ViewModel.StatusAndMode
             SetUserFolderPath(Path.GetDirectoryName(FullFilePath));
         }
 
-
         public string UserFolderPath
         {
             get
@@ -111,7 +159,7 @@ namespace Chess.ViewModel.StatusAndMode
             {
                 if (userFolderPath != value)
                 {
-                    userFolderPath = value ?? throw new ArgumentNullException(nameof(UserFolderPath));
+                    userFolderPath = value;
                 }
                 OnPropertyChanged(nameof(UserFolderPath));
             }
@@ -216,8 +264,132 @@ namespace Chess.ViewModel.StatusAndMode
                 throw new InvalidOperationException("Full file path must be set before writing to XML file.");
             }
 
-            new XmlFileService().WriteToXmlFile(chessGame, FullFilePath);
+            xmlFileService.WriteToXmlFile(chessGame, FullFilePath);
             RecordingInProgress = true;
+        }
+
+        private void SetUserFolderPath()
+        {
+            if(this.CurrentAppMode == AppMode.Record)
+            {
+                ResetRecordingState();
+            }
+
+            if(this.CurrentAppMode == AppMode.Review)
+            {
+                OpenFileDialog openFileDialog = new();
+                openFileDialog.Filter = "xml files (*.xml)|*.xml";
+
+                var initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+                if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ReviewXmlLoadFolderPath)
+                    && Directory.Exists(ChessAppSettings.Default.ReviewXmlLoadFolderPath))
+                {
+                    initialDirectory = ChessAppSettings.Default.ReviewXmlLoadFolderPath;
+                }
+
+                openFileDialog.InitialDirectory = initialDirectory;
+
+                bool? result = openFileDialog.ShowDialog();
+
+                if (result == true)
+                {
+                    FullFilePath = openFileDialog.FileName;
+                    ChessAppSettings.Default.ReviewXmlLoadFolderPath = Path.GetDirectoryName(FullFilePath);
+                    ChessAppSettings.Default.Save();
+                    var game = LoadFromXmlFile();
+                    var message = new MessageToChessGameVM(game);
+                    WeakReferenceMessenger.Default.Send(message);
+                }
+            }
+        }
+
+        private ChessGame LoadFromXmlFile()
+        {
+            if (string.IsNullOrWhiteSpace(FullFilePath))
+            {
+                throw new InvalidOperationException("Full file path must be set before loading from XML file.");
+            }
+
+            if(!Path.Exists(FullFilePath))
+            {
+                throw new FileNotFoundException("The specified file was not found.", FullFilePath);
+            }
+
+            ChessGame game = xmlFileService.LoadFromXmlFile(FullFilePath);
+
+            return game;
+        }
+
+        private void AppModeChanged()
+        {
+            if (CurrentAppMode == AppMode.Record)
+            {
+                FirstButtonName = "Set File";
+            }
+
+            if (CurrentAppMode == AppMode.Review)
+            {
+                FirstButtonName = "Load File";
+            }
+
+            if (this.RecordingInProgress && previousAppMode == AppMode.Record)
+            {
+                this.IsReviewFileInRecording = true;
+                PublishReviewMessage(true);
+                return;
+            }
+
+            if (CurrentAppMode == AppMode.Record && previousAppMode == AppMode.Play)
+            {
+                return;
+            }
+
+            if (CurrentAppMode == AppMode.Review && previousAppMode == AppMode.Record && !this.RecordingInProgress)
+            {
+                this.FullFilePath = string.Empty;
+                this.IsReviewFileInRecording = false;
+                PublishReviewMessage(false);
+            }
+
+            if (CurrentAppMode == AppMode.Review && previousAppMode == AppMode.Play)
+            {
+                this.FullFilePath = string.Empty;
+                this.IsReviewFileInRecording = false;
+                PublishReviewMessage(false);
+            }
+        }
+
+        private void PublishReviewMessage(bool bStartReview)
+        {
+            var reviewMessage = new ReviewMessage(ReviewMode.Auto, bStartReview);
+            WeakReferenceMessenger.Default.Send(reviewMessage);
+        }
+
+        public void ViewLoaded()
+        {
+            if (CurrentAppMode == AppMode.Review)
+            {
+
+            }
+
+            if (CurrentAppMode == AppMode.Record)
+            {
+
+            }
+        }
+
+        public void ViewUnloaded()
+        {
+            if (CurrentAppMode == AppMode.Review)
+            {
+
+            }
+
+            if (CurrentAppMode == AppMode.Record)
+            {
+
+            }
         }
 
         /// <summary>

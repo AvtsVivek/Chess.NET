@@ -1,8 +1,12 @@
 ﻿using Chess.Model.Command;
 using Chess.Model.Game;
 using Chess.Model.Piece;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO.Pipelines;
+using System.Windows.Documents;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace Chess.Services
 {
@@ -27,6 +31,45 @@ namespace Chess.Services
             this.settings.OmitXmlDeclaration = true;
         }
 
+        public ChessGame LoadFromXmlFile(string fullFilePath)
+        {
+            Debug.WriteLine($"Loading game state from XML file: {fullFilePath}");
+            var doc = XDocument.Load(fullFilePath);
+
+            var piecesNode = doc.Descendants("Pieces").FirstOrDefault();
+            if (piecesNode == null) 
+                return null;
+
+            var blackPiecesNode = piecesNode.Descendants(XmlConstants.BlacksElementName).FirstOrDefault();
+
+            if (blackPiecesNode == null)
+                return null; // Need to check
+
+            var allPlacedPieces = new List<PlacedPiece>();
+
+            var pieceTypes = new[] { "Pawns", "Knights", "Bishops", "Rooks", "Queens", "King" };
+
+            foreach (var pieceType in pieceTypes)
+            {
+                var whitePieceList = GetPieces(piecesNode, pieceType, Color.White);
+                var blackPieceList = GetPieces(piecesNode, pieceType, Color.Black);
+                allPlacedPieces.AddRange(whitePieceList);
+                allPlacedPieces.AddRange(blackPieceList);
+            }
+
+            var firstPiece = allPlacedPieces[0];
+            var weight = firstPiece.Piece.Weight;
+
+            var emptyDictionary = ImmutableSortedDictionary.Create<Position, ChessPiece>(PositionComparer.DefaultComparer);
+            
+            var dict = allPlacedPieces.Aggregate(emptyDictionary, (s, p) => s.Add(p.Position, p.Piece));
+
+            var board = new Board(dict);
+            var whitePlayer = new Player(Color.White);
+            var blackPlayer = new Player(Color.Black);
+            return new ChessGame(board, whitePlayer, blackPlayer);
+        }
+
         public void WriteToXmlFile(ChessGame game, string filePath)
         {
             Debug.WriteLine($"Writing game state to XML file: {filePath}");
@@ -38,7 +81,7 @@ namespace Chess.Services
                 writer.WriteStartElement(XmlConstants.RootElementName);
                 writer.WriteStartElement(XmlConstants.MoveCommandsElementName);
                 writer.WriteEndElement();
-                
+
                 WriteStartPositionsToXmlFile(writer, game);
 
                 writer.WriteEndElement();
@@ -212,13 +255,13 @@ namespace Chess.Services
                     {
                         var firstCommandXmlElement = GetCommandXmlElement(sequenceCommand.FirstCommand);
                         var secondCommandXmlElement = GetCommandXmlElement(sequenceCommand.SecondCommand);
-                        
+
                         if (firstCommandXmlElement != null)
                             xmlElement.AppendChild(firstCommandXmlElement);
-                        
+
                         if (secondCommandXmlElement != null)
                             xmlElement.AppendChild(secondCommandXmlElement);
-                        
+
                         return xmlElement;
                     }
                 case EndTurnCommand endTurnCommand:
@@ -229,14 +272,14 @@ namespace Chess.Services
                     {
                         XmlElement pieceElement = xmlDocument.CreateElement(removeCommand.Piece.GetType().Name);
                         pieceElement.SetAttribute(XmlConstants.PieceColorAttributeName, removeCommand.Piece.Color.ToString());
-                        
+
                         XmlElement positionElement = xmlDocument.CreateElement(XmlConstants.SourcePositionAttributeName);
                         positionElement.SetAttribute(XmlConstants.RowAttributeName, (removeCommand.Position.Row + 1).ToString());
                         positionElement.SetAttribute(XmlConstants.ColumnAttributeName, (removeCommand.Position.Column + 1).ToString());
 
                         xmlElement.AppendChild(pieceElement);
                         xmlElement.AppendChild(positionElement);
-                        
+
                         return xmlElement;
                     }
                 case SpawnCommand spawnCommand:
@@ -258,6 +301,45 @@ namespace Chess.Services
                 default:
                     throw new NotSupportedException($"Unsupported command type: {command.GetType().Name}");
             }
+        }
+
+        private List<PlacedPiece> GetPieces(XElement piecesNode, string pieceType, Color color)
+        {
+            var placedPieces = new List<PlacedPiece>();
+
+            var colorPieceNodes = piecesNode.Descendants(color.ToString() + "s");
+
+            // Map pieceType string to the correct ChessPiece constructor
+            Func<Color, ChessPiece> pieceFactory = pieceType switch
+            {
+                "Pawns" => c => new Pawn(c),
+                "Knights" => c => new Knight(c),
+                "Bishops" => c => new Bishop(c),
+                "Rooks" => c => new Rook(c),
+                "Queens" => c => new Queen(c),
+                "King" => c => new King(c),
+                _ => c => new Pawn(c) // fallback, should not happen
+            };
+
+            foreach (var piece in colorPieceNodes.Descendants(pieceType))
+            {
+                foreach (var position in piece.Descendants("Position"))
+                {
+                    var rowAttribute = position.Attribute("Row");
+                    var columnAttribute = position.Attribute("Column");
+                    if (rowAttribute == null || columnAttribute == null)
+                        continue;
+                    if (int.TryParse(rowAttribute.Value, out int row) && int.TryParse(columnAttribute.Value, out int column))
+                    {
+                        var placedPiece = new PlacedPiece(
+                            new Position(row - 1, column - 1),
+                            pieceFactory(color)
+                        );
+                        placedPieces.Add(placedPiece);
+                    }
+                }
+            }
+            return placedPieces;
         }
     }
 }
