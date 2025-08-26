@@ -1,13 +1,14 @@
 ﻿using Chess.ViewModel.Command;
 using Chess.ViewModel.Game;
 using Chess.ViewModel.Messages;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using System.ComponentModel;
 using System.Diagnostics;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class ReviewModeHeaderDisplayVM : INotifyPropertyChanged
+    public class ReviewModeHeaderDisplayVM : ObservableObject
     {
         private AutoReviewModeVM autoReviewModeVM;
 
@@ -79,12 +80,6 @@ namespace Chess.ViewModel.StatusAndMode
                 }
                 CurrentReviewModeVM = selectedReviewModeValue == ReviewMode.Auto ? autoReviewModeVM : manualReviewModeVM;
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void SaveReviewModeSetting()

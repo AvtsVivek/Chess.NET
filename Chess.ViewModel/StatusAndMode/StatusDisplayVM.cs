@@ -1,9 +1,10 @@
 ﻿using Chess.Model.Game;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class StatusDisplayVM : INotifyPropertyChanged
+    public class StatusDisplayVM : ObservableObject
     {
         public StatusDisplayVM(Status status)
         {
@@ -26,12 +27,6 @@ namespace Chess.ViewModel.StatusAndMode
         public void UpdateStatus(Status status)
         {
             StatusText = new Services.StatusToStringConverter().Convert(status);
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

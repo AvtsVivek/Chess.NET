@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chess.ViewModel.Game
 {
@@ -7,7 +8,7 @@ namespace Chess.ViewModel.Game
     /// Represents the view model of a chess board row or a column.
     /// </summary>
     [DebuggerDisplay("R:{Row}, C:{Column}, L:{Label}, H:{Height}, W:{Width}")]
-    public class RowColumnLabelVM : INotifyPropertyChanged
+    public class RowColumnLabelVM : ObservableObject
     {
         /// <summary>
         /// The row of the label, where 0 represents the bottom row.
@@ -62,11 +63,5 @@ namespace Chess.ViewModel.Game
         /// <value>The resource key for the row or column label.</value>
         public string LabelResourceKey { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

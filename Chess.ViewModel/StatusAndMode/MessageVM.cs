@@ -1,8 +1,9 @@
-﻿using System.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class HeaderNotificationVM: INotifyPropertyChanged
+    public class HeaderNotificationVM : ObservableObject
     {
         public HeaderNotificationVM()
         {
@@ -27,10 +28,5 @@ namespace Chess.ViewModel.StatusAndMode
             MessageText = string.Empty;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

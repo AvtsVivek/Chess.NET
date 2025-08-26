@@ -1,4 +1,5 @@
 ﻿using Chess.Model.Piece;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.ComponentModel;
 
@@ -11,7 +12,7 @@ namespace Chess.ViewModel.Game
     /// <remarks>This class is typically used to encapsulate the details of a single chess move in a user
     /// interface or application logic. It includes the starting position, the destination position, and the piece
     /// being moved.</remarks>
-    public class ChessMoveVM: INotifyPropertyChanged
+    public class ChessMoveVM: ObservableObject
     {
         /// <summary>
         /// Represents the source of the move.
@@ -38,11 +39,6 @@ namespace Chess.ViewModel.Game
             this.MoveNumber = moveNumber;
             this.ShortDescription = shortDescription;
         }
-
-        /// <summary>
-        /// Occurs when a property value changes.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public PositionVM Source
         {
@@ -241,15 +237,6 @@ namespace Chess.ViewModel.Game
                     break;
             }
             return (row + 1).ToString() + columnId;
-        }
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

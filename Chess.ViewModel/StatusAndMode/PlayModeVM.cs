@@ -1,8 +1,9 @@
-﻿using System.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class PlayModeVM : INotifyPropertyChanged
+    public class PlayModeVM : ObservableObject
     {
         private int gameMoveCount;
         public int GameMoveCount
@@ -16,17 +17,6 @@ namespace Chess.ViewModel.StatusAndMode
                     OnPropertyChanged(nameof(GameMoveCount));
                 }
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

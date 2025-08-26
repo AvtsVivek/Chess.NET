@@ -11,6 +11,7 @@ namespace Chess.ViewModel.Game
     using Chess.Model.Game;
     using Chess.ViewModel.Piece;
     using Chess.ViewModel.Visitor;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -20,7 +21,7 @@ namespace Chess.ViewModel.Game
     /// <summary>
     /// Represents the view model of a chess board.
     /// </summary>
-    public class BoardVM : INotifyPropertyChanged
+    public class BoardVM : ObservableObject
     {
         /// <summary>
         /// Represents the visitor that can set potential targets for chess pieces on the board.
@@ -183,11 +184,6 @@ namespace Chess.ViewModel.Game
                 return moveSequence;
             }
         }
-
-        /// <summary>
-        /// Occurs when a property value changes.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Gets or sets the selected source field for which the <see cref="targets"/> were determined.
@@ -555,15 +551,6 @@ namespace Chess.ViewModel.Game
                 }
             }
             activePlayerCommands.Clear();
-        }
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
