@@ -1,13 +1,13 @@
 ﻿using Chess.ViewModel.Command;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class AutoReviewModeVM : INotifyPropertyChanged
+    public class AutoReviewModeVM : ObservableObject
     {
         private const double autoReviewTimeIntervalLowerLimit = 0.1;
         private const double autoReviewTimeIntervalUpperLimit = 10;
@@ -190,17 +190,6 @@ namespace Chess.ViewModel.StatusAndMode
         public void StopAutoReviewLoop()
         {
             autoReviewCts?.Cancel();
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void ViewLoaded()

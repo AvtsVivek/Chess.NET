@@ -15,6 +15,7 @@ namespace Chess.ViewModel.Game
     using Chess.ViewModel.Messages;
     using Chess.ViewModel.StatusAndMode;
     using Chess.ViewModel.Visitor;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Messaging;
     using CommunityToolkit.Mvvm.Messaging.Messages;
     using System;
@@ -27,7 +28,7 @@ namespace Chess.ViewModel.Game
     /// <summary>
     /// Represents the view model of a chess game.
     /// </summary>
-    public class ChessGameVM : ICommandVisitor, INotifyPropertyChanged
+    public class ChessGameVM : ObservableObject, ICommandVisitor
     {
         /// <summary>
         /// Represents the rulebook for the game.
@@ -146,11 +147,6 @@ namespace Chess.ViewModel.Game
 
             HeaderNotificationMessage = new();
         }
-
-        /// <summary>
-        /// Occurs when a property value changes.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Gets the currently presented state of the chess board.
@@ -427,15 +423,6 @@ namespace Chess.ViewModel.Game
         public void Visit(SpawnCommand command)
         {
             this.Board.Execute(command);
-        }
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>

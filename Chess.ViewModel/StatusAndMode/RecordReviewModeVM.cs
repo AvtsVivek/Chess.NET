@@ -3,6 +3,7 @@ using Chess.Services;
 using Chess.ViewModel.Command;
 using Chess.ViewModel.Game;
 using Chess.ViewModel.Messages;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Win32;
 using System;
@@ -14,7 +15,7 @@ using System.Windows;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class RecordReviewModeVM : INotifyPropertyChanged
+    public class RecordReviewModeVM : ObservableObject
     {
         private readonly IWindowService windowService;
         private readonly XmlFileService xmlFileService = new XmlFileService();
@@ -390,20 +391,6 @@ namespace Chess.ViewModel.StatusAndMode
             {
 
             }
-        }
-
-        /// <summary>
-        /// Occurs when a property value changes.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
