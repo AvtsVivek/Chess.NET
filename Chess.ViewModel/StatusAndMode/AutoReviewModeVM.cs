@@ -1,6 +1,7 @@
 ﻿using Chess.ViewModel.Command;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -143,7 +144,7 @@ namespace Chess.ViewModel.StatusAndMode
                 {
                     if (undoAvailable && undoInProgress)
                     {
-                        if (System.Windows.Application.Current.Dispatcher.CheckAccess())
+                       if (System.Windows.Application.Current.Dispatcher.CheckAccess())
                         {
                             this.undoCommand.Execute(null);
                         }
@@ -153,10 +154,7 @@ namespace Chess.ViewModel.StatusAndMode
                         }
                     }
 
-                    this.undoCommand.CanExecuteChanged += (s, e) =>
-                    {
-                        undoAvailable = this.undoCommand.CanExecute(null);
-                    };
+                    undoAvailable = this.undoCommand.CanExecute(null);
 
                     if (redoAvailable && !undoInProgress)
                     {
@@ -170,10 +168,7 @@ namespace Chess.ViewModel.StatusAndMode
                         }
                     }
 
-                    this.redoCommand.CanExecuteChanged += (s, e) =>
-                    {
-                        redoAvailable = this.redoCommand.CanExecute(null);
-                    };
+                    redoAvailable = this.redoCommand.CanExecute(null);
 
                     if(!undoAvailable)
                     {
