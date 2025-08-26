@@ -1,9 +1,10 @@
 ﻿using Chess.ViewModel.Command;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class ManualReviewModeVM: INotifyPropertyChanged
+    public class ManualReviewModeVM : ObservableObject
     {
         private readonly GenericCommand undoCommand;
 
@@ -18,16 +19,5 @@ namespace Chess.ViewModel.StatusAndMode
         public GenericCommand UndoCommand => this.undoCommand;
 
         public GenericCommand RedoCommand => this.redoCommand;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

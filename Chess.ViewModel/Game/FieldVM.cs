@@ -6,12 +6,13 @@
 //-----------------------------------------------------------------------
 namespace Chess.ViewModel.Game
 {
+    using CommunityToolkit.Mvvm.ComponentModel;
     using System.ComponentModel;
 
     /// <summary>
     /// Represents the view model of a chess board field.
     /// </summary>
-    public class FieldVM : INotifyPropertyChanged
+    public class FieldVM : ObservableObject
     {
         /// <summary>
         /// Indicates if the field is a possible target for the user to select.
@@ -29,11 +30,6 @@ namespace Chess.ViewModel.Game
             this.Column = column;
             this.IsTarget = false;
         }
-
-        /// <summary>
-        /// Occurs when a property value changes.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Gets the distance of the column from the left boundary of the board, in double units
@@ -90,15 +86,6 @@ namespace Chess.ViewModel.Game
                     this.OnPropertyChanged(nameof(this.IsTarget));
                 }
             }
-        }
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

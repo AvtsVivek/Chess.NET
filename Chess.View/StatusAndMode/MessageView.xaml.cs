@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.ComponentModel;
 using Chess.ViewModel.StatusAndMode;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chess.View.StatusAndMode
 {
@@ -20,7 +21,7 @@ namespace Chess.View.StatusAndMode
 
         private void MessageView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue is INotifyPropertyChanged npc)
+            if (e.NewValue is ObservableObject npc)
             {
                 npc.PropertyChanged += ViewModel_PropertyChanged;
             }

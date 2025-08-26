@@ -9,13 +9,14 @@ namespace Chess.ViewModel.Piece
     using Chess.Model.Game;
     using Chess.Model.Piece;
     using Chess.ViewModel.Game;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using System;
     using System.ComponentModel;
 
     /// <summary>
     /// Represents the view model of a chess piece placed on a chess board.
     /// </summary>
-    public class PlacedPieceVM : INotifyPropertyChanged, IChessPieceVisitable
+    public class PlacedPieceVM : ObservableObject, IChessPieceVisitable
     {
         /// <summary>
         /// Indicates whether the placed chess piece is marked for removal.
@@ -51,11 +52,6 @@ namespace Chess.ViewModel.Piece
             this.Position = new PositionVM(position);
             this.Piece = piece;
         }
-
-        /// <summary>
-        /// Occurs when a property value changes.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Gets or sets a value indicating whether the placed chess piece is marked for removal.
@@ -138,15 +134,6 @@ namespace Chess.ViewModel.Piece
         public T Accept<T>(IChessPieceVisitor<T> visitor)
         {
             return this.Piece.Accept(visitor);
-        }
-
-        /// <summary>
-        /// Fires the <see cref="PropertyChanged"/> event.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that has been changed.</param>
-        protected void OnPropertyChanged(string propertyName)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
