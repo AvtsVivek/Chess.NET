@@ -7,16 +7,16 @@
 namespace Chess.ViewModel.Game
 {
     using CommunityToolkit.Mvvm.ComponentModel;
-    using System.ComponentModel;
 
     /// <summary>
     /// Represents the view model of a chess board field.
     /// </summary>
-    public class FieldVM : ObservableObject
+    public partial class FieldVM : ObservableObject
     {
         /// <summary>
         /// Indicates if the field is a possible target for the user to select.
         /// </summary>
+        [ObservableProperty]
         private bool isTarget;
 
         /// <summary>
@@ -66,26 +66,5 @@ namespace Chess.ViewModel.Game
         /// </summary>
         /// <value>The column index of the field.</value>
         public int Column { get; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the field is a possible target for the user to select.
-        /// </summary>
-        /// <value>True if the field is a possible target, or else false.</value>
-        public bool IsTarget
-        {
-            get
-            {
-                return this.isTarget;
-            }
-
-            set
-            {
-                if (this.isTarget != value)
-                {
-                    this.isTarget = value;
-                    this.OnPropertyChanged(nameof(this.IsTarget));
-                }
-            }
-        }
     }
 }

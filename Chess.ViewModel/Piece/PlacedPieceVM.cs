@@ -10,27 +10,28 @@ namespace Chess.ViewModel.Piece
     using Chess.Model.Piece;
     using Chess.ViewModel.Game;
     using CommunityToolkit.Mvvm.ComponentModel;
-    using System;
-    using System.ComponentModel;
 
     /// <summary>
     /// Represents the view model of a chess piece placed on a chess board.
     /// </summary>
-    public class PlacedPieceVM : ObservableObject, IChessPieceVisitable
+    public partial class PlacedPieceVM : ObservableObject, IChessPieceVisitable
     {
         /// <summary>
         /// Indicates whether the placed chess piece is marked for removal.
         /// </summary>
+        [ObservableProperty]
         private bool removed;
 
         /// <summary>
         /// Represents the position of the placed chess piece.
         /// </summary>
+        [ObservableProperty]
         private PositionVM position;
 
         /// <summary>
         /// Represents the placed chess piece.
         /// </summary>
+        [ObservableProperty]
         private ChessPiece piece;
 
         /// <summary>
@@ -51,69 +52,6 @@ namespace Chess.ViewModel.Piece
             this.Removed = false;
             this.Position = new PositionVM(position);
             this.Piece = piece;
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the placed chess piece is marked for removal.
-        /// </summary>
-        /// <value>True if the placed chess piece is marked for removal, or else false.</value>
-        public bool Removed
-        {
-            get
-            {
-                return this.removed;
-            }
-
-            set
-            {
-                if (this.removed != value)
-                {
-                    this.removed = value;
-                    this.OnPropertyChanged(nameof(this.Removed));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the position of the placed chess piece.
-        /// </summary>
-        /// <value>The position of the placed chess piece.</value>
-        public PositionVM Position
-        {
-            get
-            {
-                return this.position;
-            }
-
-            set
-            {
-                if (this.position != value)
-                {
-                    this.position = value ?? throw new ArgumentNullException(nameof(this.Position));
-                    this.OnPropertyChanged(nameof(this.Position));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the placed chess piece.
-        /// </summary>
-        /// <value>The placed chess piece.</value>
-        public ChessPiece Piece
-        {
-            get
-            {
-                return this.piece;
-            }
-
-            private set
-            {
-                if (this.piece != value)
-                {
-                    this.piece = value ?? throw new ArgumentNullException(nameof(this.Piece));
-                    this.OnPropertyChanged(nameof(this.Piece));
-                }
-            }
         }
 
         /// <summary>

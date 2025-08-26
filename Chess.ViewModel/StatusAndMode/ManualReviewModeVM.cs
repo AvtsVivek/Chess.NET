@@ -1,6 +1,5 @@
 ﻿using Chess.ViewModel.Command;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.ComponentModel;
 
 namespace Chess.ViewModel.StatusAndMode
 {

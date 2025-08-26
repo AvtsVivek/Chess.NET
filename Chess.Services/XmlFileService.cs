@@ -3,8 +3,6 @@ using Chess.Model.Game;
 using Chess.Model.Piece;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO.Pipelines;
-using System.Windows.Documents;
 using System.Xml;
 using System.Xml.Linq;
 
