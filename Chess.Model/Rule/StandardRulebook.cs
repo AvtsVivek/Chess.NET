@@ -139,8 +139,6 @@ namespace Chess.Model.Rule
             );
 
             var updateList = updates.GetOrElse(Enumerable.Empty<Update>()).ToList();
-
-            // return updates.GetOrElse(Enumerable.Empty<Update>());
             
             return updateList;
         }

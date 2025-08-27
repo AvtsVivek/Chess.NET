@@ -7,7 +7,8 @@
              xmlns:conv="clr-namespace:Chess.View.Converter"
              xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             IsEnabled="{Binding IsInReviewMode}" >
     <UserControl.Resources>
         <conv:AppModeConverter x:Key="AppModeConverter"/>
     </UserControl.Resources>
@@ -18,6 +19,6 @@
             <RadioButton Margin="5" Background="Transparent" Content="Manual" Name="ManualRadioButton" GroupName="ReviewModeSelection" IsChecked="{Binding SelectedReviewModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:ReviewMode.Manual}}" />
             <RadioButton Margin="5" Background="Transparent" Content="Auto" Name="AutoRadioButton" GroupName="ReviewModeSelection" IsChecked="{Binding SelectedReviewModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:ReviewMode.Auto}}" />
         </StackPanel>
-        <ContentControl Margin="0" Content="{Binding CurrentReviewModeVM}" IsEnabled="{Binding IsInReviewMode}" />
+        <ContentControl Margin="0" Content="{Binding CurrentReviewModeVM}"  />
     </StackPanel>
 </UserControl>

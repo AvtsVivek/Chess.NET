@@ -499,7 +499,8 @@ namespace Chess.ViewModel.Game
             foreach (var move in movesToBeRemoved)
                 this.ChessMoveSequence.ChessMoves.Remove(move);
 
-            chessMoveSequenceIndex--;
+            if(chessMoveSequenceIndex > 0)
+                chessMoveSequenceIndex--;
         }
 
         private void PopulateChecssMoveSequence()

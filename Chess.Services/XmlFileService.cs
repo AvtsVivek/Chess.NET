@@ -1,4 +1,5 @@
 ﻿using Chess.Model.Command;
+using Chess.Model.Data;
 using Chess.Model.Game;
 using Chess.Model.Piece;
 using System.Collections.Immutable;
@@ -29,19 +30,98 @@ namespace Chess.Services
             this.settings.OmitXmlDeclaration = true;
         }
 
-        public ChessGame LoadFromXmlFile(string fullFilePath)
+        public List<ICommand> GetPieceMoveCommandsFromXmlFile(string fullFilePath)
         {
-            Debug.WriteLine($"Loading game state from XML file: {fullFilePath}");
+            XDocument doc = XDocument.Load(fullFilePath);
+            XElement pieceMoveCommandElements = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
+            List<XElement> commandElements = pieceMoveCommandElements.Elements(nameof(SequenceCommand)).ToList();
+            commandElements.Reverse(); // Reverse the order to maintain the original sequence when executing
+
+            List<ICommand> commands = new List<ICommand>();
+            foreach (XElement commandElement in commandElements)
+            {
+                ICommand command = ParseCommandElement(commandElement);
+                commands.Add(command);
+            }
+
+            return commands;
+        }
+
+
+        // Helper method to parse command XElement to ICommand
+        private ICommand ParseCommandElement(XElement command)
+        {
+            if (command.Name.LocalName == "MoveCommand")
+            {
+                // Get piece element
+                var pieceElement = command.Elements().FirstOrDefault(e =>
+                    e.Name.LocalName == "Pawn" ||
+                    e.Name.LocalName == "Knight" ||
+                    e.Name.LocalName == "Bishop" ||
+                    e.Name.LocalName == "Rook" ||
+                    e.Name.LocalName == "Queen" ||
+                    e.Name.LocalName == "King");
+
+                // Get color
+                var colorAttr = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName);
+                Color color = colorAttr != null && colorAttr.Value == "Black" ? Color.Black : Color.White;
+
+                // Instantiate piece
+                ChessPiece piece = pieceElement?.Name.LocalName switch
+                {
+                    "Pawn" => new Pawn(color),
+                    "Knight" => new Knight(color),
+                    "Bishop" => new Bishop(color),
+                    "Rook" => new Rook(color),
+                    "Queen" => new Queen(color),
+                    "King" => new King(color),
+                    _ => throw new InvalidOperationException("Unknown piece type")
+                };
+
+                // Get source and target positions
+                var sourceElement = command.Element(XmlConstants.SourcePositionAttributeName);
+                var targetElement = command.Element(XmlConstants.TargetPositionAttributeName);
+
+                Position source = new Position(
+                    int.Parse(sourceElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
+                    int.Parse(sourceElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
+
+                Position target = new Position(
+                    int.Parse(targetElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
+                    int.Parse(targetElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
+
+                // Create MoveCommand instance
+                var moveCommand = new MoveCommand(source, target, piece, isUndo: false);
+                // Use moveCommand as needed
+                return moveCommand;
+            }
+            // Example: parse SequenceCommand
+            else if (command.Name.LocalName == "SequenceCommand")
+            {
+                var firstCommandElement = command.Elements().First();
+                var secondCommandElement = command.Elements().Skip(1).First();
+
+                // Recursively parse child commands
+                ICommand firstCommand = ParseCommandElement(firstCommandElement);
+                ICommand secondCommand = ParseCommandElement(secondCommandElement);
+
+                var sequenceCommand = new SequenceCommand(firstCommand, secondCommand);
+                // Use sequenceCommand as needed
+                return sequenceCommand;
+            }
+            else if (command.Name.LocalName == "EndTurnCommand")
+            {
+                return new EndTurnCommand(false);
+            }
+
+            return null; // Placeholder
+        }
+
+        public ChessGame LoadBoardFromXmlFile(string fullFilePath)
+        {
             var doc = XDocument.Load(fullFilePath);
 
-            var piecesNode = doc.Descendants("Pieces").FirstOrDefault();
-            if (piecesNode == null) 
-                return null;
-
-            var blackPiecesNode = piecesNode.Descendants(XmlConstants.BlacksElementName).FirstOrDefault();
-
-            if (blackPiecesNode == null)
-                return null; // Need to check
+            var piecesNode = doc.Descendants("Pieces").First();
 
             var allPlacedPieces = new List<PlacedPiece>();
 
@@ -77,7 +157,7 @@ namespace Chess.Services
             using (XmlWriter writer = XmlWriter.Create(filePath, settings))
             {
                 writer.WriteStartElement(XmlConstants.RootElementName);
-                writer.WriteStartElement(XmlConstants.MoveCommandsElementName);
+                writer.WriteStartElement(XmlConstants.PieceMoveCommandsElementName);
                 writer.WriteEndElement();
 
                 WriteStartPositionsToXmlFile(writer, game);
@@ -218,7 +298,7 @@ namespace Chess.Services
 
         private void CreateAndAddUpdateCommandXmlElement(Update update)
         {
-            XmlNode parent = xmlDocument.SelectSingleNode(XmlConstants.RootElementName + "//" + XmlConstants.MoveCommandsElementName);
+            XmlNode parent = xmlDocument.SelectSingleNode(XmlConstants.RootElementName + "//" + XmlConstants.PieceMoveCommandsElementName);
 
             var xmlElement = GetCommandXmlElement(update.Command);
 
