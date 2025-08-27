@@ -113,6 +113,75 @@ namespace Chess.Services
             {
                 return new EndTurnCommand(false);
             }
+            else if (command.Name.LocalName == "RemoveCommand")
+            {
+                // Get piece element
+                var pieceElement = command.Elements().FirstOrDefault(e =>
+                    e.Name.LocalName == "Pawn" ||
+                    e.Name.LocalName == "Knight" ||
+                    e.Name.LocalName == "Bishop" ||
+                    e.Name.LocalName == "Rook" ||
+                    e.Name.LocalName == "Queen" ||
+                    e.Name.LocalName == "King");
+                // Get color
+                var colorAttr = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName);
+                Color color = colorAttr != null && colorAttr.Value == "Black" ? Color.Black : Color.White;
+                // Instantiate piece
+                ChessPiece piece = pieceElement?.Name.LocalName switch
+                {
+                    "Pawn" => new Pawn(color),
+                    "Knight" => new Knight(color),
+                    "Bishop" => new Bishop(color),
+                    "Rook" => new Rook(color),
+                    "Queen" => new Queen(color),
+                    "King" => new King(color),
+                    _ => throw new InvalidOperationException("Unknown piece type")
+                };
+                // Get position
+                var positionElement = command.Element(XmlConstants.SourcePositionAttributeName);
+                Position position = new Position(
+                    int.Parse(positionElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
+                    int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
+                var removeCommand = new RemoveCommand(position, piece, isUndo: false);
+                return removeCommand;
+            }
+            else if (command.Name.LocalName == "SpawnCommand")
+            {
+                // Get piece element
+                var pieceElement = command.Elements().FirstOrDefault(e =>
+                    e.Name.LocalName == "Pawn" ||
+                    e.Name.LocalName == "Knight" ||
+                    e.Name.LocalName == "Bishop" ||
+                    e.Name.LocalName == "Rook" ||
+                    e.Name.LocalName == "Queen" ||
+                    e.Name.LocalName == "King");
+                // Get color
+                var colorAttr = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName);
+                Color color = colorAttr != null && colorAttr.Value == "Black" ? Color.Black : Color.White;
+                // Instantiate piece
+                ChessPiece piece = pieceElement?.Name.LocalName switch
+                {
+                    "Pawn" => new Pawn(color),
+                    "Knight" => new Knight(color),
+                    "Bishop" => new Bishop(color),
+                    "Rook" => new Rook(color),
+                    "Queen" => new Queen(color),
+                    "King" => new King(color),
+                    _ => throw new InvalidOperationException("Unknown piece type")
+                };
+                // Get position
+                var positionElement = command.Element(XmlConstants.SourcePositionAttributeName);
+                Position position = new Position(
+                    int.Parse(positionElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
+                    int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
+                var spawnCommand = new SpawnCommand(position, piece, isUndo: false);
+                return spawnCommand;
+            }
+            else if (command.Name.LocalName == "SetLastUpdateCommand")
+            {
+                // return new SetLastUpdateCommand();
+                return null;
+            }
 
             return null; // Placeholder
         }
