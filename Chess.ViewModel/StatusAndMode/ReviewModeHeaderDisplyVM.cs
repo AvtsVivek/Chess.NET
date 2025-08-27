@@ -3,15 +3,24 @@ using Chess.ViewModel.Game;
 using Chess.ViewModel.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Diagnostics;
+
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class ReviewModeHeaderDisplayVM : ObservableObject
+    public partial class ReviewModeHeaderDisplayVM : ObservableObject
     {
         private AutoReviewModeVM autoReviewModeVM;
 
         private ManualReviewModeVM manualReviewModeVM;
+
+        [ObservableProperty]
+        private bool isInReviewMode;
+
+        [ObservableProperty]
+        private string headerText;
+
+        [ObservableProperty]
+        private object currentReviewModeVM;
 
         public ReviewModeHeaderDisplayVM(GenericCommand undoCommand, GenericCommand redoCommand)
         {
@@ -25,58 +34,14 @@ namespace Chess.ViewModel.StatusAndMode
             });
         }
 
-        private bool isInReviewMode;
-        public bool IsInReviewMode
-        {
-            get => isInReviewMode;
-            set
-            {
-                if (isInReviewMode != value)
-                {
-                    isInReviewMode = value;
-                    OnPropertyChanged(nameof(IsInReviewMode));
-                }
-            }
-        }
-
-        private string headerText;
-        public string HeaderText
-        {
-            get => headerText;
-            set
-            {
-                if (headerText != value)
-                {
-                    headerText = value;
-                    OnPropertyChanged(nameof(HeaderText));
-                }
-            }
-        }
-
-        private object _currentReviewModeVM;
-        public object CurrentReviewModeVM
-        {
-            get { return _currentReviewModeVM; }
-            set
-            {
-                _currentReviewModeVM = value;
-                OnPropertyChanged(nameof(CurrentReviewModeVM));
-            }
-        }
-
         private ReviewMode selectedReviewModeValue;
         public ReviewMode SelectedReviewModeValue
         {
-            get { return selectedReviewModeValue; }
+            get => selectedReviewModeValue; 
             set
             {
-                if (selectedReviewModeValue != value)
-                {
-                    selectedReviewModeValue = value;
-                    Debug.WriteLine($"Selected Review Mode: {selectedReviewModeValue}");
-                    OnPropertyChanged(nameof(SelectedReviewModeValue));
-                    SaveReviewModeSetting();
-                }
+                SetProperty(ref selectedReviewModeValue, value);
+                SaveReviewModeSetting();
                 CurrentReviewModeVM = selectedReviewModeValue == ReviewMode.Auto ? autoReviewModeVM : manualReviewModeVM;
             }
         }

@@ -70,5 +70,29 @@ namespace Chess.ViewModel {
                 this["ReviewXmlLoadFolderPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ReviewXmlFilePath {
+            get {
+                return ((string)(this["ReviewXmlFilePath"]));
+            }
+            set {
+                this["ReviewXmlFilePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ReviewFromLast {
+            get {
+                return ((bool)(this["ReviewFromLast"]));
+            }
+            set {
+                this["ReviewFromLast"] = value;
+            }
+        }
     }
 }

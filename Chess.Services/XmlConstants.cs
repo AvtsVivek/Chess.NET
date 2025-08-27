@@ -35,7 +35,7 @@
         /// <summary>
         /// Represents the XML element name used to define commands in the XML document.
         /// </summary>
-        public const string MoveCommandsElementName = "PieceMoveCommands";
+        public const string PieceMoveCommandsElementName = "PieceMoveCommands";
 
         /// <summary>
         /// The element name for individual moves in the XML document.

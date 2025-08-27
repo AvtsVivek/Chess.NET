@@ -126,19 +126,27 @@ namespace Chess.ViewModel.Game
                 )
             );
 
-            SelectedAppModeValue = AppMode.Play; // Default mode is Play
-
             xmlFileService = new();
-
             CurrentAppModeVM = playModeVM = new();
             recordReviewModeVM = new(windowService);
+            SelectedAppModeValue = AppMode.Play; // Default mode is Play
             reviewModeHeaderDisplyVM = new(this.undoCommand, this.redoCommand);
 
             ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn);
 
             WeakReferenceMessenger.Default.Register<MessageToChessGameVM>(this, (r, m) =>
             {
-                this.Game = m.Value;
+                var game = m.Value;
+
+                if (ChessAppSettings.Default.ReviewFromLast)
+                {
+                    this.Game = game; // Last, most recent, closest 
+                }
+                else
+                {
+                    this.Game = game.History.Last().Game; // First, oldest, farthest 
+                }
+
                 this.Board = new BoardVM(this.Game.Board);
                 this.OnPropertyChanged(nameof(this.Status));
                 this.Board.ClearChessMoveSequence();
@@ -276,6 +284,14 @@ namespace Chess.ViewModel.Game
                 this.Board.SetSource(position);
                 this.Board.SetTargets(newUpdates);
             }
+            else 
+            {
+                // This happens when user clicks on an empty field which is not a valid target for any piece.
+                // This else is added by me to understand invalid moves.
+                // MessageBox.Show("Invalid Move");
+                // this.Game.NextUpdate = new Nothing<Update>();
+                // this.Game = null; // Game can never be null.
+            }
         }
 
         private void AddUpdateXmlToFile()
@@ -389,6 +405,8 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedHandler(AppMode previousAppMode)
         {
+            this.Board.ClearUpdates();
+
             switch (SelectedAppModeValue)
             {
                 case AppMode.Play:
@@ -403,6 +421,8 @@ namespace Chess.ViewModel.Game
                 default:
                     break;
             }
+
+            recordReviewModeVM.CurrentAppMode = SelectedAppModeValue;
         }
 
         /// <summary>
@@ -429,7 +449,6 @@ namespace Chess.ViewModel.Game
                 recordReviewModeVM.SetFullFilePath();
             }
 
-            recordReviewModeVM.CurrentAppMode = AppMode.Record;
             CurrentAppModeVM = recordReviewModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
         }
@@ -464,12 +483,8 @@ namespace Chess.ViewModel.Game
                 }
             }
 
-            this.Board.ClearUpdates();
-
             CurrentAppModeVM = recordReviewModeVM;
-            recordReviewModeVM.CurrentAppMode = AppMode.Review;
             ModeAndPlayerStatusDisplayVM = reviewModeHeaderDisplyVM;
-
             SetReviewMode();
         }
 

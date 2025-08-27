@@ -1,4 +1,6 @@
-﻿using Chess.Model.Game;
+﻿using Chess.Model.Command;
+using Chess.Model.Data;
+using Chess.Model.Game;
 using Chess.Services;
 using Chess.ViewModel.Command;
 using Chess.ViewModel.Game;
@@ -9,7 +11,10 @@ using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
+using System.Windows.Documents;
+using System.Xml.Linq;
 
 namespace Chess.ViewModel.StatusAndMode
 {
@@ -75,12 +80,9 @@ namespace Chess.ViewModel.StatusAndMode
             get => currentAppMode;
             set
             {
-                if (currentAppMode != value)
-                {
-                    var previousAppMode = currentAppMode;
-                    SetProperty(ref currentAppMode, value);
-                    AppModeChanged(previousAppMode);
-                }
+                var previousAppMode = currentAppMode;
+                SetProperty(ref currentAppMode, value);
+                AppModeChanged(previousAppMode);
             }
         }
 
@@ -92,7 +94,7 @@ namespace Chess.ViewModel.StatusAndMode
             get => fullFilePath;
             set
             {
-                SetProperty(ref fullFilePath, value);    
+                SetProperty(ref fullFilePath, value);
                 CopyFolderPath();
                 OnPropertyChanged(nameof(BrowseButtonsEnabled));
             }
@@ -254,12 +256,7 @@ namespace Chess.ViewModel.StatusAndMode
 
                 if (result == true)
                 {
-                    FullFilePath = openFileDialog.FileName;
-                    ChessAppSettings.Default.ReviewXmlLoadFolderPath = Path.GetDirectoryName(FullFilePath);
-                    ChessAppSettings.Default.Save();
-                    var game = LoadFromXmlFile();
-                    var message = new MessageToChessGameVM(game);
-                    WeakReferenceMessenger.Default.Send(message);
+                    SetFullFilePathForReview(openFileDialog.FileName);
                 }
             }
         }
@@ -276,9 +273,22 @@ namespace Chess.ViewModel.StatusAndMode
                 throw new FileNotFoundException("The specified file was not found.", FullFilePath);
             }
 
-            ChessGame game = xmlFileService.LoadFromXmlFile(FullFilePath);
+            ChessGame chessGame = xmlFileService.LoadBoardFromXmlFile(FullFilePath);
 
-            return game;
+            var parsedCommands = xmlFileService.GetPieceMoveCommandsFromXmlFile(FullFilePath);
+
+            ChessGame? updatedGame = chessGame;
+
+            foreach (var parsedCommand in parsedCommands)
+            {
+                ICommand command = new SequenceCommand(parsedCommand, new SetLastUpdateCommand(new Update(updatedGame, parsedCommand, "XmlFileRead")));
+                Update? update = command.Execute(updatedGame).Map(g => new Update(g, command, "XmlFileRead")).Yield().First();
+                updatedGame!.NextUpdate = new Just<Update>(update);
+                updatedGame = update?.Game;
+            }
+
+            // return updatedGame.History.Last().Game;
+            return updatedGame;
         }
 
         private void AppModeChanged(AppMode previousAppMode)
@@ -314,15 +324,46 @@ namespace Chess.ViewModel.StatusAndMode
 
             if (CurrentAppMode == AppMode.Review && previousAppMode == AppMode.Play)
             {
-                this.FullFilePath = string.Empty;
                 this.IsReviewFileInRecording = false;
+                LoadFileForReviewFromSettings();
+            }
+        }
+
+        private void LoadFileForReviewFromSettings()
+        {
+            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ReviewXmlFilePath) 
+                && File.Exists(ChessAppSettings.Default.ReviewXmlFilePath))
+            {
+                SetFullFilePathForReview(ChessAppSettings.Default.ReviewXmlFilePath);
+            }
+            else
+            {
+                this.FullFilePath = string.Empty;
+                SaveReviewFileAndFolderPathToSettings();
                 PublishReviewMessage(false);
             }
         }
 
+        private void SaveReviewFileAndFolderPathToSettings()
+        {
+            ChessAppSettings.Default.ReviewXmlLoadFolderPath = Path.GetDirectoryName(FullFilePath);
+            ChessAppSettings.Default.ReviewXmlFilePath = FullFilePath;
+            ChessAppSettings.Default.Save();
+        }
+
+        private void SetFullFilePathForReview(string fullFilePathForReview)
+        {
+            FullFilePath = fullFilePathForReview;
+            SaveReviewFileAndFolderPathToSettings();
+            var game = LoadFromXmlFile();
+            var message = new MessageToChessGameVM(game);
+            WeakReferenceMessenger.Default.Send(message);
+            PublishReviewMessage(true);
+        }
+
         private void PublishReviewMessage(bool bStartReview)
         {
-            var reviewMessage = new ReviewMessage(ReviewMode.Auto, bStartReview);
+            var reviewMessage = new ReviewMessage(bStartReview);
             WeakReferenceMessenger.Default.Send(reviewMessage);
         }
 
