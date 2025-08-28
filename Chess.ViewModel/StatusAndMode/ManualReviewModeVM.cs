@@ -54,9 +54,10 @@ namespace Chess.ViewModel.StatusAndMode
 
         public void GetToStart()
         {
-            while (this.undoOriginalCommand.CanExecute(null))
+            while (this.undoCommand.CanExecute(null))
             {
-                this.undoOriginalCommand.Execute(null);
+                // System.Threading.Thread.Sleep(1000); // Add a small time delay (100 ms)
+                this.undoCommand.Execute(null);
             }
             RaiseCanExecuteChanged();
 
