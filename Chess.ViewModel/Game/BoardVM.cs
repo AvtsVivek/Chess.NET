@@ -16,6 +16,7 @@ namespace Chess.ViewModel.Game
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Windows;
 
     /// <summary>
     /// Represents the view model of a chess board.
@@ -351,7 +352,7 @@ namespace Chess.ViewModel.Game
         {
             if (endTurnCommand.IsUndo)
             {
-                UnPopulateChecssMoveSequence();
+                UnPopulateChessMoveSequence();
             }
             else
             {
@@ -405,7 +406,10 @@ namespace Chess.ViewModel.Game
         /// <param name="command">The spawn command to be executed.</param>
         public void Execute(SpawnCommand command)
         {
-            this.Pieces.Add(new PlacedPieceVM(command.Position, command.Piece));
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                this.Pieces.Add(new PlacedPieceVM(command.Position, command.Piece));
+            });
 
             UpdateMoveSequenceForSpawnCommand(command);
         }
@@ -490,14 +494,17 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        private void UnPopulateChecssMoveSequence()
+        private void UnPopulateChessMoveSequence()
         {
             var movesToBeRemoved = this.ChessMoveSequence.ChessMoves
                 .Where(move => move.MoveNumber == chessMoveSequenceIndex)
                 .ToList();
 
-            foreach (var move in movesToBeRemoved)
-                this.ChessMoveSequence.ChessMoves.Remove(move);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                foreach (var move in movesToBeRemoved)
+                    this.ChessMoveSequence.ChessMoves.Remove(move);
+            });
 
             if(chessMoveSequenceIndex > 0)
                 chessMoveSequenceIndex--;
@@ -547,7 +554,10 @@ namespace Chess.ViewModel.Game
                 {
                     // Insert the move at the beginning of the sequence to
                     // ensure the most recent move is at the top.
-                    this.ChessMoveSequence.ChessMoves.Insert(0, chessMove);
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        this.ChessMoveSequence.ChessMoves.Insert(0, chessMove);
+                    });
                 }
             }
             activePlayerCommands.Clear();

@@ -8,6 +8,7 @@ namespace Chess.ViewModel.Command
 {
     using System;
     using System.Windows.Input;
+    using System.Windows;
 
     /// <summary>
     /// Represents a generic <see cref="ICommand"/> that can execute a specified <see cref="Action"/>
@@ -65,7 +66,10 @@ namespace Chess.ViewModel.Command
         /// </summary>
         public void FireCanExecuteChanged()
         {
-            this.CanExecuteChanged?.Invoke(this, new EventArgs());
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                this.CanExecuteChanged?.Invoke(this, new EventArgs());
+            });
         }
     }
 }
