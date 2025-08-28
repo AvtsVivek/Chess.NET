@@ -45,7 +45,7 @@ namespace Chess.Model.Command
         /// <param name="source">The source position of the chess piece.</param>
         /// <param name="target">The target position of the chess piece.</param>
         /// <param name="piece">The moved chess piece.</param>
-        public MoveCommand(Position source, Position target, ChessPiece piece, bool isUndo = false, bool isCastling = false)
+        public MoveCommand(Position source, Position target, ChessPiece piece, bool isUndo = false, bool isCastling = false, bool isKillerMove = false)
         {
             Validation.NotNull(source, nameof(source));
             Validation.NotNull(target, nameof(target));
@@ -56,6 +56,7 @@ namespace Chess.Model.Command
             this.Piece = piece;
             this.IsUndo = isUndo;
             this.IsCastlingMove = isCastling;
+            this.IsKillerMove = isKillerMove;
         }
 
         /// <summary>
@@ -64,6 +65,8 @@ namespace Chess.Model.Command
         public bool IsUndo { get; private set; } = false;
 
         public bool IsCastlingMove { get; set; } = false;
+
+        public bool IsKillerMove { get; set; } = false;
 
         /// <summary>
         /// Applies the command to a chess game state.
