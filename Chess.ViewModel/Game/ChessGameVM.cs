@@ -73,10 +73,6 @@ namespace Chess.ViewModel.Game
 
         private PlayModeVM playModeVM;
 
-        //private RecordModeVM recordModeVM;
-
-        //private ReviewModeVM reviewModeVM;
-
         private RecordReviewModeVM recordReviewModeVM;
 
         private StatusDisplayVM statusDisplayVM;
@@ -134,34 +130,55 @@ namespace Chess.ViewModel.Game
 
             ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn);
 
+            DoMessengerRegistration();
+
+            HeaderNotificationMessage = new();
+        }
+
+        private void DoMessengerRegistration()
+        {
             WeakReferenceMessenger.Default.Register<MessageToChessGameVM>(this, (r, m) =>
             {
                 var game = m.Value;
 
-                if (ChessAppSettings.Default.ReviewFromLast)
+                if (game.History.Any())
                 {
-                    this.Game = game; // Last, most recent, closest 
+                    this.Game = game.History.Last().Game; // First, oldest, farthest 
                 }
                 else
                 {
-                    if (game.History.Any())
-                    {
-                        this.Game = game.History.Last().Game; // First, oldest, farthest 
-                    }
-                    else
-                    {
-                        // If no history, use the current game state
-                        // This can happen when there are no moves in the game.
-                        this.Game = game; 
-                    }
+                    // If no history, use the current game state
+                    // This can happen when there are no moves in the game.
+                    this.Game = game;
                 }
 
-                this.Board = new BoardVM(this.Game.Board);
-                this.OnPropertyChanged(nameof(this.Status));
-                this.Board.ClearChessMoveSequence();
-            });
+                GenericCommand commandToExecute = null;
 
-            HeaderNotificationMessage = new();
+                if (ChessAppSettings.Default.ReviewFromLast)
+                {
+                    commandToExecute = this.redoCommand;
+                }
+                else
+                {
+                    commandToExecute = this.undoCommand;
+                }
+
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    while (commandToExecute.CanExecute(null))
+                    {
+                        commandToExecute.Execute(null);
+                    }
+                    // SendMessageToManualReviewVM must be called on the UI thread
+                    Application.Current.Dispatcher.Invoke(SendMessageToManualReviewVM);
+                });
+            });
+        }
+
+        private void SendMessageToManualReviewVM()
+        {
+            MessageToManualReviewVM message = new();
+            WeakReferenceMessenger.Default.Send(message);
         }
 
         /// <summary>
