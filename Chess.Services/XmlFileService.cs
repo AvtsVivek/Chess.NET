@@ -64,8 +64,6 @@ namespace Chess.Services
         // Helper for MoveCommand
         private ICommand ParseMoveCommand(XElement command)
         {
-
-            // Check if the "id" attribute exists
             var isCastling = false;
             if (command.Attribute("IsCastling") != null)
             {
@@ -74,6 +72,17 @@ namespace Chess.Services
                 {
                     string isCastlingValue = castlingAttribute.Value;
                     isCastling = bool.Parse(isCastlingValue);
+                }
+            }
+
+            var isKillerMove = false;
+            if (command.Attribute("IsKiller") != null)
+            {
+                XAttribute killerAttribute = command.Attribute("IsKiller")!;
+                if (killerAttribute != null)
+                {
+                    string isKillerAttributeValue = killerAttribute.Value;
+                    isKillerMove = bool.Parse(isKillerAttributeValue);
                 }
             }
 
@@ -95,7 +104,7 @@ namespace Chess.Services
                 int.Parse(targetElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
                 int.Parse(targetElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
 
-            return new MoveCommand(source, target, piece, isUndo: false, isCastling);
+            return new MoveCommand(source, target, piece, isUndo: false, isCastling, isKillerMove);
         }
 
         // Helper for SequenceCommand
@@ -114,11 +123,10 @@ namespace Chess.Services
         // Helper for RemoveCommand
         private ICommand ParseRemoveCommand(XElement command)
         {
-            // Check if the "id" attribute exists
             var isPromotion = false;
-            if (command.Attribute("IsCastling") != null)
+            if (command.Attribute("IsPromotion") != null)
             {
-                XAttribute promotionAttribute = command.Attribute("IsCastling")!;
+                XAttribute promotionAttribute = command.Attribute("IsPromotion")!;
                 if (promotionAttribute != null)
                 {
                     string isPromotionValue = promotionAttribute.Value; 
@@ -384,6 +392,7 @@ namespace Chess.Services
                         xmlElement.AppendChild(targetElement);
 
                         xmlElement.SetAttribute("IsCastling", moveCommand.IsCastlingMove.ToString());
+                        xmlElement.SetAttribute("IsKiller", moveCommand.IsKillerMove.ToString());
 
                         return xmlElement;
                     }
