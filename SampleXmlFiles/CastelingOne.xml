@@ -2,67 +2,87 @@
 	<PieceMoveCommands>
 		<SequenceCommand>
 			<SequenceCommand>
-				<RemoveCommand>
-					<Pawn Color="White" />
-					<Source Row="6" Column="4" />
-				</RemoveCommand>
 				<MoveCommand>
-					<Pawn Color="Black" />
-					<Source Row="7" Column="3" />
-					<Target Row="6" Column="4" />
+					<King Color="White" />
+					<Source Row="1" Column="5" />
+					<Target Row="1" Column="3" />
+				</MoveCommand>
+				<MoveCommand>
+					<Rook Color="White" />
+					<Source Row="1" Column="1" />
+					<Target Row="1" Column="4" />
 				</MoveCommand>
 			</SequenceCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
 		<SequenceCommand>
 			<SequenceCommand>
-				<RemoveCommand>
-					<Pawn Color="Black" />
-					<Source Row="6" Column="4" />
-				</RemoveCommand>
 				<MoveCommand>
-					<Pawn Color="White" />
-					<Source Row="5" Column="5" />
-					<Target Row="6" Column="4" />
+					<King Color="Black" />
+					<Source Row="8" Column="5" />
+					<Target Row="8" Column="7" />
+				</MoveCommand>
+				<MoveCommand>
+					<Rook Color="Black" />
+					<Source Row="8" Column="8" />
+					<Target Row="8" Column="6" />
 				</MoveCommand>
 			</SequenceCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
 		<SequenceCommand>
 			<MoveCommand>
-				<Pawn Color="Black" />
-				<Source Row="7" Column="4" />
-				<Target Row="6" Column="4" />
+				<Queen Color="White" />
+				<Source Row="1" Column="4" />
+				<Target Row="2" Column="4" />
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
 		<SequenceCommand>
-			<SequenceCommand>
-				<RemoveCommand>
-					<Pawn Color="Black" />
-					<Source Row="5" Column="5" />
-				</RemoveCommand>
-				<MoveCommand>
-					<Pawn Color="White" />
-					<Source Row="4" Column="6" />
-					<Target Row="5" Column="5" />
-				</MoveCommand>
-			</SequenceCommand>
+			<MoveCommand>
+				<Knight Color="Black" />
+				<Source Row="8" Column="7" />
+				<Target Row="6" Column="6" />
+			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
 		<SequenceCommand>
 			<MoveCommand>
-				<Pawn Color="Black" />
-				<Source Row="7" Column="5" />
-				<Target Row="5" Column="5" />
+				<Bishop Color="White" />
+				<Source Row="1" Column="3" />
+				<Target Row="3" Column="5" />
+			</MoveCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<MoveCommand>
+				<Bishop Color="Black" />
+				<Source Row="8" Column="6" />
+				<Target Row="6" Column="8" />
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
 		<SequenceCommand>
 			<MoveCommand>
 				<Pawn Color="White" />
-				<Source Row="2" Column="6" />
-				<Target Row="4" Column="6" />
+				<Source Row="2" Column="4" />
+				<Target Row="3" Column="4" />
+			</MoveCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<MoveCommand>
+				<Pawn Color="Black" />
+				<Source Row="7" Column="7" />
+				<Target Row="5" Column="7" />
+			</MoveCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<MoveCommand>
+				<Knight Color="White" />
+				<Source Row="1" Column="2" />
+				<Target Row="3" Column="1" />
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
