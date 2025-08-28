@@ -144,7 +144,16 @@ namespace Chess.ViewModel.Game
                 }
                 else
                 {
-                    this.Game = game.History.Last().Game; // First, oldest, farthest 
+                    if (game.History.Any())
+                    {
+                        this.Game = game.History.Last().Game; // First, oldest, farthest 
+                    }
+                    else
+                    {
+                        // If no history, use the current game state
+                        // This can happen when there are no moves in the game.
+                        this.Game = game; 
+                    }
                 }
 
                 this.Board = new BoardVM(this.Game.Board);
