@@ -1,5 +1,4 @@
 ﻿using Chess.Model.Command;
-using Chess.Model.Data;
 using Chess.Model.Game;
 using Chess.Model.Piece;
 using System.Collections.Immutable;
@@ -102,6 +101,18 @@ namespace Chess.Services
         // Helper for RemoveCommand
         private ICommand ParseRemoveCommand(XElement command)
         {
+            // Check if the "id" attribute exists
+            var isPromotion = false;
+            if (command.Attribute("IsPromotion") != null)
+            {
+                XAttribute promotionAttribute = command.Attribute("IsPromotion")!;
+                if (promotionAttribute != null)
+                {
+                    string isPromotionValue = promotionAttribute.Value; 
+                    isPromotion = bool.Parse(isPromotionValue); 
+                }
+            }
+
             var pieceElement = command.Elements().FirstOrDefault(e =>
                 e.Name.LocalName is "Pawn" or "Knight" or "Bishop" or "Rook" or "Queen" or "King");
 
@@ -115,7 +126,7 @@ namespace Chess.Services
                 int.Parse(positionElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
                 int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
 
-            return new RemoveCommand(position, piece, isUndo: false);
+            return new RemoveCommand(position, piece, isUndo: false, isPromotion);
         }
 
         // Helper for SpawnCommand
@@ -389,6 +400,8 @@ namespace Chess.Services
 
                         xmlElement.AppendChild(pieceElement);
                         xmlElement.AppendChild(positionElement);
+
+                        xmlElement.SetAttribute("IsPromotion", removeCommand.IsPromotion.ToString());
 
                         return xmlElement;
                     }

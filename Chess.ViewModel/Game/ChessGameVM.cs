@@ -139,6 +139,11 @@ namespace Chess.ViewModel.Game
         {
             WeakReferenceMessenger.Default.Register<MessageToChessGameVM>(this, (r, m) =>
             {
+                this.Game = this.rulebook.CreateGame();
+                this.Board = new BoardVM(this.Game.Board);
+                this.OnPropertyChanged(nameof(this.Status));
+                this.Board.ClearChessMoveSequence();
+
                 var game = m.Value;
 
                 if (game.History.Any())

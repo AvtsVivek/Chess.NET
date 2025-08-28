@@ -13,8 +13,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Documents;
-using System.Xml.Linq;
 
 namespace Chess.ViewModel.StatusAndMode
 {
