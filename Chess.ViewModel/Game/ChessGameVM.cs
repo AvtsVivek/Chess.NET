@@ -352,6 +352,7 @@ namespace Chess.ViewModel.Game
         /// <param name="command">The <see cref="SequenceCommand"/> to be executed.</param>
         public void Visit(SequenceCommand command)
         {
+            this.Board.Execute(command);
             command.FirstCommand.Accept(this);
             command.SecondCommand.Accept(this);
         }

@@ -9,6 +9,7 @@ namespace Chess.ViewModel.Game
     using Chess.Model.Command;
     using Chess.Model.Data;
     using Chess.Model.Game;
+    using Chess.Model.Piece;
     using Chess.ViewModel.Piece;
     using Chess.ViewModel.Visitor;
     using CommunityToolkit.Mvvm.ComponentModel;
@@ -335,6 +336,26 @@ namespace Chess.ViewModel.Game
             }
         }
 
+        public void Execute(SequenceCommand sequenceCommand)
+        {
+            var firstCommand = sequenceCommand.FirstCommand;
+            var secondCommand = sequenceCommand.SecondCommand;
+            if(firstCommand is MoveCommand firstMoveCommand
+                && secondCommand is MoveCommand secondMoveCommand)
+            {
+                // This could be the case for castling.
+                if (firstMoveCommand.Piece is King kingPiece
+                    && secondMoveCommand.Piece is Rook rookPiece
+                    && Math.Abs(firstMoveCommand.Source.Column - firstMoveCommand.Target.Column) == 2
+                    && ((firstMoveCommand.Target.Column == 6 && secondMoveCommand.Target.Column == 5)
+                        || (firstMoveCommand.Target.Column == 2 && secondMoveCommand.Target.Column == 3)))
+                {
+                    // This is a castling move.
+                    firstMoveCommand.IsCastlingMove = secondMoveCommand.IsCastlingMove = true;
+                }
+            }            
+        }
+
         /// <summary>
         /// Executes the specified end-turn command, either finalizing or undoing the player's moves.
         /// </summary>
@@ -524,7 +545,7 @@ namespace Chess.ViewModel.Game
                         new PositionVM(moveCommand.Target),
                         moveCommand.Piece,
                         chessMoveSequenceIndex,
-                        "Moved"
+                        moveCommand.IsCastlingMove? "Castling" : "Moved"
                     );
                 }
                 else if (command is RemoveCommand removeCommand)
