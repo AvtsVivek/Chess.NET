@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Chess.ViewModel.StatusAndMode
 {
@@ -10,16 +11,12 @@ namespace Chess.ViewModel.StatusAndMode
     {
         private const double autoReviewTimeIntervalLowerLimit = 0.1;
         private const double autoReviewTimeIntervalUpperLimit = 10;
-
         private readonly GenericCommand incrementLowCommand;
         private readonly GenericCommand incrementHighCommand;
         private readonly GenericCommand decrementLowCommand;
         private readonly GenericCommand decrementHighCommand;
-
         private readonly GenericCommand undoCommand;
-
         private readonly GenericCommand redoCommand;
-
         private CancellationTokenSource autoReviewCts;
 
         public AutoReviewModeVM(GenericCommand undoCommand, GenericCommand redoCommand)
@@ -143,13 +140,13 @@ namespace Chess.ViewModel.StatusAndMode
                 {
                     if (undoAvailable && undoInProgress)
                     {
-                       if (System.Windows.Application.Current.Dispatcher.CheckAccess())
+                       if (Application.Current.Dispatcher.CheckAccess())
                         {
                             this.undoCommand.Execute(null);
                         }
                         else
                         {
-                            System.Windows.Application.Current.Dispatcher.Invoke(() => this.undoCommand.Execute(null));
+                            Application.Current.Dispatcher.Invoke(() => this.undoCommand.Execute(null));
                         }
                     }
 
@@ -157,13 +154,13 @@ namespace Chess.ViewModel.StatusAndMode
 
                     if (redoAvailable && !undoInProgress)
                     {
-                        if (System.Windows.Application.Current.Dispatcher.CheckAccess())
+                        if (Application.Current.Dispatcher.CheckAccess())
                         {
                             this.redoCommand.Execute(null);
                         }
                         else
                         {
-                            System.Windows.Application.Current.Dispatcher.Invoke(() => this.redoCommand.Execute(null));
+                            Application.Current.Dispatcher.Invoke(() => this.redoCommand.Execute(null));
                         }
                     }
 

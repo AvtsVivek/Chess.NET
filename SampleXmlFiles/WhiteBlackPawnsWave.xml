@@ -1,13 +1,5 @@
 ﻿<ChessMoves>
 	<PieceMoveCommands>
-		<SequenceCommand>
-			<MoveCommand>
-				<Pawn Color="White" />
-				<Source Row="2" Column="8" />
-				<Target Row="4" Column="8" />
-			</MoveCommand>
-			<EndTurnCommand />
-		</SequenceCommand>
 	</PieceMoveCommands>
 	<StartPositions>
 		<Pieces>
