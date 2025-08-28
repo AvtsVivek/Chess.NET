@@ -353,7 +353,19 @@ namespace Chess.ViewModel.Game
                     // This is a castling move.
                     firstMoveCommand.IsCastlingMove = secondMoveCommand.IsCastlingMove = true;
                 }
-            }            
+            }
+
+            if (secondCommand is MoveCommand firstKillerMoveCommand
+                && firstCommand is RemoveCommand secondRemoveCaptureCommand)
+            {
+                // This could be the case for capture.
+                if (firstKillerMoveCommand.Piece.Color != secondRemoveCaptureCommand.Piece.Color
+                    && firstKillerMoveCommand.Target.Equals(secondRemoveCaptureCommand.Position))
+                {
+                    // This is a capture move.
+                    firstKillerMoveCommand.IsKillerMove = true;
+                }
+            }
         }
 
         /// <summary>
@@ -377,7 +389,7 @@ namespace Chess.ViewModel.Game
             }
             else
             {
-                PopulateChecssMoveSequence();
+                PopulateChessMoveSequence();
             }
 
             OnPropertyChanged(nameof(ChessMoveSequence));
@@ -531,7 +543,7 @@ namespace Chess.ViewModel.Game
                 chessMoveSequenceIndex--;
         }
 
-        private void PopulateChecssMoveSequence()
+        private void PopulateChessMoveSequence()
         {
             chessMoveSequenceIndex++;
             foreach (var command in this.activePlayerCommands)
@@ -539,13 +551,22 @@ namespace Chess.ViewModel.Game
                 ChessMoveVM chessMove = null;
                 if (command is MoveCommand moveCommand)
                 {
+                    var moveType = string.Empty;
+
+                    if (moveCommand.IsCastlingMove)
+                        moveType = "Castling";
+                    else if (moveCommand.IsKillerMove)
+                        moveType = "Killer";
+                    else
+                        moveType = "Moved";
+
                     chessMove = new ChessMoveVM
                     (
                         new PositionVM(moveCommand.Source),
                         new PositionVM(moveCommand.Target),
                         moveCommand.Piece,
                         chessMoveSequenceIndex,
-                        moveCommand.IsCastlingMove? "Castling" : "Moved"
+                        moveType
                     );
                 }
                 else if (command is RemoveCommand removeCommand)
