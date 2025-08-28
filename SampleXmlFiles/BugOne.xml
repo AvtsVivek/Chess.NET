@@ -2,28 +2,14 @@
 	<PieceMoveCommands>
 		<SequenceCommand>
 			<SequenceCommand>
-				<RemoveCommand>
-					<Pawn Color="White" />
-					<Source Row="6" Column="4" />
-				</RemoveCommand>
-				<MoveCommand>
+				<RemoveCommand IsPromotion="False">
 					<Pawn Color="Black" />
-					<Source Row="7" Column="3" />
-					<Target Row="6" Column="4" />
-				</MoveCommand>
-			</SequenceCommand>
-			<EndTurnCommand />
-		</SequenceCommand>
-		<SequenceCommand>
-			<SequenceCommand>
-				<RemoveCommand>
-					<Pawn Color="Black" />
-					<Source Row="6" Column="4" />
+					<Source Row="7" Column="6" />
 				</RemoveCommand>
 				<MoveCommand>
 					<Pawn Color="White" />
-					<Source Row="5" Column="5" />
-					<Target Row="6" Column="4" />
+					<Source Row="6" Column="7" />
+					<Target Row="7" Column="6" />
 				</MoveCommand>
 			</SequenceCommand>
 			<EndTurnCommand />
@@ -31,38 +17,76 @@
 		<SequenceCommand>
 			<MoveCommand>
 				<Pawn Color="Black" />
-				<Source Row="7" Column="4" />
-				<Target Row="6" Column="4" />
-			</MoveCommand>
-			<EndTurnCommand />
-		</SequenceCommand>
-		<SequenceCommand>
-			<SequenceCommand>
-				<RemoveCommand>
-					<Pawn Color="Black" />
-					<Source Row="5" Column="5" />
-				</RemoveCommand>
-				<MoveCommand>
-					<Pawn Color="White" />
-					<Source Row="4" Column="6" />
-					<Target Row="5" Column="5" />
-				</MoveCommand>
-			</SequenceCommand>
-			<EndTurnCommand />
-		</SequenceCommand>
-		<SequenceCommand>
-			<MoveCommand>
-				<Pawn Color="Black" />
-				<Source Row="7" Column="5" />
-				<Target Row="5" Column="5" />
+				<Source Row="4" Column="7" />
+				<Target Row="3" Column="7" />
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
 		<SequenceCommand>
 			<MoveCommand>
 				<Pawn Color="White" />
-				<Source Row="2" Column="6" />
-				<Target Row="4" Column="6" />
+				<Source Row="5" Column="7" />
+				<Target Row="6" Column="7" />
+			</MoveCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<SequenceCommand>
+				<RemoveCommand IsPromotion="False">
+					<Pawn Color="White" />
+					<Source Row="4" Column="7" />
+				</RemoveCommand>
+				<MoveCommand>
+					<Pawn Color="Black" />
+					<Source Row="5" Column="8" />
+					<Target Row="4" Column="7" />
+				</MoveCommand>
+			</SequenceCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<SequenceCommand>
+				<RemoveCommand IsPromotion="False">
+					<Pawn Color="Black" />
+					<Source Row="5" Column="7" />
+				</RemoveCommand>
+				<MoveCommand>
+					<Pawn Color="White" />
+					<Source Row="4" Column="8" />
+					<Target Row="5" Column="7" />
+				</MoveCommand>
+			</SequenceCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<MoveCommand>
+				<Pawn Color="Black" />
+				<Source Row="7" Column="8" />
+				<Target Row="5" Column="8" />
+			</MoveCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<MoveCommand>
+				<Pawn Color="White" />
+				<Source Row="2" Column="7" />
+				<Target Row="4" Column="7" />
+			</MoveCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<MoveCommand>
+				<Pawn Color="Black" />
+				<Source Row="7" Column="7" />
+				<Target Row="5" Column="7" />
+			</MoveCommand>
+			<EndTurnCommand />
+		</SequenceCommand>
+		<SequenceCommand>
+			<MoveCommand>
+				<Pawn Color="White" />
+				<Source Row="2" Column="8" />
+				<Target Row="4" Column="8" />
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
