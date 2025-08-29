@@ -207,7 +207,7 @@
             </Grid.ColumnDefinitions>
 
             <Viewbox Margin="10">
-                <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" 
+                <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}"
                             Height="{x:Static game:BoardConstants.FullCanvasLength}" MouseDown="BoardMouseDown">
                     <Canvas.Resources>
                         <PowerEase x:Key="ease" EasingMode="EaseInOut" />
