@@ -22,8 +22,8 @@
         <TextBlock Name="txtMessage" VerticalAlignment="Center" Margin="5,0,5,0"/>
 
         <StackPanel Orientation="Horizontal">
-            <Button Name="btnOk" Click="btnOk_Click" Margin="5,0,5,0" >OK</Button>
-            <Button Name="btnCancel" Click="btnCancel_Click"  Margin="5,0,5,0" >Cancel</Button>
+            <Button Name="btnOk" Click="btnOk_Click" IsDefault="True" Margin="5,0,5,0" >OK</Button>
+            <Button Name="btnCancel" Click="btnCancel_Click"  Margin="5,0,5,0" IsCancel="True" >Cancel</Button>
         </StackPanel>
     </StackPanel>
 </Window>

@@ -18,7 +18,7 @@ namespace Chess.View.Window
         {
             InitializeComponent();
             txtFolderPath.Text = folderPath;
-            txtFileName.Text = fileName;
+            txtFileName.Text = Path.GetFileNameWithoutExtension(fileName);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -31,7 +31,7 @@ namespace Chess.View.Window
 
         private void btnOk_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsFileNameValid(txtFileName.Text))
+            if (!IsFileNameValid(txtFileName.Text + ".xml"))
             {
                 txtMessage.Text = "Invalid file name. Please enter a valid file name without special characters.";
                 txtMessage.Visibility = Visibility.Visible;
@@ -76,13 +76,13 @@ namespace Chess.View.Window
             }
             else
             {
-                Debug.WriteLine("No folder selected. Cannot record game history.");
-                return string.Empty;
+                return folderDialog.InitialDirectory;
             }
         }
         private void btnGenerateFileName_Click(object sender, RoutedEventArgs e)
         {
-            txtFileName.Text = XmlFileService.GetFileName();
+            var fileName = XmlFileService.GetFileName();
+            txtFileName.Text = Path.GetFileNameWithoutExtension(fileName); ;
         }
 
         private bool IsFileNameValid(string fileName)
