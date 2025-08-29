@@ -64,28 +64,6 @@ namespace Chess.Services
         // Helper for MoveCommand
         private ICommand ParseMoveCommand(XElement command)
         {
-            var isCastling = false;
-            if (command.Attribute("IsCastling") != null)
-            {
-                XAttribute castlingAttribute = command.Attribute("IsCastling")!;
-                if (castlingAttribute != null)
-                {
-                    string isCastlingValue = castlingAttribute.Value;
-                    isCastling = bool.Parse(isCastlingValue);
-                }
-            }
-
-            var isKillerMove = false;
-            if (command.Attribute("IsKiller") != null)
-            {
-                XAttribute killerAttribute = command.Attribute("IsKiller")!;
-                if (killerAttribute != null)
-                {
-                    string isKillerAttributeValue = killerAttribute.Value;
-                    isKillerMove = bool.Parse(isKillerAttributeValue);
-                }
-            }
-
             var pieceElement = command.Elements().FirstOrDefault(e =>
                 e.Name.LocalName is "Pawn" or "Knight" or "Bishop" or "Rook" or "Queen" or "King");
 
@@ -104,7 +82,7 @@ namespace Chess.Services
                 int.Parse(targetElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
                 int.Parse(targetElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
 
-            return new MoveCommand(source, target, piece, isUndo: false, isCastling, isKillerMove);
+            return new MoveCommand(source, target, piece, isUndo: false);
         }
 
         // Helper for SequenceCommand
@@ -390,9 +368,6 @@ namespace Chess.Services
                         xmlElement.AppendChild(pieceElement);
                         xmlElement.AppendChild(sourceElement);
                         xmlElement.AppendChild(targetElement);
-
-                        xmlElement.SetAttribute("IsCastling", moveCommand.IsCastlingMove.ToString());
-                        xmlElement.SetAttribute("IsKiller", moveCommand.IsKillerMove.ToString());
 
                         return xmlElement;
                     }
