@@ -4,10 +4,15 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Icon\appIcon2.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Icon\appIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Icon\appIcon2.ico" />
   </ItemGroup>
 
   <ItemGroup>

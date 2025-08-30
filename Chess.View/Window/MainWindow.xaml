@@ -18,7 +18,7 @@
         ResizeMode="CanResizeWithGrip"
         ShowIconOnTitleBar="True"
         WindowStartupLocation="CenterScreen"
-        Background="DarkGray" Icon="/Icon/appIcon.png"
+        Background="DarkGray" Icon="/Icon/appIcon2.ico"
         Title="Chess.NET" Height="700" Width="700">
 
     <Window.Resources>
@@ -26,6 +26,9 @@
             <Style x:Key="AppThemeMenuItemStyle" TargetType="{x:Type MenuItem}">
                 <Setter Property="Height" Value="20" />
             </Style>
+            <conv:LabelCounterInvertTransformMultiConverter x:Key="LabelCounterInvertTransformMultiConverter"/>
+            <conv:PieceCounterInvertTransformConverter x:Key="PieceCounterInvertTransformConverter"/>
+            <conv:BoardInvertTransformConverter x:Key="BoardInvertTransformConverter"/>
             <conv:AppModeConverter x:Key="AppModeConverter"/>
             <Storyboard x:Key="fadeWhite">
                 <ColorAnimation
@@ -208,7 +211,8 @@
 
             <Viewbox Margin="10">
                 <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}"
-                            Height="{x:Static game:BoardConstants.FullCanvasLength}" MouseDown="BoardMouseDown">
+                        Height="{x:Static game:BoardConstants.FullCanvasLength}" MouseDown="BoardMouseDown"
+                        RenderTransform="{Binding IsBoardInverted, Converter={StaticResource BoardInvertTransformConverter}}">
                     <Canvas.Resources>
                         <PowerEase x:Key="ease" EasingMode="EaseInOut" />
                         <Storyboard x:Key="fadeIn">
@@ -227,6 +231,19 @@
                         <ItemsControl.Resources>
                             <select:RowColumnIdSelector x:Key="rowColumnIdSelector" />
                             <RelativeSource x:Key="parent" Mode="FindAncestor" AncestorType="{x:Type ContentPresenter}" />
+                            <Style x:Key="RowColumnIdCounterInvertStyle" TargetType="ContentControl">
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <MultiBinding Converter="{StaticResource LabelCounterInvertTransformMultiConverter}">
+                                            <Binding Path="DataContext.IsBoardInverted" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                            <Binding Path="Row" />
+                                            <Binding Path="Column" />
+                                            <Binding Path="Label" />
+                                        </MultiBinding>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            </Style>
                         </ItemsControl.Resources>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -274,7 +291,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <ContentControl Content="{Binding}">
+                                    <ContentControl Content="{Binding}" Style="{StaticResource RowColumnIdCounterInvertStyle}">
                                         <ContentControl.ContentTemplateSelector>
                                             <StaticResource ResourceKey="rowColumnIdSelector" />
                                         </ContentControl.ContentTemplateSelector>
@@ -339,6 +356,11 @@
                         <ItemsControl.Resources>
                             <select:PieceSymbolSelector x:Key="symbolSelector" />
                             <RelativeSource x:Key="parent" Mode="FindAncestor" AncestorType="{x:Type ContentPresenter}" />
+                            <Style x:Key="PieceCounterInvertStyle" TargetType="ContentControl">
+                                <Setter Property="RenderTransform" Value="{Binding DataContext.IsBoardInverted, RelativeSource={RelativeSource AncestorType=Window},
+                                    Converter={StaticResource PieceCounterInvertTransformConverter}}"/>
+                                <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            </Style>
                         </ItemsControl.Resources>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -372,7 +394,7 @@
                         </ItemsControl.ItemContainerStyle>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <ContentControl Content="{Binding}">
+                                <ContentControl Content="{Binding}" Style="{StaticResource PieceCounterInvertStyle}" >
                                     <ContentControl.ContentTemplateSelector>
                                         <StaticResource ResourceKey="symbolSelector" />
                                     </ContentControl.ContentTemplateSelector>
