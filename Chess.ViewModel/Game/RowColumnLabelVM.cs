@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Diagnostics;
+using System.Windows;
 
 namespace Chess.ViewModel.Game
 {
@@ -49,18 +50,15 @@ namespace Chess.ViewModel.Game
         /// <value>The distance of the label from the left of the board</value>
         public double DistanceFromLeft { get; set; }
 
-
-        /// <summary>
-        /// This is temp, will be removed. Only for testing.
-        /// </summary>
-        public double BorderThickness { get; set; } = 0.04;
-
-
         /// <summary>
         /// Gets or sets the resource key for the label, which is used to find the right data template in the application resources.
         /// </summary>
         /// <value>The resource key for the row or column label.</value>
         public string LabelResourceKey { get; set; }
 
+        /// <summary>
+        /// Gets or sets the margin to be applied to the label, which is used to position the label correctly within its container.
+        /// </summary>
+        public Thickness RowColumnIdDynamicMargin { get; set; }
     }
 }

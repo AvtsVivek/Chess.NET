@@ -1,27 +1,39 @@
 ﻿using Chess.Model.Game;
+using Chess.ViewModel.Command;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chess.ViewModel.StatusAndMode
 {
-    public class StatusDisplayVM : ObservableObject
+    public partial class StatusDisplayVM : ObservableObject
     {
-        public StatusDisplayVM(Status status)
+        [ObservableProperty]
+        private string statusText;
+
+        private GenericCommand toggleBoardInversionCommand;
+
+        /// <summary>
+        /// Represents the undo command, which reverts to a previous game state.
+        /// </summary>
+        private readonly GenericCommand invertBoardCommand;
+        public StatusDisplayVM(Status status, GenericCommand toggleBoardInversionCommand)
         {
             UpdateStatus(status);
+
+            this.invertBoardCommand = new GenericCommand(() => true, InvertBoard);
+
+            this.toggleBoardInversionCommand = toggleBoardInversionCommand;
         }
-        private string statusText;
-        public string StatusText
+
+        private void InvertBoard()
         {
-            get => statusText;
-            set
-            {
-                if (statusText != value)
-                {
-                    statusText = value;
-                    OnPropertyChanged(nameof(StatusText));
-                }
-            }
+            toggleBoardInversionCommand.Execute(null);
         }
+
+        /// <summary>
+        /// Gets the command that reverts the last action of the presented chess game.
+        /// </summary>
+        /// <value>The command that reverts the last action of the presented chess game.</value>
+        public GenericCommand InvertBoardCommand => this.invertBoardCommand;
 
         public void UpdateStatus(Status status)
         {

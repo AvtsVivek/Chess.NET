@@ -97,35 +97,50 @@ namespace Chess.ViewModel.Game
                 var labelVM = new RowColumnLabelVM
                 {
                     Column = 0,
-                    Label = row.ToString(),
                     Row = row,
                     Height = 1,
                     Width = BoardConstants.BoardMarginForId,
                     DistanceFromBottom = BoardConstants.BoardMarginForId + row,
                     DistanceFromLeft = 0,
-                    LabelResourceKey = "digit" + (row + 1).ToString()
+                    LabelResourceKey = "digit" + (row + 1).ToString(),
+                    Label = "Left Digit " + (row + 1).ToString(),
+                    RowColumnIdDynamicMargin = new Thickness(0, 0, 0, 0)
                 };
 
+                // This is the first column, and last row(top row, row 7).
+                // And this is to the left side of the board
+                // We need to increase the height to the top, to accommodate the margin.
+                // This is where 8 is displayed, to the left of the board, because the column is 0.
                 if (row == 7)
+                {
                     labelVM.Height = labelVM.Height + BoardConstants.BoardMarginForId;
+                    labelVM.RowColumnIdDynamicMargin = new Thickness(0, 10, 0, 0);
+                }
 
                 rowColumnLabels.Add(labelVM);
 
                 labelVM = new RowColumnLabelVM
                 {
                     Column = 7,
-                    Label = row.ToString(),
                     Row = row,
                     Height = 1,
                     Width = BoardConstants.BoardMarginForId,
                     DistanceFromBottom = BoardConstants.BoardMarginForId + row,
                     DistanceFromLeft = BoardConstants.BoardMarginForId + 8,
-                    LabelResourceKey = "digit" + (row + 1).ToString()
+                    LabelResourceKey = "digit" + (row + 1).ToString(),
+                    Label = "Right Digit " + (row + 1).ToString(),
+                    RowColumnIdDynamicMargin = new Thickness(0, 0, 0, 0)
                 };
 
+                // This is the last column, and last row(top row, row 7).
+                // And this is to the left side of the board
+                // We need to increase the height to the top, to accommodate the margin.
+                // This is where 8 is displayed, to the right of the board, because the column is 7.
                 if (row == 7)
+                {
                     labelVM.Height = labelVM.Height + BoardConstants.BoardMarginForId;
-
+                    labelVM.RowColumnIdDynamicMargin = new Thickness(0, 10, 0, 0);
+                }
                 rowColumnLabels.Add(labelVM);
             }
 
@@ -134,37 +149,63 @@ namespace Chess.ViewModel.Game
                 var labelVM = new RowColumnLabelVM
                 {
                     Column = column,
-                    Label = column.ToString(),
                     Row = 0,
                     Width = 1,
                     Height = BoardConstants.BoardMarginForId,
                     DistanceFromBottom = 0,
                     DistanceFromLeft = BoardConstants.BoardMarginForId + column,
-                    LabelResourceKey = "char" + (column + 1).ToString()
+                    LabelResourceKey = "char" + (column + 1).ToString(),
+                    Label = "Bottom Char " + (column + 1).ToString(),
+                    RowColumnIdDynamicMargin = new Thickness(0, 0, 0, 0)
                 };
 
-                if (column == 7)
-                    labelVM.Width = labelVM.Width + BoardConstants.BoardMarginForId;
 
+                // This is the last column, and first row(row 0). 
+                // And this is below the board
+                // We need to increase the width to the right side, to accommodate the margin.
+                // This is where H is displayed.
+                if (column == 7)
+                {
+                    labelVM.Width = labelVM.Width + BoardConstants.BoardMarginForId;
+                    labelVM.RowColumnIdDynamicMargin = new Thickness(0, 0, 10, 0);
+                }
+                // This is the first column, and first row(row 0). 
+                // And this is below the board
+                // We need to increase the width to the left side, to accommodate the margin.
+                // This is where A is displayed.
                 if (column == 0)
                 {
                     labelVM.Width = labelVM.Width + BoardConstants.BoardMarginForId;
                     labelVM.DistanceFromLeft = labelVM.DistanceFromLeft - BoardConstants.BoardMarginForId;
+                    labelVM.RowColumnIdDynamicMargin = new Thickness(0, 0, 0, 0);
                 }
 
                 rowColumnLabels.Add(labelVM);
 
+                // This will be the top row, row 7.
+                // This is above the board
+                // Chars A to H are displayed here.
                 labelVM = new RowColumnLabelVM
                 {
                     Column = column,
-                    Label = column.ToString(),
                     Row = 7,
                     Width = 1,
                     Height = BoardConstants.BoardMarginForId,
                     DistanceFromBottom = BoardConstants.BoardMarginForId + 8,
                     DistanceFromLeft = BoardConstants.BoardMarginForId + column,
-                    LabelResourceKey = "char" + (column + 1).ToString()
+                    LabelResourceKey = "char" + (column + 1).ToString(),
+                    Label = "Top Char " + (column + 1).ToString(),
+                    RowColumnIdDynamicMargin = new Thickness(0, 0, 0, 0)
                 };
+
+                // This is the first column, and last row(top row, row 7).
+                // And this is above the board
+                // This is where A is displayed.
+                // I am not 100% sure why this is needed, but adding, because it seems to work.
+                if (column == 0)
+                {
+                    labelVM.RowColumnIdDynamicMargin = new Thickness(0, 0, 8, 0);
+                }
 
                 rowColumnLabels.Add(labelVM);
             }

@@ -25,6 +25,12 @@ namespace Chess.ViewModel.Command
         /// Represents the action to be executed when the <see cref="ICommand"/> is triggered.
         /// </summary>
         private readonly Action action;
+        private Func<object, bool> value;
+
+        public GenericCommand(Func<object, bool> value)
+        {
+            this.value = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GenericCommand"/> class.
