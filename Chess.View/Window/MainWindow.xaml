@@ -146,6 +146,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <Grid.RowDefinitions>
@@ -191,7 +192,12 @@
                                    DataContext="{Binding HeaderNotificationMessage}"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
-            <Menu Grid.Column="2" >
+            <Button Grid.Column="2" Margin="0 0 5 0"  VerticalAlignment="Center" Command="{Binding BoardInversionToggleCommand}" ToolTip="Invert the board">
+                Invert Board
+            </Button>
+
+
+            <Menu Grid.Column="3" >
                 <MenuItem HorizontalAlignment="Right">
                     <MenuItem.Header>
                         <StackPanel Orientation="Horizontal">
