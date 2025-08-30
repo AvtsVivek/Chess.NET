@@ -64,6 +64,9 @@ namespace Chess.ViewModel.Game
         [ObservableProperty]
         private BoardVM board;
 
+        [ObservableProperty]
+        private bool isBoardInverted;
+
         /// <summary>
         /// Provides functionality for managing and interacting with XML files.
         /// </summary>
@@ -128,12 +131,25 @@ namespace Chess.ViewModel.Game
             SelectedAppModeValue = AppMode.Play; // Default mode is Play
             reviewModeHeaderDisplyVM = new(this.undoCommand, this.redoCommand);
 
-            ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn);
+            ToggleBoardInversionCommand = new GenericCommand(
+                () => true,
+                // () => IsBoardInverted = !IsBoardInverted
+                ToggleBoardInvertedField
+            );
+
+            ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn, ToggleBoardInversionCommand);
 
             DoMessengerRegistration();
 
             HeaderNotificationMessage = new();
         }
+
+        private void ToggleBoardInvertedField()
+        {
+            IsBoardInverted = !IsBoardInverted;
+        }
+
+        public GenericCommand ToggleBoardInversionCommand { get; }
 
         private void DoMessengerRegistration()
         {
