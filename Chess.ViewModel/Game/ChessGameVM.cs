@@ -131,13 +131,12 @@ namespace Chess.ViewModel.Game
             SelectedAppModeValue = AppMode.Play; // Default mode is Play
             reviewModeHeaderDisplyVM = new(this.undoCommand, this.redoCommand);
 
-            ToggleBoardInversionCommand = new GenericCommand(
+            BoardInversionToggleCommand = new GenericCommand(
                 () => true,
-                // () => IsBoardInverted = !IsBoardInverted
                 ToggleBoardInvertedField
             );
 
-            ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn, ToggleBoardInversionCommand);
+            ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn);
 
             DoMessengerRegistration();
 
@@ -149,7 +148,7 @@ namespace Chess.ViewModel.Game
             IsBoardInverted = !IsBoardInverted;
         }
 
-        public GenericCommand ToggleBoardInversionCommand { get; }
+        public GenericCommand BoardInversionToggleCommand { get; }
 
         private void DoMessengerRegistration()
         {
