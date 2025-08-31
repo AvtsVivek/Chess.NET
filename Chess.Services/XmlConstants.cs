@@ -3,10 +3,72 @@
     public class XmlConstants
     {
         /// <summary>
+        /// Represents the XML element name used for storing instructions in a document.
+        /// </summary>
+        public const string InstructionsElementName = "Instructions";
+
+        /// <summary>
+        /// Represents the XML element name used to identify warning messages.
+        /// </summary>
+        public const string WarningElementName = "Warning";
+
+        /// <summary>
+        /// Represents the name of the XML element used to store warning notes.
+        /// </summary>
+        /// <remarks>This constant is typically used as the element name when serializing or deserializing
+        /// XML data that includes warning notes. The value of this constant is <c>"Warning"</c>.</remarks>
+        public const string GeneralNotesElementName = "GeneralNotes";
+
+        /// <summary>
+        /// Represents the name of the metadata element.
+        /// </summary>
+        /// <remarks>This constant is used to identify metadata elements in the context where it is
+        /// applied.</remarks>
+        public const string MetadataElementName = "Metadata";
+
+        /// <summary>
+        /// Represents the XML element name for a title.
+        /// </summary>
+        /// <remarks>This constant is typically used when working with XML documents to identify or
+        /// reference the "Title" element. It ensures consistency and reduces the risk of hardcoding string
+        /// literals.</remarks>
+        public const string TitleElementName = "Title";
+
+        /// <summary>
+        /// Represents the XML element name used to identify an User in a document.
+        /// </summary>
+        /// <remarks>This constant can be used when working with XML documents to ensure consistency in
+        /// referencing the "User" element.</remarks>
+        public const string UserElementName = "User";
+
+        /// <summary>
+        /// Represents the XML element name used to identify created date values.
+        /// </summary>
+        public const string CreatedDateElementName = "CreatedDate";
+
+
+        /// <summary>
+        /// Represents the XML element name used to identify the modified date in a document or data structure.
+        /// </summary>
+        public const string ModifiedDateElementName = "ModifiedDate";
+
+        /// <summary>
+        /// Represents the XML element name used for descriptions.
+        /// </summary>
+        /// <remarks>This constant is typically used to identify or reference the "Description" element in
+        /// XML-based data structures or configurations.</remarks>
+        public const string DescriptionElementName = "Description";
+
+        /// <summary>
+        /// Represents the XML element name used to identify the version in a configuration or data file.
+        /// </summary>
+        public const string VersionElementName = "Version";
+
+        /// <summary>
         /// The root element name for the XML document representing chess moves.
         /// </summary>
         public const string RootElementName = "ChessMoves";
-        
+
         /// <summary>
         /// The element name for the starting positions in the XML document.
         /// </summary>

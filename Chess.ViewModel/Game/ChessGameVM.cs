@@ -21,6 +21,7 @@ namespace Chess.ViewModel.Game
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading.Tasks;
     using System.Windows;
 
     /// <summary>
@@ -92,8 +93,9 @@ namespace Chess.ViewModel.Game
         {
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
             this.rulebook = new StandardRulebook();
-            this.Game = this.rulebook.CreateGame();
-            this.board = new BoardVM(this.Game.Board);
+
+            StartNewGame();
+
             this.updateSelector = updateSelector;
             this.negator = new CommandNegator();
 
@@ -152,12 +154,30 @@ namespace Chess.ViewModel.Game
 
         private void DoMessengerRegistration()
         {
+
+            WeakReferenceMessenger.Default.Register<MessageFromAutoReviewModeVMToChessGameVM>(this, async (r, m) =>
+            {
+                if (m.Code == "AutoReviewStoppedSuccessfully")
+                {
+                    if (SelectedAppModeValue == AppMode.Record
+                    || SelectedAppModeValue == AppMode.Play)
+                    {
+                        await Task.Run(() =>
+                        {
+                            while (this.redoCommand.CanExecute(null))
+                            {
+                                this.redoCommand.Execute(null);
+                            }
+                            // SendMessageToManualReviewVM must be called on the UI thread
+                            Application.Current.Dispatcher.Invoke(SendMessageToManualReviewVM);
+                        });
+                    }
+                }
+            });           
+            
             WeakReferenceMessenger.Default.Register<MessageToChessGameVM>(this, (r, m) =>
             {
-                this.Game = this.rulebook.CreateGame();
-                this.Board = new BoardVM(this.Game.Board);
-                this.OnPropertyChanged(nameof(this.Status));
-                this.Board.ClearChessMoveSequence();
+                StartNewGame();
 
                 var game = m.Value;
 
@@ -183,7 +203,7 @@ namespace Chess.ViewModel.Game
                     commandToExecute = this.undoCommand;
                 }
 
-                System.Threading.Tasks.Task.Run(() =>
+                Task.Run(() =>
                 {
                     while (commandToExecute.CanExecute(null))
                     {
@@ -215,18 +235,65 @@ namespace Chess.ViewModel.Game
         {
             get
             {
-                return new GenericCommand
-                (
-                    () => true,
-                    () =>
-                    {
-                        this.Game = this.rulebook.CreateGame();
-                        this.Board = new BoardVM(this.Game.Board);
-                        this.OnPropertyChanged(nameof(this.Status));
-                        this.Board.ClearChessMoveSequence();
-                    }
-                );
+                return new GenericCommand(CanExecuteNewCommand, ExecuteNewCommand);
             }
+        }
+
+        private void ExecuteNewCommand()
+        {
+            if (SelectedAppModeValue == AppMode.Review)
+            {
+                return;
+            }
+            if (SelectedAppModeValue == AppMode.Record)
+            {
+                if (recordReviewModeVM.RecordingInProgress)
+                {
+                    var result = windowService.ShowMessageBox(
+                       "Recording is in progress." + Environment.NewLine +
+                       "Do you want to stop the recording and start a new game?" + Environment.NewLine +
+                       "Click Yes to Stop this recording and start recording a new game." + Environment.NewLine +
+                       "Click No to continue recording the current game.," + Environment.NewLine,
+                       "Recording in progress", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.No)
+                    {
+                        return;
+                    }
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        recordReviewModeVM.SetFullFilePath();
+                    }
+                }
+                else
+                {
+                    recordReviewModeVM.SetFullFilePath();
+                }
+            }
+            StartNewGame();
+        }
+
+        private void StartNewGame()
+        {
+            this.Game = this.rulebook.CreateGame();
+            this.Board = new BoardVM(this.Game.Board);
+            this.OnPropertyChanged(nameof(this.Status));
+            this.Board.ClearChessMoveSequence();
+            UpdateMoveCount();
+        }
+
+        private bool CanExecuteNewCommand()
+        {
+            if (SelectedAppModeValue == AppMode.Play)
+            {
+                return true;
+            }
+
+            if (SelectedAppModeValue == AppMode.Record)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -330,34 +397,13 @@ namespace Chess.ViewModel.Game
                 this.Board.SetSource(position);
                 this.Board.SetTargets(newUpdates);
             }
-            else 
+            else
             {
                 // This happens when user clicks on an empty field which is not a valid target for any piece.
                 // This else is added by me to understand invalid moves.
                 // MessageBox.Show("Invalid Move");
                 // this.Game.NextUpdate = new Nothing<Update>();
                 // this.Game = null; // Game can never be null.
-            }
-        }
-
-        private void AddUpdateXmlToFile()
-        {
-            if (SelectedAppModeValue != AppMode.Record)
-            {
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(recordReviewModeVM.FullFilePath))
-            {
-                Debug.WriteLine("No file available for recording.");
-                MessageBox.Show("File Path Does not exist");
-                return;
-            }
-
-            if (SelectedAppModeValue == AppMode.Record 
-                && xmlFileService != null)
-            {
-                recordReviewModeVM.WriteToXmlFile(this.Game);
             }
         }
 
@@ -452,15 +498,16 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedHandler(AppMode previousAppMode)
         {
+            this.NewCommand.FireCanExecuteChanged();
             this.Board.ClearUpdates();
 
             switch (SelectedAppModeValue)
             {
                 case AppMode.Play:
-                    AppModeChangedToPlayMode();
+                    AppModeChangedToPlayMode(previousAppMode);
                     break;
                 case AppMode.Record:
-                    AppModeChangedToRecordMode();
+                    AppModeChangedToRecordMode(previousAppMode);
                     break;
                 case AppMode.Review:
                     AppModeChangedToReviewMode(previousAppMode);
@@ -475,7 +522,7 @@ namespace Chess.ViewModel.Game
         /// <summary>
         /// Handles the change to Play Mode.
         /// </summary>
-        private void AppModeChangedToPlayMode()
+        private void AppModeChangedToPlayMode(AppMode previousAppMode)
         {
             CurrentAppModeVM = playModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
@@ -484,8 +531,13 @@ namespace Chess.ViewModel.Game
         /// <summary>
         /// Handles the change to Record Mode.
         /// </summary>
-        private void AppModeChangedToRecordMode()
+        private void AppModeChangedToRecordMode(AppMode previousAppMode)
         {
+            if (previousAppMode == AppMode.Review)
+            {
+                return;
+            }
+
             if (recordReviewModeVM.RecordingInProgress)
             {
                 recordReviewModeVM.ResetRecordingState();
@@ -523,16 +575,45 @@ namespace Chess.ViewModel.Game
 
                 if (result == MessageBoxResult.OK)
                 {
-                    this.Game = this.rulebook.CreateGame();
-                    this.Board = new BoardVM(this.Game.Board);
-                    this.OnPropertyChanged(nameof(this.Status));
-                    this.Board.ClearChessMoveSequence();
+                    StartNewGame();
                 }
             }
 
             CurrentAppModeVM = recordReviewModeVM;
             ModeAndPlayerStatusDisplayVM = reviewModeHeaderDisplyVM;
             SetReviewMode();
+        }
+
+        /// <summary>
+        /// This is a special flag to control recording to file During Transitioning From Auto Review ToRecord.
+        /// Try not use in other scenarios.
+        /// </summary>
+        // private bool allowRecordingToFile = true;
+
+        private void AddUpdateXmlToFile()
+        {
+            if (SelectedAppModeValue != AppMode.Record)
+            {
+                return;
+            }
+
+            if (reviewModeHeaderDisplyVM.IsAutoReviewRunning)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(recordReviewModeVM.FullFilePath))
+            {
+                Debug.WriteLine("No file available for recording.");
+                MessageBox.Show("File Path Does not exist");
+                return;
+            }
+
+            if (SelectedAppModeValue == AppMode.Record
+                && xmlFileService != null)
+            {
+                recordReviewModeVM.WriteToXmlFile(this.Game);
+            }
         }
 
         private void SetReviewMode()

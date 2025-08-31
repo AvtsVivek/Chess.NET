@@ -1,9 +1,32 @@
-﻿<ChessMoves>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ChessMoves>
+	<Instructions>
+		<Warning>
+			<!--Please Note-->
+			<!--This file is not to be manually edited. This is edited and parsed by a computer program.-->
+		</Warning>
+		<GeneralNotes>
+			<!--Any manual changes may lead to unexpected behavior when the file is processed by the program.-->
+			<!--This XML file represents a chess game, including the starting positions of the pieces and the sequence of moves made during the game.-->
+			<!--The 'StartPositions' element contains the initial arrangement of pieces on the board.-->
+			<!--The 'PieceMoveCommands' element contains a list of commands representing the moves made in the game.-->
+			<!--Each command is represented as an XML element with attributes and child elements as needed.-->
+			<!--The order of commands in 'PieceMoveCommands' reflects the sequence of moves made during the game.-->
+		</GeneralNotes>
+		<Metadata>
+			<Title>Chess Game XML Representation</Title>
+			<User>Player Name</User>
+			<CreatedDate>2025-08-31T22:02:46</CreatedDate>
+			<ModifiedDate>2025-08-31T22:02:46</ModifiedDate>
+			<Description>This XML file represents a chess game, including the starting positions of the pieces and the sequence of moves made during the game.</Description>
+			<Version>1.0</Version>
+		</Metadata>
+	</Instructions>
 	<PieceMoveCommands>
-		<SequenceCommand>
+		<SequenceCommand Id="13">
 			<SequenceCommand>
 				<SequenceCommand>
-					<RemoveCommand>
+					<RemoveCommand IsPromotion="False">
 						<Rook Color="Black" />
 						<Source Row="8" Column="8" />
 					</RemoveCommand>
@@ -14,7 +37,7 @@
 					</MoveCommand>
 				</SequenceCommand>
 				<SequenceCommand>
-					<RemoveCommand>
+					<RemoveCommand IsPromotion="False">
 						<Pawn Color="White" />
 						<Source Row="8" Column="8" />
 					</RemoveCommand>
@@ -26,7 +49,7 @@
 			</SequenceCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="12">
 			<MoveCommand>
 				<Pawn Color="Black" />
 				<Source Row="7" Column="6" />
@@ -34,9 +57,9 @@
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="11">
 			<SequenceCommand>
-				<RemoveCommand>
+				<RemoveCommand IsPromotion="False">
 					<Pawn Color="Black" />
 					<Source Row="7" Column="7" />
 				</RemoveCommand>
@@ -48,10 +71,10 @@
 			</SequenceCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="10">
 			<SequenceCommand>
 				<SequenceCommand>
-					<RemoveCommand>
+					<RemoveCommand IsPromotion="False">
 						<Rook Color="White" />
 						<Source Row="1" Column="8" />
 					</RemoveCommand>
@@ -62,7 +85,7 @@
 					</MoveCommand>
 				</SequenceCommand>
 				<SequenceCommand>
-					<RemoveCommand>
+					<RemoveCommand IsPromotion="False">
 						<Pawn Color="Black" />
 						<Source Row="1" Column="8" />
 					</RemoveCommand>
@@ -74,7 +97,7 @@
 			</SequenceCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="9">
 			<MoveCommand>
 				<Pawn Color="White" />
 				<Source Row="5" Column="8" />
@@ -82,7 +105,7 @@
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="8">
 			<MoveCommand>
 				<Pawn Color="Black" />
 				<Source Row="3" Column="7" />
@@ -90,7 +113,7 @@
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="7">
 			<MoveCommand>
 				<Knight Color="White" />
 				<Source Row="1" Column="7" />
@@ -98,7 +121,7 @@
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="6">
 			<MoveCommand>
 				<Pawn Color="Black" />
 				<Source Row="4" Column="7" />
@@ -106,7 +129,7 @@
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="5">
 			<MoveCommand>
 				<Pawn Color="White" />
 				<Source Row="4" Column="8" />
@@ -114,9 +137,9 @@
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="4">
 			<SequenceCommand>
-				<RemoveCommand>
+				<RemoveCommand IsPromotion="False">
 					<Pawn Color="White" />
 					<Source Row="4" Column="7" />
 				</RemoveCommand>
@@ -128,7 +151,7 @@
 			</SequenceCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="3">
 			<MoveCommand>
 				<Pawn Color="White" />
 				<Source Row="2" Column="7" />
@@ -136,7 +159,7 @@
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="2">
 			<MoveCommand>
 				<Pawn Color="Black" />
 				<Source Row="7" Column="8" />
@@ -144,7 +167,7 @@
 			</MoveCommand>
 			<EndTurnCommand />
 		</SequenceCommand>
-		<SequenceCommand>
+		<SequenceCommand Id="1">
 			<MoveCommand>
 				<Pawn Color="White" />
 				<Source Row="2" Column="8" />

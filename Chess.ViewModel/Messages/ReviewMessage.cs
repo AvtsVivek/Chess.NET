@@ -6,12 +6,8 @@
 //-----------------------------------------------------------------------
 namespace Chess.ViewModel.Messages
 {
-    public class ReviewMessage 
+    public record MessageFromRecordReviewModeVMToReviewModeHeaderDisplayVM(bool StartReviewLoop)
     {
-        public bool StartReviewLoop { get; private set; }
-        public ReviewMessage(bool startReviewLoop) 
-        {
-            StartReviewLoop = startReviewLoop;
-        }
+        public bool StartReviewLoop { get; private set; } = StartReviewLoop;
     }
 }

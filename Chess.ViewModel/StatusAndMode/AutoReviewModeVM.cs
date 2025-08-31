@@ -1,5 +1,7 @@
 ﻿using Chess.ViewModel.Command;
+using Chess.ViewModel.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -126,76 +128,127 @@ namespace Chess.ViewModel.StatusAndMode
             ChessAppSettings.Default.Save();
         }
 
+        private Task autoReviewTask;
         public void StartAutoReviewLoop()
         {
+            if (isAutoReviewRunning)
+                return; // Already running, do nothing
+
+            isAutoReviewRunning = true;
+
             autoReviewCts = new CancellationTokenSource();
             
             bool undoAvailable = true;
             bool redoAvailable = true;
             bool undoInProgress = true;
 
-            Task.Run(async () =>
+            autoReviewTask = Task.Run(async () =>
             {
-                while (!autoReviewCts.IsCancellationRequested)
+                try
                 {
-                    if (undoAvailable && undoInProgress)
+                    while (!autoReviewCts.IsCancellationRequested)
                     {
-                       if (Application.Current.Dispatcher.CheckAccess())
+                        if (undoAvailable && undoInProgress)
                         {
-                            this.undoCommand.Execute(null);
+                            if (Application.Current.Dispatcher.CheckAccess())
+                            {
+                                this.undoCommand.Execute(null);
+                            }
+                            else
+                            {
+                                Application.Current.Dispatcher.Invoke(() => this.undoCommand.Execute(null));
+                            }
                         }
-                        else
+
+                        undoAvailable = this.undoCommand.CanExecute(null);
+
+                        if (redoAvailable && !undoInProgress)
                         {
-                            Application.Current.Dispatcher.Invoke(() => this.undoCommand.Execute(null));
+                            if (Application.Current.Dispatcher.CheckAccess())
+                            {
+                                this.redoCommand.Execute(null);
+                            }
+                            else
+                            {
+                                Application.Current.Dispatcher.Invoke(() => this.redoCommand.Execute(null));
+                            }
                         }
-                    }
 
-                    undoAvailable = this.undoCommand.CanExecute(null);
+                        redoAvailable = this.redoCommand.CanExecute(null);
 
-                    if (redoAvailable && !undoInProgress)
-                    {
-                        if (Application.Current.Dispatcher.CheckAccess())
+                        if (!undoAvailable)
                         {
-                            this.redoCommand.Execute(null);
+                            undoInProgress = false;
                         }
-                        else
+
+                        if (!redoAvailable)
                         {
-                            Application.Current.Dispatcher.Invoke(() => this.redoCommand.Execute(null));
+                            undoInProgress = true;
                         }
+
+                        var intervalSeconds = Math.Round(autoReviewTimeInterval, 1);
+
+                        await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), autoReviewCts.Token);
                     }
-
-                    redoAvailable = this.redoCommand.CanExecute(null);
-
-                    if(!undoAvailable)
-                    {
-                        undoInProgress = false;
-                    }
-
-                    if(!redoAvailable)
-                    {
-                        undoInProgress = true;
-                    }
-
-                    var intervalSeconds = Math.Round(autoReviewTimeInterval, 1);
-
-                    await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), autoReviewCts.Token);
                 }
+                catch (OperationCanceledException oce)
+                {
+                    // Task was cancelled, which is expected
+                    Console.WriteLine($"OperationCanceledException: {oce.Message}");
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle other exceptions as needed
+                    Console.WriteLine($"Unexpected error: {ex.Message}");
+                }
+                finally
+                {
+                    isAutoReviewRunning = false;
+                }
+
             }, autoReviewCts.Token);
         }
 
-        public void StopAutoReviewLoop()
+        public bool IsAutoReviewRunning => isAutoReviewRunning;
+
+        private bool isAutoReviewRunning = false;
+
+        public async Task StopAutoReviewLoop()
         {
             autoReviewCts?.Cancel();
+
+            if (autoReviewTask != null)
+            {
+                try
+                {
+                    await autoReviewTask;
+                }
+                catch (OperationCanceledException oce)
+                {
+                    // Task was cancelled, which is expected
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle other exceptions as needed
+                }
+                finally
+                {
+                    isAutoReviewRunning = false;
+                    autoReviewTask = null;
+                    var message = new MessageFromAutoReviewModeVMToChessGameVM("AutoReviewStoppedSuccessfully");
+                    WeakReferenceMessenger.Default.Send(message);
+                }
+            }
         }
 
         public void ViewLoaded()
         {
-            StartAutoReviewLoop();
+            // StartAutoReviewLoop();
         }
 
         public void ViewUnloaded()
         {
-            StopAutoReviewLoop();
+            // StopAutoReviewLoop();
         }
     }
 }

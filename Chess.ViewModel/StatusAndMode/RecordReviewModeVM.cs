@@ -32,7 +32,6 @@ namespace Chess.ViewModel.StatusAndMode
 
         public RecordReviewModeVM(IWindowService windowService)
         {
-            IsReviewFileInRecording = false;
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
 
             SetFullFilePath();
@@ -58,8 +57,6 @@ namespace Chess.ViewModel.StatusAndMode
 
             FullFilePath = Path.Combine(initialDirectory, fileName);
         }
-
-        public bool IsReviewFileInRecording { get; set; }
 
         public GenericCommand SetFullFilePathCommand => setFullFilePathCommand;
 
@@ -160,37 +157,22 @@ namespace Chess.ViewModel.StatusAndMode
                     "Recording is in progress at the following file location " + Environment.NewLine +
                     $"{oldRecordingPath}" + Environment.NewLine +
                     "Do you want to go ahead and use the same file to record?" + Environment.NewLine +
-                    "Click Yes, set a new file for recording." + Environment.NewLine +
-                    "Click No, to continue to use the same file for recording." + Environment.NewLine,
+                    "Click Yes to continue to use the same file for recording." + Environment.NewLine +
+                    "Recording will start from the next move." + Environment.NewLine +
+                    "Click No to set a new file for recording." + Environment.NewLine,
                     "Recording in Progress",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Information
                 );
 
-                if (result == MessageBoxResult.No)
+                if (result == MessageBoxResult.Yes)
                 {
                     return;
                 }
 
-                if (result == MessageBoxResult.Yes)
+                if (result == MessageBoxResult.No)
                 {
-                    selectedPath = windowService.ShowSetRecordFilePathWindow(Path.GetDirectoryName(FullFilePath), Path.GetFileName(FullFilePath));
-
-                    if (string.IsNullOrWhiteSpace(selectedPath))
-                    {
-                        return; // User cancelled the operation
-                    }
-
-                    if (selectedPath == oldRecordingPath)
-                    {
-                        windowService.ShowMessageBox(
-                            "The file path is same as before. No changes made.",
-                            "No Changes Made",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information
-                        );
-                        return;
-                    }
+                    SetFullFilePath();
 
                     RecordingInProgress = false;
 
@@ -221,7 +203,9 @@ namespace Chess.ViewModel.StatusAndMode
         {
             if (string.IsNullOrWhiteSpace(FullFilePath))
             {
-                throw new InvalidOperationException("Full file path must be set before writing to XML file.");
+                MessageBox.Show("Full file path must be set before writing to XML file." + Environment.NewLine + 
+                    "Cannot continue.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
 
             xmlFileService.WriteToXmlFile(chessGame, FullFilePath);
@@ -307,26 +291,42 @@ namespace Chess.ViewModel.StatusAndMode
 
             if (this.RecordingInProgress && previousAppMode == AppMode.Record)
             {
-                this.IsReviewFileInRecording = true;
-                PublishReviewMessage(true);
+                if (CurrentAppMode == AppMode.Play)
+                {
+                    PublishReviewMessage(false);
+                }
+                else
+                {
+                    PublishReviewMessage(true);
+                }
                 return;
             }
 
             if (CurrentAppMode == AppMode.Record && previousAppMode == AppMode.Play)
             {
+                PublishReviewMessage(false);
+                return;
+            }
+
+            if (CurrentAppMode == AppMode.Record && previousAppMode == AppMode.Review)
+            {
+                PublishReviewMessage(false);
+                return;
+            }
+
+            if (CurrentAppMode == AppMode.Play && previousAppMode == AppMode.Review)
+            {
+                PublishReviewMessage(false);
                 return;
             }
 
             if (CurrentAppMode == AppMode.Review && previousAppMode == AppMode.Record && !this.RecordingInProgress)
             {
-                this.FullFilePath = string.Empty;
-                this.IsReviewFileInRecording = false;
-                PublishReviewMessage(false);
+                LoadFileForReviewFromSettings();
             }
 
             if (CurrentAppMode == AppMode.Review && previousAppMode == AppMode.Play)
             {
-                this.IsReviewFileInRecording = false;
                 LoadFileForReviewFromSettings();
             }
         }
@@ -372,7 +372,7 @@ namespace Chess.ViewModel.StatusAndMode
 
         private void PublishReviewMessage(bool bStartReview)
         {
-            var reviewMessage = new ReviewMessage(bStartReview);
+            var reviewMessage = new MessageFromRecordReviewModeVMToReviewModeHeaderDisplayVM(bStartReview);
             WeakReferenceMessenger.Default.Send(reviewMessage);
         }
 

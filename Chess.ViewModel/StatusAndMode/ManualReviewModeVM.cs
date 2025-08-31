@@ -2,6 +2,7 @@
 using Chess.ViewModel.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Windows;
 
 namespace Chess.ViewModel.StatusAndMode
 {
@@ -73,7 +74,7 @@ namespace Chess.ViewModel.StatusAndMode
                 ChessAppSettings.Default.Save();
 
                 // RaiseCanExecuteChanged must be called on the UI thread
-                System.Windows.Application.Current.Dispatcher.Invoke(RaiseCanExecuteChanged);
+                Application.Current.Dispatcher.Invoke(RaiseCanExecuteChanged);
             });
         }
 
@@ -90,7 +91,7 @@ namespace Chess.ViewModel.StatusAndMode
                 ChessAppSettings.Default.ReviewFromLast = true;
                 ChessAppSettings.Default.Save();
                 // SendMessageToManualReviewVM must be called on the UI thread
-                System.Windows.Application.Current.Dispatcher.Invoke(RaiseCanExecuteChanged);
+                Application.Current.Dispatcher.Invoke(RaiseCanExecuteChanged);
             });
         }
 

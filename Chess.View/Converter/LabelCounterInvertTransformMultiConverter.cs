@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 namespace Chess.View.Converter
 {
-    using Chess.ViewModel.Game;
     using System;
     using System.Globalization;
     using System.Windows.Data;

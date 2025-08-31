@@ -9,4 +9,13 @@
         {
         }
     }
+
+    public class MessageFromAutoReviewModeVMToChessGameVM 
+    {
+        public string Code { get; init; } = string.Empty;
+        public MessageFromAutoReviewModeVMToChessGameVM(string code) 
+        {
+            Code = code;
+        }
+    }
 }

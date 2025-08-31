@@ -1,5 +1,4 @@
 ﻿using Chess.Model.Game;
-using Chess.ViewModel.Command;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chess.ViewModel.StatusAndMode
