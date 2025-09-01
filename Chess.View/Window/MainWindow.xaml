@@ -152,7 +152,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="50" />
             </Grid.RowDefinitions>
-            
+
             <Menu>
                 <Menu.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -429,79 +429,95 @@
                 </Canvas>
             </Viewbox>
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" DragCompleted="GridSplitter_DragCompleted" />
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" DragCompleted="VerticalGridSplitter_DragCompleted" />
 
-            <Border Grid.Column="2" BorderThickness="2" Margin="10" BorderBrush="Green" CornerRadius="5" >
-                <DockPanel>
-                    <Grid DockPanel.Dock="Top" >
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
-                            <Border.Triggers>
-                                <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
+            <DockPanel Grid.Column="2">
+                <Grid DockPanel.Dock="Top" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
+                        <Border.Triggers>
+                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation
                                                 Duration="{StaticResource duration}"
                                                 To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
                                                 Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Border.Triggers>
-                            <StackPanel Margin="5" Orientation="Horizontal">
-                                <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Play" Name="PlayRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Play}}"/>
-                                <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Record" Name="RecordRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Record}}" />
-                                <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Review" Name="ReviewRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Review}}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Grid.Column="1" Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
-                            <Border.Triggers>
-                                <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Border.Triggers>
+                        <StackPanel Margin="5" Orientation="Horizontal">
+                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Play" Name="PlayRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Play}}"/>
+                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Record" Name="RecordRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Record}}" />
+                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Review" Name="ReviewRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Review}}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
+                        <Border.Triggers>
+                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation
                                                 Duration="{StaticResource duration}"
                                                 To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
                                                 Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Border.Triggers>
-                            <ContentControl Margin="0" Content="{Binding CurrentAppModeVM}"/>
-                        </Border>
-                    </Grid>
-                    <ListView x:Name="myListView"
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Border.Triggers>
+                        <ContentControl Margin="0" Content="{Binding CurrentAppModeVM}"/>
+                    </Border>
+                </Grid>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition x:Name="ChessMovesListViewRow" Height="*" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition x:Name="ChessMovesNotesRow" Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border CornerRadius="12" Background="AliceBlue" Margin="10,5,10,10">
+                        <ListView x:Name="myListView" Grid.Row="0"
                         ItemsSource="{Binding Path=Board.ChessMoveSequence.ChessMoves}"
                         Height="Auto" Margin="10 5 10 10 " Width="Auto"
                         VerticalAlignment="Top" Background="AliceBlue">
-                        <ListView.Resources>
-                            <select:PieceSelectorForMoveSequenceListView x:Key="pieceSelectorForMoveSequenceListView" />
-                        </ListView.Resources>
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Width="15" VerticalAlignment="Center" Text="{Binding MoveNumber}" 
+                            <ListView.Resources>
+                                <select:PieceSelectorForMoveSequenceListView x:Key="pieceSelectorForMoveSequenceListView" />
+                            </ListView.Resources>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Width="15" VerticalAlignment="Center" Text="{Binding MoveNumber}" 
                                                HorizontalAlignment="Center" Margin="10" FontWeight="Bold"/>
-                                    <ContentControl Content="{Binding}">
-                                        <ContentControl.ContentTemplateSelector>
-                                            <StaticResource ResourceKey="pieceSelectorForMoveSequenceListView" />
-                                        </ContentControl.ContentTemplateSelector>
-                                    </ContentControl>
-                                    <TextBlock Width="30" VerticalAlignment="Center" Text="{Binding PieceColor}" Margin="10" />
-                                    <TextBlock Width="30" VerticalAlignment="Center" Text="{Binding PieceName}" Margin="10" />
-                                    <TextBlock Width="20" VerticalAlignment="Center" Text="{Binding SourceString}" Margin="10"/>
-                                    <TextBlock Width="20" VerticalAlignment="Center" Text="{Binding TargetString}" Margin="10"/>
-                                    <TextBlock Width="65" VerticalAlignment="Center" Text="{Binding ShortDescription}" Margin="10"/>
-                                    <TextBlock VerticalAlignment="Center" Text="{Binding GameAndUpdateInfo}" Margin="10"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </DockPanel>
-            </Border>
+                                        <ContentControl Content="{Binding}">
+                                            <ContentControl.ContentTemplateSelector>
+                                                <StaticResource ResourceKey="pieceSelectorForMoveSequenceListView" />
+                                            </ContentControl.ContentTemplateSelector>
+                                        </ContentControl>
+                                        <TextBlock Width="30" VerticalAlignment="Center" Text="{Binding PieceColor}" Margin="10" />
+                                        <TextBlock Width="30" VerticalAlignment="Center" Text="{Binding PieceName}" Margin="10" />
+                                        <TextBlock Width="20" VerticalAlignment="Center" Text="{Binding SourceString}" Margin="10"/>
+                                        <TextBlock Width="20" VerticalAlignment="Center" Text="{Binding TargetString}" Margin="10"/>
+                                        <TextBlock Width="65" VerticalAlignment="Center" Text="{Binding ShortDescription}" Margin="10"/>
+                                        <TextBlock VerticalAlignment="Center" Text="{Binding GameAndUpdateInfo}" Margin="10"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Border>
+                    <GridSplitter Grid.Row="1" Height="5" VerticalAlignment="Stretch" DragCompleted="HorizontalGridSplitter_DragCompleted" />
+                    <Border Grid.Row="2" CornerRadius="12" Background="AliceBlue" Margin="10">
+                    <TextBox Margin="10" 
+                                 Text="here we go.."
+                                 AcceptsReturn="True" 
+                                 VerticalScrollBarVisibility="Auto" 
+                                 HorizontalScrollBarVisibility="Auto" 
+                                 Background="LightGray" />
+                    </Border>
+                </Grid>
+            </DockPanel>
         </Grid>
     </DockPanel>
 </mah:MetroWindow>

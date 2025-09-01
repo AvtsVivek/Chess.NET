@@ -55,6 +55,15 @@ namespace Chess.View.Window
 
             if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ConsoleColumnWidth))
                 ConsoleColumn.Width = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ConsoleColumnWidth);
+
+
+
+            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessMovesListViewRowHeight))
+                ChessMovesListViewRow.Height = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessMovesListViewRowHeight);
+
+            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessMovesNotesRowHeight))
+                ChessMovesNotesRow.Height = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessMovesNotesRowHeight);
+
         }
 
         /// <summary>
@@ -141,7 +150,7 @@ namespace Chess.View.Window
             // deploy some CupCakes...
         }
 
-        private void GridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        private void VerticalGridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
         {
             var chessGameColumnWidth = gridLengthConverter.ConvertToString(ChessGameColumn.Width);
 
@@ -149,6 +158,16 @@ namespace Chess.View.Window
 
             ChessAppSettings.Default.ChessGameColumnWidth = chessGameColumnWidth;
             ChessAppSettings.Default.ConsoleColumnWidth = consoleColumnWidth;
+            ChessAppSettings.Default.Save();
+        }
+
+        private void HorizontalGridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            var chessMovesListRowHeight = gridLengthConverter.ConvertToString(ChessMovesListViewRow.Height);
+            var chessMovesNotesRowHeight = gridLengthConverter.ConvertToString(ChessMovesNotesRow.Height);
+
+            ChessAppSettings.Default.ChessMovesListViewRowHeight = chessMovesListRowHeight;
+            ChessAppSettings.Default.ChessMovesNotesRowHeight = chessMovesNotesRowHeight;
             ChessAppSettings.Default.Save();
         }
     }

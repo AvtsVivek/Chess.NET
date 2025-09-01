@@ -12,6 +12,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace Chess.ViewModel.StatusAndMode
@@ -208,7 +209,10 @@ namespace Chess.ViewModel.StatusAndMode
                 return;
             }
 
-            xmlFileService.WriteToXmlFile(chessGame, FullFilePath);
+            Task.Run(() =>
+            {
+                xmlFileService.WriteToXmlFile(chessGame, FullFilePath);
+            }).Wait();
             RecordingInProgress = true;
         }
 

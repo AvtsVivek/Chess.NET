@@ -46,5 +46,29 @@ namespace Chess.View {
                 this["ConsoleColumnWidth"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ChessMovesListViewRowHeight {
+            get {
+                return ((string)(this["ChessMovesListViewRowHeight"]));
+            }
+            set {
+                this["ChessMovesListViewRowHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ChessMovesNotesRowHeight {
+            get {
+                return ((string)(this["ChessMovesNotesRowHeight"]));
+            }
+            set {
+                this["ChessMovesNotesRowHeight"] = value;
+            }
+        }
     }
 }
