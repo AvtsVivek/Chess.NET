@@ -13,7 +13,7 @@ namespace Chess.Model.Game
     /// <summary>
     /// Represents an update of a chess game state.
     /// </summary>
-    [DebuggerDisplay("UpdateId: {UpdateId}, Desc: {Description}")]
+    [DebuggerDisplay("Id: {Id}, UpdateId: {UpdateId}, Desc: {Description}")]
     public class Update
     {
         /// <summary>
@@ -23,14 +23,7 @@ namespace Chess.Model.Game
         /// </summary>
         private static int InstanceCounter;
 
-        // Just for debugging and understanding purposes.
-        public int UpdateId { get; set; }
-
-        // Just for debugging and understanding purposes.
-        public bool IsSelected { get; set; }
-
-        // Just for debugging and understanding purposes.
-        public string Description { get; set; }
+        private static int IdCounter = 0;
 
         /// <summary>
         /// Represents the chess game state before or after executing the corresponding <see cref="Command"/>,
@@ -51,7 +44,7 @@ namespace Chess.Model.Game
         /// depending on the context.
         /// </param>
         /// <param name="command">The command that is involved in the game state update.</param>
-        public Update(ChessGame game, ICommand command, string description)
+        public Update(ChessGame game, ICommand command, string description, int id = 0)
         {
             Validation.NotNull(game, nameof(game));
             Validation.NotNull(command, nameof(command));
@@ -64,6 +57,37 @@ namespace Chess.Model.Game
             this.UpdateId = InstanceCounter;
 
             Description = description;
+
+            if (id != 0)
+            {
+                IdCounter = id;
+                Id = id;
+            }        
+        }
+
+        // Just for debugging and understanding purposes. This is instance counter.
+        public int UpdateId { get; set; }
+
+        // Just for debugging and understanding purposes.
+        public bool IsSelected { get; set; }
+
+        // Just for debugging and understanding purposes.
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Represents the external unique identifier of the update. 
+        /// This interacts with each move in a chess game as per the history of chess moves.
+        /// </summary>
+
+        public int Id { get; private set; }
+
+        public void AssignId()
+        {
+            if (Id == 0)
+            {
+                IdCounter++;
+                Id = IdCounter;
+            }
         }
     }
 }

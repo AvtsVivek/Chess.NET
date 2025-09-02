@@ -587,22 +587,16 @@ namespace Chess.ViewModel.Game
         private void PopulateChessMoveSequence()
         {
             chessMoveSequenceIndex++;
-            foreach (var command in this.activePlayerCommands)
+            var commandsCopy = new List<ICommand>(this.activePlayerCommands); // Create a copy
+            foreach (var command in commandsCopy)
             {
                 ChessMoveVM chessMove = null;
                 if (command is MoveCommand moveCommand)
                 {
-                    var moveType = string.Empty;
+                    var moveType = moveCommand.IsCastlingMove ? "Castling" :
+                                   moveCommand.IsKillerMove ? "Killer" : "Moved";
 
-                    if (moveCommand.IsCastlingMove)
-                        moveType = "Castling";
-                    else if (moveCommand.IsKillerMove)
-                        moveType = "Killer";
-                    else
-                        moveType = "Moved";
-
-                    chessMove = new ChessMoveVM
-                    (
+                    chessMove = new ChessMoveVM(
                         new PositionVM(moveCommand.Source),
                         new PositionVM(moveCommand.Target),
                         moveCommand.Piece,
@@ -612,19 +606,17 @@ namespace Chess.ViewModel.Game
                 }
                 else if (command is RemoveCommand removeCommand)
                 {
-                    chessMove = new ChessMoveVM
-                    (
+                    chessMove = new ChessMoveVM(
                         new PositionVM(removeCommand.Position),
                         null,
                         removeCommand.Piece,
                         chessMoveSequenceIndex,
-                        removeCommand.IsPromotion? "Promoted" : "Captured"
+                        removeCommand.IsPromotion ? "Promoted" : "Captured"
                     );
                 }
                 else if (command is SpawnCommand spawnCommand)
                 {
-                    chessMove = new ChessMoveVM
-                    (
+                    chessMove = new ChessMoveVM(
                         new PositionVM(spawnCommand.Position),
                         null,
                         spawnCommand.Piece,
@@ -634,7 +626,7 @@ namespace Chess.ViewModel.Game
                 }
 
                 if (chessMove != null)
-                {
+                {                    
                     // Insert the move at the beginning of the sequence to
                     // ensure the most recent move is at the top.
                     Application.Current.Dispatcher.Invoke(() =>

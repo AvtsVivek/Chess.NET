@@ -153,6 +153,8 @@ namespace Chess.ViewModel.StatusAndMode
 
             if (RecordingInProgress)
             {
+                
+
                 var oldRecordingPath = FullFilePath;
                 var result = windowService.ShowMessageBox(
                     "Recording is in progress at the following file location " + Environment.NewLine +
@@ -178,7 +180,7 @@ namespace Chess.ViewModel.StatusAndMode
                     RecordingInProgress = false;
 
                     windowService.ShowMessageBox(
-                        $"Recording will now be done to this new path {selectedPath}"
+                        $"Recording will now be done to this new path {FullFilePath}"
                         + Environment.NewLine +
                         $"instead of the old path {oldRecordingPath}",
                         "Recording Path Changed",
@@ -261,22 +263,7 @@ namespace Chess.ViewModel.StatusAndMode
 
             ChessGame chessGame = xmlFileService.LoadBoardFromXmlFile(FullFilePath);
 
-            var parsedCommands = xmlFileService.GetPieceMoveCommandsFromXmlFile(FullFilePath);
-
-            ChessGame? updatedGame = chessGame;
-
-            foreach (var parsedCommand in parsedCommands)
-            {
-                ICommand command = new SequenceCommand(parsedCommand, new SetLastUpdateCommand(new Update(updatedGame, parsedCommand, "XmlFileRead")));
-                var updates = command.Execute(updatedGame).Map(g => new Update(g, command, "XmlFileRead")).Yield();
-                if (!updates.Any())
-                {
-                    continue;
-                }
-                Update? update = updates.First();
-                updatedGame!.NextUpdate = new Just<Update>(update);
-                updatedGame = update?.Game;
-            }
+            ChessGame updatedGame = xmlFileService.GetPieceMoveCommandsFromXmlFile(FullFilePath, chessGame);
 
             return updatedGame;
         }

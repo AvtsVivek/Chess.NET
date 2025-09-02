@@ -1,4 +1,5 @@
 ﻿using Chess.Model.Command;
+using Chess.Model.Data;
 using Chess.Model.Game;
 using Chess.Model.Piece;
 using System.Collections.Immutable;
@@ -42,21 +43,60 @@ namespace Chess.Services
             return fileName;
         }
 
-        public List<ICommand> GetPieceMoveCommandsFromXmlFile(string fullFilePath)
+        public ChessGame GetPieceMoveCommandsFromXmlFile(string fullFilePath, ChessGame chessGame)
         {
             XDocument doc = XDocument.Load(fullFilePath);
             XElement pieceMoveCommandElements = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
             List<XElement> commandElements = pieceMoveCommandElements.Elements(nameof(SequenceCommand)).ToList();
             commandElements.Reverse(); // Reverse the order to maintain the original sequence when executing
 
-            List<ICommand> commands = new List<ICommand>();
+            var parsedCommandsWithIds = new List<(ICommand, int)>();
+
+            var success = false;
+            var updateId = 0;
             foreach (XElement commandElement in commandElements)
             {
-                ICommand command = ParseCommandElement(commandElement);
-                commands.Add(command);
+                ICommand command = ParseCommandElement(commandElement)!;
+                if (commandElement.Name.LocalName == "SequenceCommand")
+                {
+                    if (commandElement.Attribute("Id") != null)
+                    {
+                        XAttribute idAttribute = commandElement.Attribute("Id")!;
+                        if (idAttribute != null)
+                        {
+                            string idValue = idAttribute.Value;
+                            success = int.TryParse(idValue, out updateId);
+                        }
+                    }
+                }
+                if (success)
+                {
+                    parsedCommandsWithIds.Add((command, updateId));
+                }
+                else
+                {
+                    parsedCommandsWithIds.Add((command, 0));
+                }
             }
 
-            return commands;
+            ChessGame? updatedGame = chessGame;
+
+            foreach (var parsedCommandWithId in parsedCommandsWithIds)
+            {
+                var Update = new Update(updatedGame, parsedCommandWithId.Item1, "XmlFileRead", parsedCommandWithId.Item2);
+                var setLastUpdateCommand = new SetLastUpdateCommand(Update);
+                ICommand command = new SequenceCommand(parsedCommandWithId.Item1, setLastUpdateCommand);
+                var updates = command.Execute(updatedGame).Map(g => new Update(g, command, "XmlFileRead")).Yield();
+                if (!updates.Any())
+                {
+                    continue;
+                }
+                Update? update = updates.First();
+                updatedGame!.NextUpdate = new Just<Update>(update);
+                updatedGame = update?.Game;
+            }
+
+            return updatedGame!;
         }
 
         public ChessGame LoadBoardFromXmlFile(string fullFilePath)
@@ -256,12 +296,9 @@ namespace Chess.Services
 
             history.Reverse(); // Reverse the history to start with the most recent update
 
-            int id = 0;
-
             foreach (var update in history)
             {
-                id++;
-                CreateAndAddUpdateCommandXmlElement(update, id);
+                CreateAndAddUpdateCommandXmlElement(update, update.Id);
             }
 
             // 5. Save the document
@@ -413,7 +450,6 @@ namespace Chess.Services
 
             var firstCommand = ParseCommandElement(children[0]);
             var secondCommand = ParseCommandElement(children[1]);
-
             return new SequenceCommand(firstCommand, secondCommand);
         }
 
@@ -421,9 +457,9 @@ namespace Chess.Services
         private ICommand ParseRemoveCommand(XElement command)
         {
             var isPromotion = false;
-            if (command.Attribute("IsPromotion") != null)
+            if (command.Attribute("Id") != null)
             {
-                XAttribute promotionAttribute = command.Attribute("IsPromotion")!;
+                XAttribute promotionAttribute = command.Attribute("Id")!;
                 if (promotionAttribute != null)
                 {
                     string isPromotionValue = promotionAttribute.Value; 

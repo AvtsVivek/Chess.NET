@@ -20,6 +20,7 @@ namespace Chess.ViewModel.Game
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Windows;
@@ -152,6 +153,11 @@ namespace Chess.ViewModel.Game
 
         public GenericCommand BoardInversionToggleCommand { get; }
 
+        /// <summary>
+        /// Flag to indicate, the record mode is not yet ready for recording.
+        /// </summary>
+        private bool recordModeNotReady = true;
+
         private void DoMessengerRegistration()
         {
 
@@ -166,10 +172,12 @@ namespace Chess.ViewModel.Game
                         {
                             while (this.redoCommand.CanExecute(null))
                             {
-                                this.redoCommand.Execute(null);
+                                recordModeNotReady = true; // Still not ready for recording until all redos are done.
+                                this.redoCommand.Execute(null);                                
                             }
                             // SendMessageToManualReviewVM must be called on the UI thread
                             Application.Current.Dispatcher.Invoke(SendMessageToManualReviewVM);
+                            recordModeNotReady = false; // Now ready for recording.
                         });
                     }
                 }
@@ -501,6 +509,8 @@ namespace Chess.ViewModel.Game
             this.NewCommand.FireCanExecuteChanged();
             this.Board.ClearUpdates();
 
+            this.recordModeNotReady = true; // Not ready for recording until the mode change is fully handled.
+
             switch (SelectedAppModeValue)
             {
                 case AppMode.Play:
@@ -531,15 +541,12 @@ namespace Chess.ViewModel.Game
         /// <summary>
         /// Handles the change to Record Mode.
         /// </summary>
-        private void AppModeChangedToRecordMode(AppMode previousAppMode)
+        private async void AppModeChangedToRecordMode(AppMode previousAppMode)
         {
-            if (previousAppMode == AppMode.Review)
-            {
-                return;
-            }
-
             if (recordReviewModeVM.RecordingInProgress)
             {
+                await reviewModeHeaderDisplyVM.StopAutoReviewLoop();
+                
                 recordReviewModeVM.ResetRecordingState();
             }
 
@@ -550,6 +557,7 @@ namespace Chess.ViewModel.Game
 
             CurrentAppModeVM = recordReviewModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
+            recordModeNotReady = false; // Now ready for recording.
         }
 
         /// <summary>
@@ -581,6 +589,11 @@ namespace Chess.ViewModel.Game
 
             CurrentAppModeVM = recordReviewModeVM;
             ModeAndPlayerStatusDisplayVM = reviewModeHeaderDisplyVM;
+
+            if (!File.Exists(recordReviewModeVM.FullFilePath))
+            {
+                StartNewGame();
+            }
             SetReviewMode();
         }
 
@@ -598,6 +611,11 @@ namespace Chess.ViewModel.Game
             }
 
             if (reviewModeHeaderDisplyVM.IsAutoReviewRunning)
+            {
+                return;
+            }
+
+            if (recordModeNotReady)
             {
                 return;
             }

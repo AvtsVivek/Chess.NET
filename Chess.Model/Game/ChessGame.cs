@@ -146,7 +146,12 @@ namespace Chess.Model.Game
                         //var history = u.Game.History;
                         //var prependedHistory = Enumerable.Prepend(history, u);
                         //return prependedHistory;
-                        return Enumerable.Prepend(u.Game.History, u);
+                        var update = u.Yield().First();
+                        update.AssignId();
+                        //var historyCountOne = u.Game.History.Count();
+                        var t = Enumerable.Prepend(u.Game.History, u);
+                        // var historyCountTwo = u.Game.History.Count();
+                        return t;
                     },
                     
                     Enumerable.Empty<Update>()
