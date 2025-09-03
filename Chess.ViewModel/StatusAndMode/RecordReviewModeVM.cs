@@ -213,7 +213,7 @@ namespace Chess.ViewModel.StatusAndMode
 
             Task.Run(() =>
             {
-                xmlFileService.WriteToXmlFile(chessGame, FullFilePath);
+                xmlFileService.WriteGameToXmlFile(chessGame, FullFilePath);
             }).Wait();
             RecordingInProgress = true;
         }
@@ -261,9 +261,7 @@ namespace Chess.ViewModel.StatusAndMode
                 throw new FileNotFoundException("The specified file was not found.", FullFilePath);
             }
 
-            ChessGame chessGame = xmlFileService.LoadBoardFromXmlFile(FullFilePath);
-
-            ChessGame updatedGame = xmlFileService.GetPieceMoveCommandsFromXmlFile(FullFilePath, chessGame);
+            ChessGame updatedGame = xmlFileService.GetPieceMoveCommandsFromXmlFile(FullFilePath);
 
             return updatedGame;
         }
