@@ -12,6 +12,7 @@
         xmlns:select="clr-namespace:Chess.View.Selector"
         xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
         xmlns:statusAndModeVm="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:gameModel="clr-namespace:Chess.Model.Game;assembly=Chess.Model"
         d:DataContext="{d:DesignInstance Type=game:ChessGameVM}"
         mc:Ignorable="d"
@@ -515,27 +516,22 @@
                             <TextBox Margin="5" Name="TitleNotesTextBox" FontSize="15" Text="{Binding TitleNotesText, Mode=TwoWay, 
                                 UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" AcceptsReturn="True" 
                                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray" 
-                                     VerticalAlignment="Top" >
+                                     VerticalAlignment="Top"  >
+
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="GotFocus">
+                                        <i:InvokeCommandAction Command="{Binding TitleNotesGotFocusCommand}" />
+                                    </i:EventTrigger>
+                                    <i:EventTrigger EventName="LostFocus">
+                                        <i:InvokeCommandAction Command="{Binding TitleNotesLostFocusCommand}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
                             </TextBox>
                             <TextBlock IsHitTestVisible="False" Name="PlaceHolderTextBlock"
                                    Text="{Binding PlaceHolderTextForTitleNotesTextBox}"
-                                   VerticalAlignment="Top" TextWrapping="Wrap"
-                                   Background="Transparent"
-                                   HorizontalAlignment="Left"
-                                   Margin="7 4 7 7"
-                                   Foreground="Gray"
-                                   FontSize="20">
-                                <TextBlock.Style>
-                                    <Style TargetType="{x:Type TextBlock}">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Setter Property="Foreground" Value="Gray"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Text, ElementName=TitleNotesTextBox}" Value="">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
+                                   VerticalAlignment="Top" TextWrapping="Wrap" Foreground="Gray"
+                                   Background="Transparent" Visibility="{Binding PlaceHolderTextForTitleNotesTextBoxVisibility}"
+                                   HorizontalAlignment="Left" Margin="7 4 7 7" FontSize="20">
                             </TextBlock>
                         </Grid>
                     </Border>

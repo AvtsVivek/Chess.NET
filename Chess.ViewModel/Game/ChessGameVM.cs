@@ -16,6 +16,7 @@ namespace Chess.ViewModel.Game
     using Chess.ViewModel.StatusAndMode;
     using Chess.ViewModel.Visitor;
     using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using CommunityToolkit.Mvvm.Messaging;
     using System;
     using System.Collections.Generic;
@@ -55,6 +56,9 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private readonly GenericCommand redoCommand;
 
+        private readonly GenericCommand titleNotesGotFocusCommand;
+        private readonly GenericCommand titleNotesLostFocusCommand;
+
         /// <summary>
         /// Represents the current game state.
         /// </summary>
@@ -86,12 +90,19 @@ namespace Chess.ViewModel.Game
 
         private readonly IWindowService windowService;
 
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ChessGameVM"/> class.
         /// </summary>
         /// <param name="updateSelector">The disambiguation mechanism if multiple updates are available for a target field.</param>
         public ChessGameVM(Func<IList<Update>, Update> updateSelector, IWindowService windowService)
         {
+
+            this.titleNotesGotFocusCommand = new GenericCommand(() => true, OnTitleNotesGotFocus);
+
+            this.titleNotesLostFocusCommand = new GenericCommand(() => true, OnTitleNotesLostFocus);
+
+
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
             this.rulebook = new StandardRulebook();
 
@@ -147,6 +158,8 @@ namespace Chess.ViewModel.Game
 
             StartSaveTitleNotesTextLoop();
         }
+
+
 
         private void ToggleBoardInvertedField()
         {
@@ -248,6 +261,9 @@ namespace Chess.ViewModel.Game
                 return new GenericCommand(CanExecuteNewCommand, ExecuteNewCommand);
             }
         }
+
+        public GenericCommand TitleNotesGotFocusCommand => this.titleNotesGotFocusCommand;
+        public GenericCommand TitleNotesLostFocusCommand => this.titleNotesLostFocusCommand;
 
         private void ExecuteNewCommand()
         {
@@ -504,19 +520,38 @@ namespace Chess.ViewModel.Game
             if (playModeVM != null)
                 playModeVM.GameMoveCount = moveCount;
 
+            SetPlaceHolderTextForTitleNotesTextBox();
+        }
+
+        private void SetPlaceHolderTextForTitleNotesTextBox()
+        {
+            var moveCount = this.Game.History.Count();
+
             if (moveCount == 0)
             {
-                PlaceHolderTextForTitleNotesTextBox = " Start typing to Set Title for the game here:";
+                PlaceHolderTextForTitleNotesTextBox = "Start typing to Set Title for the game here:";
             }
             else
             {
-                PlaceHolderTextForTitleNotesTextBox = $" Start typing to take notes for move {moveCount} here:";
+                PlaceHolderTextForTitleNotesTextBox = $"Start typing to take notes for move {moveCount} here:";
             }
+        }
+
+        private void OnTitleNotesGotFocus()
+        {
+            PlaceHolderTextForTitleNotesTextBox = string.Empty;
+        }
+
+        private void OnTitleNotesLostFocus()
+        {
+            SetPlaceHolderTextForTitleNotesTextBox();
         }
 
         [ObservableProperty]
         private string placeHolderTextForTitleNotesTextBox;
-
+        
+        [ObservableProperty]
+        private Visibility placeHolderTextForTitleNotesTextBoxVisibility = Visibility.Visible;
 
         private string titleNotesText = string.Empty;
 
@@ -528,6 +563,16 @@ namespace Chess.ViewModel.Game
             }
             set
             {
+                if(string.IsNullOrWhiteSpace(value))
+                {
+                    SetPlaceHolderTextForTitleNotesTextBox();
+                    PlaceHolderTextForTitleNotesTextBoxVisibility = Visibility.Visible;
+                }
+                else
+                {
+                    PlaceHolderTextForTitleNotesTextBoxVisibility = Visibility.Collapsed;
+                }
+
                 SetProperty(ref titleNotesText, value);
             }
         }

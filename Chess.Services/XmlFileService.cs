@@ -117,6 +117,14 @@ namespace Chess.Services
                 return; // File does not exist, nothing to update
             }
 
+            var textToUpdate = ChessGame.TitleNotesDictionary[titleNotesId];
+
+            if(string.IsNullOrWhiteSpace(textToUpdate))
+            {
+                Debug.WriteLine($"No text found for ID {titleNotesId}. Cannot update title/notes.");
+                return; // No text to update, nothing to do
+            }
+
             if (titleNotesId == 0)
             {
                 // Update the title
@@ -126,7 +134,7 @@ namespace Chess.Services
                 XmlNode titleNode = xmlDocument.SelectSingleNode($"/{XmlConstants.RootElementName}/{XmlConstants.InstructionsElementName}/{XmlConstants.MetadataElementName}/{XmlConstants.TitleElementName}")!;
                 if (titleNode != null)
                 {
-                    titleNode.InnerText = ChessGame.TitleNotesDictionary[0]; // Update the title text
+                    titleNode.InnerText = textToUpdate; // Update the title text
                     xmlDocument.Save(filePath); // Save changes back to the file
                     Debug.WriteLine($"Title updated successfully in file: {filePath}");
                 }
@@ -134,6 +142,10 @@ namespace Chess.Services
                 {
                     Debug.WriteLine($"Title node not found in file: {filePath}");
                 }
+            }
+            else 
+            {
+
             }
 
             //foreach (var key in ChessGame.TitleNotesDictionary.Keys)
