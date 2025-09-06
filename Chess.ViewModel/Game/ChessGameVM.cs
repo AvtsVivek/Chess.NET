@@ -519,7 +519,14 @@ namespace Chess.ViewModel.Game
             if (playModeVM != null)
                 playModeVM.GameMoveCount = moveCount;
 
-            SetPlaceHolderTextForTitleNotesTextBox();
+            if (ChessGame.TitleNotesDictionary.ContainsKey(moveCount))
+            {
+                TitleNotesText = ChessGame.TitleNotesDictionary[moveCount];
+            }
+            else
+            {
+                TitleNotesText = string.Empty;
+            }
         }
 
         private void SetPlaceHolderTextForTitleNotesTextBox()

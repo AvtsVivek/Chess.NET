@@ -21,11 +21,27 @@ namespace Chess.View.Converter
         {
             if (d is TextBox textBox)
             {
-                textBox.Loaded += (s, args) => UpdatePlaceholder(textBox);
-                textBox.TextChanged += (s, args) => UpdatePlaceholder(textBox);
-                textBox.GotFocus += (s, args) => UpdatePlaceholder(textBox);
-                textBox.LostFocus += (s, args) => UpdatePlaceholder(textBox);
+                // Remove previous event handlers to avoid multiple subscriptions
+                textBox.Loaded -= TextBox_EventsHandler;
+                textBox.TextChanged -= TextBox_EventsHandler;
+                textBox.GotFocus -= TextBox_EventsHandler;
+                textBox.LostFocus -= TextBox_EventsHandler;
+
+                textBox.Loaded += TextBox_EventsHandler;
+                textBox.TextChanged += TextBox_EventsHandler;
+                textBox.GotFocus += TextBox_EventsHandler;
+                textBox.LostFocus += TextBox_EventsHandler;
+
+                // Also update immediately when the property changes
+                UpdatePlaceholder(textBox);
+
             }
+        }
+
+        private static void TextBox_EventsHandler(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+                UpdatePlaceholder(textBox);
         }
 
         private static void UpdatePlaceholder(TextBox textBox)

@@ -143,16 +143,42 @@ namespace Chess.Services
             }
             else 
             {
+                SaveSequenceCommandNotes(titleNotesId, filePath, textToUpdate);
+            }
+        }
 
+        public void SaveSequenceCommandNotes(int titleNotesId, string filePath, string textToUpdate)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                return;
+
+            XmlDocument xmlDocument = new XmlDocument();
+            xmlDocument.Load(filePath);
+
+            // XPath to find the SequenceCommand with the given Id under PieceMoveCommands
+            string xpath = $"/{XmlConstants.RootElementName}/{XmlConstants.PieceMoveCommandsElementName}/SequenceCommand[@Id='{titleNotesId}']";
+            XmlNode sequenceCommandNode = xmlDocument.SelectSingleNode(xpath);
+
+            if (sequenceCommandNode == null)
+                return; // SequenceCommand with given Id not found
+
+            // Try to find Notes element
+            XmlNode notesNode = sequenceCommandNode.SelectSingleNode("Notes");
+
+            if (notesNode == null)
+            {
+                // Create Notes element if it doesn't exist
+                XmlElement notesElement = xmlDocument.CreateElement("Notes");
+                notesElement.InnerText = textToUpdate;
+                sequenceCommandNode.AppendChild(notesElement);
+            }
+            else
+            {
+                // Edit existing Notes element
+                notesNode.InnerText = textToUpdate;
             }
 
-            //foreach (var key in ChessGame.TitleNotesDictionary.Keys)
-            //{
-            //    if(key == 0) continue; // Skip the title entry
-
-            //    string notes = ChessGame.TitleNotesDictionary[key];
-
-            //}
+            xmlDocument.Save(filePath);
         }
 
         public void WriteGameToXmlFile(ChessGame game, string filePath)
