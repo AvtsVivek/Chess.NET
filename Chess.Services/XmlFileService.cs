@@ -39,8 +39,8 @@ namespace Chess.Services
 
         public ChessGame GetPieceMoveCommandsFromXmlFile(string fullFilePath)
         {
-            ChessGame chessGame = LoadBoardFromXmlFile(fullFilePath);
             XDocument doc = XDocument.Load(fullFilePath);
+            ChessGame chessGame = LoadBoardFromXmlFile(doc);
             XElement pieceMoveCommandElements = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
             List<XElement> commandElements = pieceMoveCommandElements.Elements(nameof(SequenceCommand)).ToList();
             commandElements.Reverse(); // Reverse the order to maintain the original sequence when executing
@@ -67,14 +67,31 @@ namespace Chess.Services
                 if (success)
                 {
                     parsedCommandsWithIds.Add((command, updateId));
+
+                    // Read the content of the Notes element (direct child of commandElement)
+                    var notesElement = commandElement.Element("Notes");
+                    string notesText = notesElement != null ? notesElement.Value : string.Empty;
+
+                    if (!string.IsNullOrWhiteSpace(notesText))
+                    {
+                        if (ChessGame.TitleNotesDictionary.ContainsKey(updateId))
+                        {
+                            ChessGame.TitleNotesDictionary[updateId] = (notesText, null);
+                        }
+                        else
+                        {
+                            ChessGame.TitleNotesDictionary.Add(updateId, (notesText, null));
+                        }
+                    }
                 }
                 else
                 {
+                    Debug.WriteLine("Failed to parse Id attribute or Id attribute is missing. Defaulting to 0.");
                     parsedCommandsWithIds.Add((command, 0));
                 }
             }
 
-            ChessGame? updatedGame = chessGame;
+            ChessGame updatedGame = chessGame;
 
             foreach (var parsedCommandWithId in parsedCommandsWithIds)
             {
@@ -88,97 +105,14 @@ namespace Chess.Services
                 }
                 Update? update = updates.First();
                 updatedGame!.NextUpdate = new Just<Update>(update);
-                updatedGame = update?.Game;
+                updatedGame = update.Game;
+                
+                ChessGame.TitleNotesDictionary[parsedCommandWithId.Item2] = 
+                    (ChessGame.TitleNotesDictionary.ContainsKey(parsedCommandWithId.Item2) ? 
+                    ChessGame.TitleNotesDictionary[parsedCommandWithId.Item2].titleNotes : string.Empty, update);
             }
 
-            return updatedGame!;
-        }
-
-        public void SaveTitleNotesText(int titleNotesId, string filePath) 
-        {
-
-            // Debug.WriteLine($"Saving Title/Notes with ID {titleNotesId} to file: {filePath}, {ChessGame.TitleNotesDictionary[0]}");
-
-            //if (string.IsNullOrWhiteSpace(filePath))
-            //    throw new ArgumentException("File path cannot be empty or whitespace.", nameof(filePath));
-
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                Debug.WriteLine("File path is null or whitespace. Cannot save title/notes.");
-                return; // File path is invalid, cannot proceed
-            }
-
-
-            if (!File.Exists(filePath))
-            {
-                Debug.WriteLine($"File does not exist: {filePath}. Cannot update title/notes.");
-                return; // File does not exist, nothing to update
-            }
-
-            var textToUpdate = ChessGame.TitleNotesDictionary[titleNotesId];
-
-            if(string.IsNullOrWhiteSpace(textToUpdate))
-            {
-                Debug.WriteLine($"No text found for ID {titleNotesId}. Cannot update title/notes.");
-                return; // No text to update, nothing to do
-            }
-
-            if (titleNotesId == 0)
-            {
-                // Update the title
-                // How to get to the title element in the XML file and update its value?
-                XmlDocument xmlDocument = new XmlDocument();
-                xmlDocument.Load(filePath);
-                XmlNode titleNode = xmlDocument.SelectSingleNode($"/{XmlConstants.RootElementName}/{XmlConstants.InstructionsElementName}/{XmlConstants.MetadataElementName}/{XmlConstants.TitleElementName}")!;
-                if (titleNode != null)
-                {
-                    titleNode.InnerText = textToUpdate; // Update the title text
-                    xmlDocument.Save(filePath); // Save changes back to the file
-                    Debug.WriteLine($"Title updated successfully in file: {filePath}");
-                }
-                else
-                {
-                    Debug.WriteLine($"Title node not found in file: {filePath}");
-                }
-            }
-            else 
-            {
-                SaveSequenceCommandNotes(titleNotesId, filePath, textToUpdate);
-            }
-        }
-
-        public void SaveSequenceCommandNotes(int titleNotesId, string filePath, string textToUpdate)
-        {
-            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
-                return;
-
-            XmlDocument xmlDocument = new XmlDocument();
-            xmlDocument.Load(filePath);
-
-            // XPath to find the SequenceCommand with the given Id under PieceMoveCommands
-            string xpath = $"/{XmlConstants.RootElementName}/{XmlConstants.PieceMoveCommandsElementName}/SequenceCommand[@Id='{titleNotesId}']";
-            XmlNode sequenceCommandNode = xmlDocument.SelectSingleNode(xpath);
-
-            if (sequenceCommandNode == null)
-                return; // SequenceCommand with given Id not found
-
-            // Try to find Notes element
-            XmlNode notesNode = sequenceCommandNode.SelectSingleNode("Notes");
-
-            if (notesNode == null)
-            {
-                // Create Notes element if it doesn't exist
-                XmlElement notesElement = xmlDocument.CreateElement("Notes");
-                notesElement.InnerText = textToUpdate;
-                sequenceCommandNode.AppendChild(notesElement);
-            }
-            else
-            {
-                // Edit existing Notes element
-                notesNode.InnerText = textToUpdate;
-            }
-
-            xmlDocument.Save(filePath);
+            return updatedGame;
         }
 
         public void WriteGameToXmlFile(ChessGame game, string filePath)
@@ -222,10 +156,89 @@ namespace Chess.Services
             }
         }
 
-        private ChessGame LoadBoardFromXmlFile(string fullFilePath)
+        public void SaveTitleNotesText(int titleNotesId, string filePath)
         {
-            var doc = XDocument.Load(fullFilePath);
 
+            // Debug.WriteLine($"Saving Title/Notes with ID {titleNotesId} to file: {filePath}, {ChessGame.TitleNotesDictionary[0]}");
+
+            //if (string.IsNullOrWhiteSpace(filePath))
+            //    throw new ArgumentException("File path cannot be empty or whitespace.", nameof(filePath));
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                Debug.WriteLine("File path is null or whitespace. Cannot save title/notes.");
+                return; // File path is invalid, cannot proceed
+            }
+
+
+            if (!File.Exists(filePath))
+            {
+                Debug.WriteLine($"File does not exist: {filePath}. Cannot update title/notes.");
+                return; // File does not exist, nothing to update
+            }
+
+            var textToUpdate = ChessGame.TitleNotesDictionary[titleNotesId].titleNotes;
+
+            if (titleNotesId == 0)
+            {
+                // Update the title
+                // How to get to the title element in the XML file and update its value?
+                XmlDocument xmlDocument = new XmlDocument();
+                xmlDocument.Load(filePath);
+                XmlNode titleNode = xmlDocument.SelectSingleNode($"/{XmlConstants.RootElementName}/{XmlConstants.InstructionsElementName}/{XmlConstants.MetadataElementName}/{XmlConstants.TitleElementName}")!;
+                if (titleNode != null)
+                {
+                    titleNode.InnerText = textToUpdate; // Update the title text
+                    xmlDocument.Save(filePath); // Save changes back to the file
+                    Debug.WriteLine($"Title updated successfully in file: {filePath}");
+                }
+                else
+                {
+                    Debug.WriteLine($"Title node not found in file: {filePath}");
+                }
+            }
+            else
+            {
+                SaveSequenceCommandNotes(titleNotesId, filePath, textToUpdate);
+            }
+        }
+
+        private void SaveSequenceCommandNotes(int titleNotesId, string filePath, string textToUpdate)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                return;
+
+            XmlDocument xmlDocument = new XmlDocument();
+            xmlDocument.Load(filePath);
+
+            // XPath to find the SequenceCommand with the given Id under PieceMoveCommands
+            string xpath = $"/{XmlConstants.RootElementName}/{XmlConstants.PieceMoveCommandsElementName}/SequenceCommand[@Id='{titleNotesId}']";
+            XmlNode sequenceCommandNode = xmlDocument.SelectSingleNode(xpath);
+
+            if (sequenceCommandNode == null)
+                return; // SequenceCommand with given Id not found
+
+            // Try to find Notes element
+            XmlNode notesNode = sequenceCommandNode.SelectSingleNode("Notes");
+
+            if (notesNode == null)
+            {
+                // Create Notes element if it doesn't exist
+                XmlElement notesElement = xmlDocument.CreateElement("Notes");
+                notesElement.InnerText = textToUpdate;
+                sequenceCommandNode.AppendChild(notesElement);
+            }
+            else
+            {
+                // Edit existing Notes element
+                notesNode.InnerText = textToUpdate;
+            }
+
+            xmlDocument.Save(filePath);
+        }
+
+        private ChessGame LoadBoardFromXmlFile(XDocument doc)
+        {
             var piecesNode = doc.Descendants("Pieces").First();
 
             var allPlacedPieces = new List<PlacedPiece>();
@@ -433,7 +446,7 @@ namespace Chess.Services
 
             if (ChessGame.TitleNotesDictionary.ContainsKey(0))
             {
-                titleElement.InnerText = ChessGame.TitleNotesDictionary[0];
+                titleElement.InnerText = ChessGame.TitleNotesDictionary[0].titleNotes;
             }
             else
             {
@@ -564,11 +577,21 @@ namespace Chess.Services
 
         private void CreateAndAddUpdateCommandXmlElement(XmlDocument xmlDocument, string filePath, Update update, int id)
         {
-            // xmlDocument.Load(filePath);
-
             XmlNode parent = xmlDocument.SelectSingleNode(XmlConstants.RootElementName + "//" + XmlConstants.PieceMoveCommandsElementName);
 
             var xmlElement = GetCommandXmlElement(xmlDocument, update.Command, id);
+
+            XmlElement notesElement = xmlDocument.CreateElement(XmlConstants.CommandNotesElementName);
+            
+            var textToUpdate = string.Empty;
+
+            if (ChessGame.TitleNotesDictionary.ContainsKey(id))
+            {
+                textToUpdate = ChessGame.TitleNotesDictionary[id].titleNotes;
+            }
+
+            notesElement.InnerText = textToUpdate;
+            xmlElement.AppendChild(notesElement);
 
             if (parent != null && xmlElement != null)
             {
@@ -584,8 +607,6 @@ namespace Chess.Services
             }
 
             UpdateDateModifiedOfXmlFile(xmlDocument);
-    
-            // xmlDocument.Save(filePath);
         }
 
         private void UpdateDateModifiedOfXmlFile(XmlDocument xmlDocument)

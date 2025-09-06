@@ -8,11 +8,12 @@ namespace Chess.Model.Command
 {
     using Chess.Model.Data;
     using Chess.Model.Game;
+    using System;
 
     /// <summary>
     /// A command which indicates that two commands are executed one after another.
     /// </summary>
-    public class SequenceCommand : ICommand
+    public class SequenceCommand : ICommand, IEquatable<SequenceCommand>
     {
         /// <summary>
         /// Represents the first command to be executed.
@@ -67,6 +68,25 @@ namespace Chess.Model.Command
         public T Accept<T>(ICommandVisitor<T> visitor)
         {
             return visitor.Visit(this);
+        }
+
+        public bool Equals(SequenceCommand other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+            return this.FirstCommand.Equals(other.FirstCommand) &&
+                   this.SecondCommand.Equals(other.SecondCommand);
+        }
+
+        public override bool Equals(object obj) => this.Equals(obj as SequenceCommand);
+
+        public override int GetHashCode() => HashCode.Combine(this.FirstCommand, this.SecondCommand);
+
+        public bool Equals(ICommand other)
+        {
+            return other is SequenceCommand command && this.Equals(command);
         }
     }
 }

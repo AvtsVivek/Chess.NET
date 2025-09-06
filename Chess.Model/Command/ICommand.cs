@@ -8,11 +8,12 @@ namespace Chess.Model.Command
 {
     using Chess.Model.Data;
     using Chess.Model.Game;
+    using System;
 
     /// <summary>
     /// A command can be applied to a chess game state in order to obtain a new game state.
     /// </summary>
-    public interface ICommand : ICommandVisitable
+    public interface ICommand : ICommandVisitable, IEquatable<ICommand>
     {
         /// <summary>
         /// Applies the command to a chess game state.

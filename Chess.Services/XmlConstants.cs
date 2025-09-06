@@ -105,6 +105,11 @@
         public const string MoveElementName = "Move";
 
         /// <summary>
+        /// The element name for Notes for a command in the XML document.
+        /// </summary>
+        public const string CommandNotesElementName = "Notes";
+
+        /// <summary>
         /// Represents the attribute name used to specify the color of a piece.
         /// </summary>
         public const string PieceColorAttributeName = "Color";

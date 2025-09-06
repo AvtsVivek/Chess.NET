@@ -125,7 +125,7 @@ namespace Chess.Model.Game
             this.GameId = InstanceCounter;
         }
 
-        public static Dictionary<int, string> TitleNotesDictionary = new();
+        public static Dictionary<int, (string titleNotes, Update update)> TitleNotesDictionary = new();
 
         /// <summary>
         /// Represents the update that will lead to the next game state.

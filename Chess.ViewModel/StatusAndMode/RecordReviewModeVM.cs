@@ -217,6 +217,7 @@ namespace Chess.ViewModel.StatusAndMode
 
         public void SaveTitleNotesText(int titleNotesId)
         {
+
             xmlFileService.SaveTitleNotesText(titleNotesId, FullFilePath);
         }
 

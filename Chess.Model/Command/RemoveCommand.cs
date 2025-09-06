@@ -9,11 +9,12 @@ namespace Chess.Model.Command
     using Chess.Model.Data;
     using Chess.Model.Game;
     using Chess.Model.Piece;
+    using System;
 
     /// <summary>
     /// A command which indicates a chess piece removal.
     /// </summary>
-    public class RemoveCommand : ICommand
+    public class RemoveCommand : ICommand, IEquatable<RemoveCommand>
     {
         /// <summary>
         /// Represents the position of the chess piece to be removed.
@@ -93,6 +94,30 @@ namespace Chess.Model.Command
         public T Accept<T>(ICommandVisitor<T> visitor)
         {
             return visitor.Visit(this);
+        }
+
+        public bool Equals(RemoveCommand other)
+        {
+            return
+                this.Position.Equals(other.Position) &&
+                this.Piece.Equals(other.Piece) &&
+                this.IsUndo == other.IsUndo &&
+                this.IsPromotion == other.IsPromotion;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is RemoveCommand command && this.Equals(command);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(this.Position, this.Piece, this.IsUndo, this.IsPromotion);
+        }
+
+        public bool Equals(ICommand other)
+        {
+            return other is RemoveCommand command && this.Equals(command);
         }
     }
 }

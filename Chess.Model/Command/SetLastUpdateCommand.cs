@@ -8,11 +8,12 @@ namespace Chess.Model.Command
 {
     using Chess.Model.Data;
     using Chess.Model.Game;
+    using System;
 
     /// <summary>
     /// A command which indicates an update of the last recorded command of a chess game.
     /// </summary>
-    public class SetLastUpdateCommand : ICommand
+    public class SetLastUpdateCommand : ICommand, IEquatable<SetLastUpdateCommand>
     {
         /// <summary>
         /// Represents the game update to be recorded in a chess game.
@@ -65,6 +66,26 @@ namespace Chess.Model.Command
         public T Accept<T>(ICommandVisitor<T> visitor)
         {
             return visitor.Visit(this);
+        }
+
+        public bool Equals(SetLastUpdateCommand other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+            return this.Update.Equals(other.Update);
+        }
+        public override bool Equals(object obj) => this.Equals(obj as SetLastUpdateCommand);
+        public override int GetHashCode() => this.Update.GetHashCode();
+
+        public bool Equals(ICommand other)
+        {
+            return other is SetLastUpdateCommand command && this.Equals(command);
         }
     }
 }

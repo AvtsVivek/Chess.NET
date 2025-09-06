@@ -9,11 +9,12 @@ namespace Chess.Model.Command
     using Chess.Model.Data;
     using Chess.Model.Game;
     using Chess.Model.Piece;
+    using System;
 
     /// <summary>
     /// A command which indicates a chess piece move.
     /// </summary>
-    public class MoveCommand : ICommand
+    public class MoveCommand : ICommand, IEquatable<MoveCommand>
     {
         /// <summary>
         /// Represents the source position of the chess piece.
@@ -99,6 +100,37 @@ namespace Chess.Model.Command
         public T Accept<T>(ICommandVisitor<T> visitor)
         {
             return visitor.Visit(this);
+        }
+
+        public bool Equals(MoveCommand other)
+        {
+            if (ReferenceEquals(this, other))
+                return true;
+            if (other is null)
+                return false;
+
+            return
+                Source.Equals(other.Source) &&
+                Target.Equals(other.Target) &&
+                Piece.Equals(other.Piece) &&
+                IsUndo == other.IsUndo &&
+                IsCastlingMove == other.IsCastlingMove &&
+                IsKillerMove == other.IsKillerMove;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as MoveCommand);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(this.Source, this.Target, this.Piece, this.IsUndo, this.IsCastlingMove, this.IsKillerMove);
+        }
+
+        public bool Equals(ICommand other)
+        {
+            return other is MoveCommand command && this.Equals(command);
         }
     }
 }

@@ -433,6 +433,20 @@ namespace Chess.ViewModel.Game
             }
         }
 
+        private void RemoveNextUpdates()
+        {
+            this.Game.NextUpdate = new Nothing<Update>();
+            var moveCount = this.Game.History.Count();
+
+            foreach (var key in ChessGame.TitleNotesDictionary.Keys.ToList())
+            {
+                if (key >= moveCount)
+                {
+                    ChessGame.TitleNotesDictionary.Remove(key);
+                }
+            }
+        }
+
         /// <summary>
         /// Executes a <see cref="SequenceCommand"/> in order to change the presented game state.
         /// </summary>
@@ -519,9 +533,11 @@ namespace Chess.ViewModel.Game
             if (playModeVM != null)
                 playModeVM.GameMoveCount = moveCount;
 
+            previousSavedTitleNotes = string.Empty; // Reset previous saved title notes to force save if there is any change.
+
             if (ChessGame.TitleNotesDictionary.ContainsKey(moveCount))
             {
-                TitleNotesText = ChessGame.TitleNotesDictionary[moveCount];
+                TitleNotesText = ChessGame.TitleNotesDictionary[moveCount].titleNotes;
             }
             else
             {
@@ -722,23 +738,62 @@ namespace Chess.ViewModel.Game
             // Replace the code block with a thread-safe version using lock
             lock (titleNotesLock)
             {
+                if(previousSavedTitleNotes == TitleNotesText)
+                {
+                    return; // No change in title notes, no need to save.
+                }
+
                 var moveCount = this.Game.History.Count();
+                var latestUpdate = this.Game.History.FirstOrDefault();
+
                 if (!ChessGame.TitleNotesDictionary.ContainsKey(moveCount))
                 {
-                    ChessGame.TitleNotesDictionary.Add(moveCount, TitleNotesText);
+                    ChessGame.TitleNotesDictionary.Add(moveCount, (TitleNotesText, this.Game.History.FirstOrDefault()));
                 }
                 else
                 {
-                    ChessGame.TitleNotesDictionary[moveCount] = TitleNotesText;
+                    var update = ChessGame.TitleNotesDictionary[moveCount].update;
+                    if (latestUpdate != null)
+                    {
+                        if(update == null || !update.Command.Equals(latestUpdate.Command))
+                        {
+                            // We are taking a different update for the same move count.
+                            foreach (var key in ChessGame.TitleNotesDictionary.Keys.ToList())
+                            {
+                                if (key >= moveCount)
+                                {
+                                    ChessGame.TitleNotesDictionary.Remove(key);
+                                }
+                            }
+
+                            TitleNotesText = string.Empty; // Reset title notes text as we are taking a different update for the same move count.
+                            ChessGame.TitleNotesDictionary.Add(moveCount, (string.Empty, latestUpdate));
+                        }
+                        else
+                        {
+                            ChessGame.TitleNotesDictionary[moveCount] = (TitleNotesText, update);
+                        }
+                    }
                 }
+
                 previousSavedTitleNotes = TitleNotesText;
-                recordReviewModeVM.SaveTitleNotesText(moveCount);
+
+                if (SelectedAppModeValue == AppMode.Record)
+                {
+                    recordReviewModeVM.SaveTitleNotesText(moveCount);
+                }
+
+                if (SelectedAppModeValue == AppMode.Review && 
+                    reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Manual)
+                {
+                    recordReviewModeVM.SaveTitleNotesText(moveCount);
+                }
             }
         }
 
         private async void StartSaveTitleNotesTextLoop()
         {
-            int waitTimeInSeconds = 2;
+            int waitTimeInSeconds = 4;
 
             await Task.Run(async () =>
             {

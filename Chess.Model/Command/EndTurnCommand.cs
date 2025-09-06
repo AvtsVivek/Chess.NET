@@ -8,11 +8,12 @@ namespace Chess.Model.Command
 {
     using Chess.Model.Data;
     using Chess.Model.Game;
+    using System;
 
     /// <summary>
     /// A command which indicates the end of a player's turn.
     /// </summary>
-    public class EndTurnCommand : ICommand
+    public class EndTurnCommand : ICommand, IEquatable<EndTurnCommand>
     {
         /// <summary>
         /// Represents a command to end the current turn in a game.
@@ -57,6 +58,28 @@ namespace Chess.Model.Command
         public T Accept<T>(ICommandVisitor<T> visitor)
         {
             return visitor.Visit(this);
+        }
+
+        public bool Equals(EndTurnCommand other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+            return this.IsUndo == other.IsUndo;
+        }
+
+        public override bool Equals(object obj) => obj is EndTurnCommand command && this.Equals(command);
+
+        public override int GetHashCode() => HashCode.Combine(this.IsUndo);
+
+        public bool Equals(ICommand other)
+        {
+            return other is EndTurnCommand command && this.Equals(command);
         }
     }
 }

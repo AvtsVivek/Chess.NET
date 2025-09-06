@@ -58,7 +58,7 @@ namespace Chess.ViewModel.StatusAndMode
             }
         }
 
-        public async Task SetSelectedReviewModeValueAsync(ReviewMode value)
+        public async void SetSelectedReviewModeValueAsync(ReviewMode value)
         {
             SetProperty(ref selectedReviewModeValue, value);
 

@@ -9,11 +9,12 @@ namespace Chess.Model.Command
     using Chess.Model.Data;
     using Chess.Model.Game;
     using Chess.Model.Piece;
+    using System;
 
     /// <summary>
     /// A command which indicates the introduction of a new chess piece.
     /// </summary>
-    public class SpawnCommand : ICommand
+    public class SpawnCommand : ICommand, IEquatable<SpawnCommand>
     {
         /// <summary>
         /// Represents the position of the newly introduced chess piece.
@@ -76,6 +77,22 @@ namespace Chess.Model.Command
         public T Accept<T>(ICommandVisitor<T> visitor)
         {
             return visitor.Visit(this);
+        }
+
+        public bool Equals(SpawnCommand other)
+        {
+            return
+                this.Position.Equals(other.Position) &&
+                this.Piece.Equals(other.Piece);
+        }
+
+        public override bool Equals(object obj) => this.Equals(obj as SpawnCommand);
+
+        public override int GetHashCode() => HashCode.Combine(this.Position, this.Piece);
+
+        public bool Equals(ICommand other)
+        {
+            return other is SpawnCommand command && this.Equals(command);
         }
     }
 }
