@@ -1,6 +1,4 @@
-﻿using Chess.Model.Command;
-using Chess.Model.Data;
-using Chess.Model.Game;
+﻿using Chess.Model.Game;
 using Chess.Services;
 using Chess.ViewModel.Command;
 using Chess.ViewModel.Game;
@@ -9,10 +7,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 

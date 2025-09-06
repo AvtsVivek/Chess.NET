@@ -16,7 +16,6 @@ namespace Chess.ViewModel.Game
     using Chess.ViewModel.StatusAndMode;
     using Chess.ViewModel.Visitor;
     using CommunityToolkit.Mvvm.ComponentModel;
-    using CommunityToolkit.Mvvm.Input;
     using CommunityToolkit.Mvvm.Messaging;
     using System;
     using System.Collections.Generic;
@@ -549,9 +548,6 @@ namespace Chess.ViewModel.Game
 
         [ObservableProperty]
         private string placeHolderTextForTitleNotesTextBox;
-        
-        [ObservableProperty]
-        private Visibility placeHolderTextForTitleNotesTextBoxVisibility = Visibility.Visible;
 
         private string titleNotesText = string.Empty;
 
@@ -566,11 +562,10 @@ namespace Chess.ViewModel.Game
                 if(string.IsNullOrWhiteSpace(value))
                 {
                     SetPlaceHolderTextForTitleNotesTextBox();
-                    PlaceHolderTextForTitleNotesTextBoxVisibility = Visibility.Visible;
                 }
                 else
                 {
-                    PlaceHolderTextForTitleNotesTextBoxVisibility = Visibility.Collapsed;
+
                 }
 
                 SetProperty(ref titleNotesText, value);
@@ -618,7 +613,6 @@ namespace Chess.ViewModel.Game
         {
             CurrentAppModeVM = playModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
-            IsChessMovesNotesRowCollapsed = true;
         }
 
         /// <summary>
@@ -641,7 +635,6 @@ namespace Chess.ViewModel.Game
             CurrentAppModeVM = recordReviewModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
             recordModeNotReady = false; // Now ready for recording.
-            IsChessMovesNotesRowCollapsed = false;
         }
 
         /// <summary>
@@ -679,12 +672,7 @@ namespace Chess.ViewModel.Game
                 StartNewGame();
             }
             SetReviewMode();
-            IsChessMovesNotesRowCollapsed = false;
         }
-
-
-        [ObservableProperty]
-        private bool isChessMovesNotesRowCollapsed;
 
         private void AddUpdateXmlToFile()
         {

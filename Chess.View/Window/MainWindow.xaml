@@ -31,7 +31,6 @@
             <conv:PieceCounterInvertTransformConverter x:Key="PieceCounterInvertTransformConverter"/>
             <conv:BoardInvertTransformConverter x:Key="BoardInvertTransformConverter"/>
             <conv:AppModeConverter x:Key="AppModeConverter"/>
-            <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <Storyboard x:Key="fadeWhite">
                 <ColorAnimation
                     Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"
@@ -510,30 +509,22 @@
                         </ListView>
                     </Border>
                     <GridSplitter Grid.Row="1" Height="5" VerticalAlignment="Stretch" DragCompleted="HorizontalGridSplitter_DragCompleted" />
-                    <Border Grid.Row="2" CornerRadius="5" Background="LightGray" Margin="10" 
-                            Visibility="{Binding IsChessMovesNotesRowCollapsed, Converter={StaticResource BoolToVisibilityConverter}}" >
-                        <Grid>
-                            <TextBox Margin="5" Name="TitleNotesTextBox" FontSize="15" Text="{Binding TitleNotesText, Mode=TwoWay, 
-                                UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" AcceptsReturn="True" 
-                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray" 
-                                     VerticalAlignment="Top"  >
-
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="GotFocus">
-                                        <i:InvokeCommandAction Command="{Binding TitleNotesGotFocusCommand}" />
-                                    </i:EventTrigger>
-                                    <i:EventTrigger EventName="LostFocus">
-                                        <i:InvokeCommandAction Command="{Binding TitleNotesLostFocusCommand}" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                            </TextBox>
-                            <TextBlock IsHitTestVisible="False" Name="PlaceHolderTextBlock"
-                                   Text="{Binding PlaceHolderTextForTitleNotesTextBox}"
-                                   VerticalAlignment="Top" TextWrapping="Wrap" Foreground="Gray"
-                                   Background="Transparent" Visibility="{Binding PlaceHolderTextForTitleNotesTextBoxVisibility}"
-                                   HorizontalAlignment="Left" Margin="7 4 7 7" FontSize="20">
-                            </TextBlock>
-                        </Grid>
+                    <Border Grid.Row="2" CornerRadius="5" Background="LightGray" Margin="10" >
+                        <TextBox Margin="5" Name="TitleNotesTextBox" FontSize="15" 
+                                Text="{Binding TitleNotesText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                BorderThickness="0" AcceptsReturn="True"
+                                VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                Background="LightGray" VerticalAlignment="Top"
+                                conv:TextBoxPlaceholderBehavior.Placeholder="{Binding PlaceHolderTextForTitleNotesTextBox}">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="GotFocus">
+                                    <i:InvokeCommandAction Command="{Binding TitleNotesGotFocusCommand}" />
+                                </i:EventTrigger>
+                                <i:EventTrigger EventName="LostFocus">
+                                    <i:InvokeCommandAction Command="{Binding TitleNotesLostFocusCommand}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
                     </Border>
                 </Grid>
             </DockPanel>

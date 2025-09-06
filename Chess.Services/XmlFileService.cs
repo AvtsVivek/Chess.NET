@@ -7,8 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Xps.Packaging;
 using System.Xml;
 using System.Xml.Linq;
 
