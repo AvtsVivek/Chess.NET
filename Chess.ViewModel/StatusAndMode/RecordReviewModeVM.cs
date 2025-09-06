@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -216,6 +217,11 @@ namespace Chess.ViewModel.StatusAndMode
                 xmlFileService.WriteGameToXmlFile(chessGame, FullFilePath);
             }).Wait();
             RecordingInProgress = true;
+        }
+
+        public void SaveTitleNotesText(int titleNotesId)
+        {
+            xmlFileService.SaveTitleNotesText(titleNotesId, FullFilePath);
         }
 
         private void SetUserFolderPath()

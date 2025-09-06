@@ -79,15 +79,7 @@ namespace Chess.Model.Game
         /// This interacts with each move in a chess game as per the history of chess moves.
         /// </summary>
 
-        public int Id { get; private set; }
+        public int Id { get; set; }
 
-        public void AssignId()
-        {
-            if (Id == 0)
-            {
-                IdCounter++;
-                Id = IdCounter;
-            }
-        }
     }
 }

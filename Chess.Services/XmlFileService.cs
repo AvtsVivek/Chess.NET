@@ -96,6 +96,55 @@ namespace Chess.Services
             return updatedGame!;
         }
 
+        public void SaveTitleNotesText(int titleNotesId, string filePath) 
+        {
+
+            // Debug.WriteLine($"Saving Title/Notes with ID {titleNotesId} to file: {filePath}, {ChessGame.TitleNotesDictionary[0]}");
+
+            //if (string.IsNullOrWhiteSpace(filePath))
+            //    throw new ArgumentException("File path cannot be empty or whitespace.", nameof(filePath));
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                Debug.WriteLine("File path is null or whitespace. Cannot save title/notes.");
+                return; // File path is invalid, cannot proceed
+            }
+
+
+            if (!File.Exists(filePath))
+            {
+                Debug.WriteLine($"File does not exist: {filePath}. Cannot update title/notes.");
+                return; // File does not exist, nothing to update
+            }
+
+            if (titleNotesId == 0)
+            {
+                // Update the title
+                // How to get to the title element in the XML file and update its value?
+                XmlDocument xmlDocument = new XmlDocument();
+                xmlDocument.Load(filePath);
+                XmlNode titleNode = xmlDocument.SelectSingleNode($"/{XmlConstants.RootElementName}/{XmlConstants.InstructionsElementName}/{XmlConstants.MetadataElementName}/{XmlConstants.TitleElementName}")!;
+                if (titleNode != null)
+                {
+                    titleNode.InnerText = ChessGame.TitleNotesDictionary[0]; // Update the title text
+                    xmlDocument.Save(filePath); // Save changes back to the file
+                    Debug.WriteLine($"Title updated successfully in file: {filePath}");
+                }
+                else
+                {
+                    Debug.WriteLine($"Title node not found in file: {filePath}");
+                }
+            }
+
+            //foreach (var key in ChessGame.TitleNotesDictionary.Keys)
+            //{
+            //    if(key == 0) continue; // Skip the title entry
+
+            //    string notes = ChessGame.TitleNotesDictionary[key];
+
+            //}
+        }
+
         public void WriteGameToXmlFile(ChessGame game, string filePath)
         {
             XmlDocument xmlDocument = new();
@@ -107,8 +156,11 @@ namespace Chess.Services
                 throw new ArgumentNullException(nameof(filePath));
 
             if (game.History == null || !game.History.Any())
-                throw new InvalidOperationException("The game has no history to write.");
-
+            {
+                // No history to write
+                // throw new InvalidOperationException("The game has no history to write.");
+                Debug.WriteLine("The game has no history to write.");
+            }
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("File path cannot be empty or whitespace.", nameof(filePath));
 
@@ -342,7 +394,16 @@ namespace Chess.Services
             XmlElement metadataElement = xmlDocument.CreateElement(XmlConstants.MetadataElementName);
 
             XmlElement titleElement = xmlDocument.CreateElement(XmlConstants.TitleElementName);
-            titleElement.InnerText = "Chess Game XML Representation";
+
+            if (ChessGame.TitleNotesDictionary.ContainsKey(0))
+            {
+                titleElement.InnerText = ChessGame.TitleNotesDictionary[0];
+            }
+            else
+            {
+                titleElement.InnerText = string.Empty;
+            }
+
             metadataElement.AppendChild(titleElement);
 
             XmlElement userElement = xmlDocument.CreateElement(XmlConstants.UserElementName);

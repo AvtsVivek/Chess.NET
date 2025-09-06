@@ -144,6 +144,8 @@ namespace Chess.ViewModel.Game
             DoMessengerRegistration();
 
             HeaderNotificationMessage = new();
+
+            StartSaveTitleNotesTextLoop();
         }
 
         private void ToggleBoardInvertedField()
@@ -173,7 +175,7 @@ namespace Chess.ViewModel.Game
                             while (this.redoCommand.CanExecute(null))
                             {
                                 recordModeNotReady = true; // Still not ready for recording until all redos are done.
-                                this.redoCommand.Execute(null);                                
+                                this.redoCommand.Execute(null);
                             }
                             // SendMessageToManualReviewVM must be called on the UI thread
                             Application.Current.Dispatcher.Invoke(SendMessageToManualReviewVM);
@@ -181,8 +183,8 @@ namespace Chess.ViewModel.Game
                         });
                     }
                 }
-            });           
-            
+            });
+
             WeakReferenceMessenger.Default.Register<MessageToChessGameVM>(this, (r, m) =>
             {
                 StartNewGame();
@@ -358,6 +360,7 @@ namespace Chess.ViewModel.Game
             }
         }
 
+
         public double BoardBorderThickness => BoardConstants.BoardMarginForId;
 
         public string FilePath { get; set; }
@@ -497,8 +500,36 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void UpdateMoveCount()
         {
+            var moveCount = this.Game.History.Count();
             if (playModeVM != null)
-                playModeVM.GameMoveCount = this.Game.History.Count();
+                playModeVM.GameMoveCount = moveCount;
+
+            if (moveCount == 0)
+            {
+                PlaceHolderTextForTitleNotesTextBox = " Start typing to Set Title for the game here:";
+            }
+            else
+            {
+                PlaceHolderTextForTitleNotesTextBox = $" Start typing to take notes for move {moveCount} here:";
+            }
+        }
+
+        [ObservableProperty]
+        private string placeHolderTextForTitleNotesTextBox;
+
+
+        private string titleNotesText = string.Empty;
+
+        public string TitleNotesText
+        {
+            get
+            {
+                return titleNotesText;
+            }
+            set
+            {
+                SetProperty(ref titleNotesText, value);
+            }
         }
 
         /// <summary>
@@ -506,6 +537,12 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedHandler(AppMode previousAppMode)
         {
+            if ((SelectedAppModeValue != AppMode.Play)
+                && (previousSavedTitleNotes != TitleNotesText))
+            {
+                SaveTitleNotesText();
+            }
+
             this.NewCommand.FireCanExecuteChanged();
             this.Board.ClearUpdates();
 
@@ -536,6 +573,7 @@ namespace Chess.ViewModel.Game
         {
             CurrentAppModeVM = playModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
+            IsChessMovesNotesRowCollapsed = true;
         }
 
         /// <summary>
@@ -546,7 +584,7 @@ namespace Chess.ViewModel.Game
             if (recordReviewModeVM.RecordingInProgress)
             {
                 await reviewModeHeaderDisplyVM.StopAutoReviewLoop();
-                
+
                 recordReviewModeVM.ResetRecordingState();
             }
 
@@ -558,6 +596,7 @@ namespace Chess.ViewModel.Game
             CurrentAppModeVM = recordReviewModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
             recordModeNotReady = false; // Now ready for recording.
+            IsChessMovesNotesRowCollapsed = false;
         }
 
         /// <summary>
@@ -595,13 +634,12 @@ namespace Chess.ViewModel.Game
                 StartNewGame();
             }
             SetReviewMode();
+            IsChessMovesNotesRowCollapsed = false;
         }
 
-        /// <summary>
-        /// This is a special flag to control recording to file During Transitioning From Auto Review ToRecord.
-        /// Try not use in other scenarios.
-        /// </summary>
-        // private bool allowRecordingToFile = true;
+
+        [ObservableProperty]
+        private bool isChessMovesNotesRowCollapsed;
 
         private void AddUpdateXmlToFile()
         {
@@ -633,6 +671,50 @@ namespace Chess.ViewModel.Game
                 recordReviewModeVM.WriteToXmlFile(this.Game);
             }
         }
+
+        private string previousSavedTitleNotes = string.Empty;
+
+        // Add a private lock object to the class
+        private readonly object titleNotesLock = new();
+
+        private void SaveTitleNotesText()
+        {
+            // Replace the code block with a thread-safe version using lock
+            lock (titleNotesLock)
+            {
+                var moveCount = this.Game.History.Count();
+                if (!ChessGame.TitleNotesDictionary.ContainsKey(moveCount))
+                {
+                    ChessGame.TitleNotesDictionary.Add(moveCount, TitleNotesText);
+                }
+                else
+                {
+                    ChessGame.TitleNotesDictionary[moveCount] = TitleNotesText;
+                }
+                previousSavedTitleNotes = TitleNotesText;
+                recordReviewModeVM.SaveTitleNotesText(moveCount);
+            }
+        }
+
+        private async void StartSaveTitleNotesTextLoop()
+        {
+            int waitTimeInSeconds = 2;
+
+            await Task.Run(async () =>
+            {
+                while (true)
+                {
+                    if ((SelectedAppModeValue != AppMode.Play) ||
+                        (previousSavedTitleNotes != TitleNotesText))
+                    {
+                        SaveTitleNotesText();
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(waitTimeInSeconds));
+                }
+            });
+        }
+
 
         private void SetReviewMode()
         {

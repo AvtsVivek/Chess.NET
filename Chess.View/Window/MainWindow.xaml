@@ -30,6 +30,7 @@
             <conv:PieceCounterInvertTransformConverter x:Key="PieceCounterInvertTransformConverter"/>
             <conv:BoardInvertTransformConverter x:Key="BoardInvertTransformConverter"/>
             <conv:AppModeConverter x:Key="AppModeConverter"/>
+            <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <Storyboard x:Key="fadeWhite">
                 <ColorAnimation
                     Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"
@@ -215,8 +216,8 @@
                 <ColumnDefinition x:Name="ConsoleColumn" Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Viewbox Margin="10">
-                <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}"
+            <Viewbox Margin="10" x:Name="MainBoardViewBox" Focusable="True" >
+                <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" Name="MainBoardCanvas" Focusable="True"
                         Height="{x:Static game:BoardConstants.FullCanvasLength}" MouseDown="BoardMouseDown"
                         RenderTransform="{Binding IsBoardInverted, Converter={StaticResource BoardInvertTransformConverter}}">
                     <Canvas.Resources>
@@ -451,12 +452,12 @@
                             </EventTrigger>
                         </Border.Triggers>
                         <StackPanel Margin="5" Orientation="Horizontal">
-                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Play" Name="PlayRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Play}}"/>
-                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Record" Name="RecordRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Record}}" />
-                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Review" Name="ReviewRadioButton" GroupName="ModeSelection" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Review}}" />
+                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Play" Tag="Play" Name="PlayRadioButton" GroupName="ModeSelection" Click="PlayReCordReviewRadioButton_Click" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Play}}"/>
+                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Record" Tag="Record"  Name="RecordRadioButton" GroupName="ModeSelection" Click="PlayReCordReviewRadioButton_Click" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Record}}" />
+                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Review" Tag="Review" Name="ReviewRadioButton" GroupName="ModeSelection" Click="PlayReCordReviewRadioButton_Click" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Review}}" />
                         </StackPanel>
                     </Border>
-                    <Border Grid.Column="1" Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
+                    <Border Grid.Column="1" Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5" MouseDown="BoardMouseDown">
                         <Border.Triggers>
                             <EventTrigger RoutedEvent="Binding.TargetUpdated">
                                 <BeginStoryboard>
@@ -475,10 +476,10 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition x:Name="ChessMovesListViewRow" Height="*" />
-                        <RowDefinition Height="5" />
-                        <RowDefinition x:Name="ChessMovesNotesRow" Height="*" />
+                        <RowDefinition x:Name="HorizontalSplitterRow" Height="5" />
+                        <RowDefinition x:Name="ChessMovesNotesRow" Height="{Binding ChessMovesNotesRowHeight}" />
                     </Grid.RowDefinitions>
-                    <Border CornerRadius="12" Background="AliceBlue" Margin="10,5,10,10">
+                    <Border CornerRadius="5" Background="LightGray" Margin="10,5,10,10" x:Name="ChessMovesListViewBorder" Focusable="True" MouseDown="BoardMouseDown">
                         <ListView x:Name="myListView" Grid.Row="0"
                         ItemsSource="{Binding Path=Board.ChessMoveSequence.ChessMoves}"
                         Height="Auto" Margin="10 5 10 10 " Width="Auto"
@@ -508,13 +509,35 @@
                         </ListView>
                     </Border>
                     <GridSplitter Grid.Row="1" Height="5" VerticalAlignment="Stretch" DragCompleted="HorizontalGridSplitter_DragCompleted" />
-                    <Border Grid.Row="2" CornerRadius="12" Background="AliceBlue" Margin="10">
-                    <TextBox Margin="10" 
-                                 Text="here we go.."
-                                 AcceptsReturn="True" 
-                                 VerticalScrollBarVisibility="Auto" 
-                                 HorizontalScrollBarVisibility="Auto" 
-                                 Background="LightGray" />
+                    <Border Grid.Row="2" CornerRadius="5" Background="LightGray" Margin="10" 
+                            Visibility="{Binding IsChessMovesNotesRowCollapsed, Converter={StaticResource BoolToVisibilityConverter}}" >
+                        <Grid>
+                            <TextBox Margin="5" Name="TitleNotesTextBox" FontSize="15" Text="{Binding TitleNotesText, Mode=TwoWay, 
+                                UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" AcceptsReturn="True" 
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray" 
+                                     VerticalAlignment="Top" >
+                            </TextBox>
+                            <TextBlock IsHitTestVisible="False" Name="PlaceHolderTextBlock"
+                                   Text="{Binding PlaceHolderTextForTitleNotesTextBox}"
+                                   VerticalAlignment="Top" TextWrapping="Wrap"
+                                   Background="Transparent"
+                                   HorizontalAlignment="Left"
+                                   Margin="7 4 7 7"
+                                   Foreground="Gray"
+                                   FontSize="20">
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Setter Property="Foreground" Value="Gray"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=TitleNotesTextBox}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
                     </Border>
                 </Grid>
             </DockPanel>

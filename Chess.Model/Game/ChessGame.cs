@@ -125,6 +125,8 @@ namespace Chess.Model.Game
             this.GameId = InstanceCounter;
         }
 
+        public static Dictionary<int, string> TitleNotesDictionary = new();
+
         /// <summary>
         /// Represents the update that will lead to the next game state.
         /// </summary>
@@ -147,8 +149,9 @@ namespace Chess.Model.Game
                         //var prependedHistory = Enumerable.Prepend(history, u);
                         //return prependedHistory;
                         var update = u.Yield().First();
-                        update.AssignId();
-                        //var historyCountOne = u.Game.History.Count();
+                        //update.AssignId();
+                        var historyCount = u.Game.History.Count();
+                        update.Id = historyCount + 1;
                         var t = Enumerable.Prepend(u.Game.History, u);
                         // var historyCountTwo = u.Game.History.Count();
                         return t;

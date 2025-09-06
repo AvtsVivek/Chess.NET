@@ -15,6 +15,7 @@ namespace Chess.View.Window
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
+    using System.Windows.Media;
 
     /// <summary>
     /// Interaction logic for the <see cref="MainWindow"/> window.
@@ -64,6 +65,11 @@ namespace Chess.View.Window
             if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessMovesNotesRowHeight))
                 ChessMovesNotesRow.Height = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessMovesNotesRowHeight);
 
+            PlayRadioButton.IsChecked = true;
+
+            _chessMovesNotesRowHeight = ChessMovesNotesRow.Height;
+            ChessMovesNotesRow.Height = new GridLength(0);
+            HorizontalSplitterRow.Height = new GridLength(0);
         }
 
         /// <summary>
@@ -73,6 +79,13 @@ namespace Chess.View.Window
         /// <param name="e">Additional information about the mouse click.</param>
         private void BoardMouseDown(object sender, MouseButtonEventArgs e)
         {
+            MainBoardCanvas.Focus();
+
+            if (sender is Border)
+            {
+                return;
+            }
+
             var point = Mouse.GetPosition(sender as Canvas);
 
             var row = 7 - (int)(point.Y - BoardConstants.BoardMarginForId);
@@ -169,6 +182,39 @@ namespace Chess.View.Window
             ChessAppSettings.Default.ChessMovesListViewRowHeight = chessMovesListRowHeight;
             ChessAppSettings.Default.ChessMovesNotesRowHeight = chessMovesNotesRowHeight;
             ChessAppSettings.Default.Save();
+        }
+
+        private GridLength _chessMovesNotesRowHeight;
+
+        private void PlayReCordReviewRadioButton_Click(object sender, RoutedEventArgs e)
+        {
+            var radioButton = sender as RadioButton;
+            var mode = radioButton?.Tag as string; 
+
+            switch (mode)
+            {
+                case "Play":
+                    {
+                        _chessMovesNotesRowHeight = ChessMovesNotesRow.Height;
+                        ChessMovesNotesRow.Height = new GridLength(0);
+                        HorizontalSplitterRow.Height = new GridLength(0);
+                    }
+                    break;
+                case "Record":
+                    {
+                        ChessMovesNotesRow.Height = _chessMovesNotesRowHeight;
+                        HorizontalSplitterRow.Height = new GridLength(5);
+                    }
+                    break;
+                case "Review":
+                    {
+                        ChessMovesNotesRow.Height = _chessMovesNotesRowHeight;
+                        HorizontalSplitterRow.Height = new GridLength(5);
+                    }
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown mode: {mode}");
+            }
         }
     }
 }
