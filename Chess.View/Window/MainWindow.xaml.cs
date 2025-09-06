@@ -78,7 +78,7 @@ namespace Chess.View.Window
         /// <param name="e">Additional information about the mouse click.</param>
         private void BoardMouseDown(object sender, MouseButtonEventArgs e)
         {
-            MainBoardCanvas.Focus();
+            MainBoardGrid.Focus();
 
             if (sender is Border)
             {

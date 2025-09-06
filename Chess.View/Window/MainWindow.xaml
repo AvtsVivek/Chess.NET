@@ -209,14 +209,14 @@
             </Menu>
         </Grid>
 
-        <Grid>
+        <Grid Focusable="True" x:Name="MainBoardGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ChessGameColumn" Width="*" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition x:Name="ConsoleColumn" Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Viewbox Margin="10" x:Name="MainBoardViewBox" Focusable="True" >
+            <Viewbox Margin="10" >
                 <Canvas Width="{x:Static game:BoardConstants.FullCanvasLength}" Name="MainBoardCanvas" Focusable="True"
                         Height="{x:Static game:BoardConstants.FullCanvasLength}" MouseDown="BoardMouseDown"
                         RenderTransform="{Binding IsBoardInverted, Converter={StaticResource BoardInvertTransformConverter}}">
@@ -514,7 +514,7 @@
                                 Text="{Binding TitleNotesText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 BorderThickness="0" AcceptsReturn="True"
                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                                Background="LightGray" VerticalAlignment="Top"
+                                Background="LightGray" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                                 conv:TextBoxPlaceholderBehavior.Placeholder="{Binding PlaceHolderTextForTitleNotesTextBox}">
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="GotFocus">
