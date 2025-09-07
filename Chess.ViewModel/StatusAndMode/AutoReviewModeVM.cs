@@ -3,6 +3,7 @@ using Chess.ViewModel.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -128,6 +129,8 @@ namespace Chess.ViewModel.StatusAndMode
             ChessAppSettings.Default.Save();
         }
 
+        public bool ReviewFileLoadCompleted { get; set; } = false;
+
         private Task autoReviewTask;
         public void StartAutoReviewLoop()
         {
@@ -141,13 +144,22 @@ namespace Chess.ViewModel.StatusAndMode
             bool undoAvailable = true;
             bool redoAvailable = true;
             bool undoInProgress = true;
-
+            
             autoReviewTask = Task.Run(async () =>
             {
                 try
                 {
                     while (!autoReviewCts.IsCancellationRequested)
                     {
+                        var intervalSeconds = Math.Round(autoReviewTimeInterval, 1);
+
+                        if (!ReviewFileLoadCompleted)
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(0.2), autoReviewCts.Token);
+                            Debug.WriteLine("Waiting for review file to load...");
+                            continue;
+                        }
+
                         if (undoAvailable && undoInProgress)
                         {
                             if (Application.Current.Dispatcher.CheckAccess())
@@ -186,7 +198,7 @@ namespace Chess.ViewModel.StatusAndMode
                             undoInProgress = true;
                         }
 
-                        var intervalSeconds = Math.Round(autoReviewTimeInterval, 1);
+                        // var intervalSeconds = Math.Round(autoReviewTimeInterval, 1);
 
                         await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), autoReviewCts.Token);
                     }

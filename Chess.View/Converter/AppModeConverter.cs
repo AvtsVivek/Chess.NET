@@ -8,7 +8,6 @@ namespace Chess.View.Converter
 {
     using System;
     using System.Globalization;
-    using System.Windows;
     using System.Windows.Data;
 
     public class AppModeConverter : IValueConverter

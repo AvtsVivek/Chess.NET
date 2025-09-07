@@ -49,8 +49,7 @@
         <Target Row="5" Column="3" />
       </MoveCommand>
       <EndTurnCommand />
-      <Notes>
-      </Notes>
+      <Notes>444</Notes>
     </SequenceCommand>
     <SequenceCommand Id="3" CreatedDate="2025-09-07-T-17:38:07">
       <MoveCommand>

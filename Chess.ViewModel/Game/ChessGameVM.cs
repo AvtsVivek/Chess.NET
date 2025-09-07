@@ -90,7 +90,6 @@ namespace Chess.ViewModel.Game
 
         private readonly IWindowService windowService;
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ChessGameVM"/> class.
         /// </summary>
@@ -159,8 +158,6 @@ namespace Chess.ViewModel.Game
             StartSaveTitleNotesTextLoop();
         }
 
-
-
         private void ToggleBoardInvertedField()
         {
             IsBoardInverted = !IsBoardInverted;
@@ -209,7 +206,7 @@ namespace Chess.ViewModel.Game
                 }
             });
 
-            WeakReferenceMessenger.Default.Register<MessageToChessGameVM>(this, (r, m) =>
+            WeakReferenceMessenger.Default.Register<MessageToChessGameVM>(this, async (r, m) =>
             {
                 StartNewGame();
 
@@ -237,7 +234,7 @@ namespace Chess.ViewModel.Game
                     commandToExecute = this.undoCommand;
                 }
 
-                Task.Run(() =>
+                await Task.Run(() =>
                 {
                     while (commandToExecute.CanExecute(null))
                     {
@@ -246,7 +243,21 @@ namespace Chess.ViewModel.Game
                     // SendMessageToManualReviewVM must be called on the UI thread
                     Application.Current.Dispatcher.Invoke(SendMessageToManualReviewVM);
                 });
+
+                AnnounceReviewFileLoadComplete();
             });
+        }
+
+        private void AnnounceReviewFileLoadComplete()
+        {
+            if (reviewModeHeaderDisplyVM != null)
+            {
+                AutoReviewModeVM autoReviewModeVM = reviewModeHeaderDisplyVM.CurrentReviewModeVM as AutoReviewModeVM;
+                if (autoReviewModeVM != null)
+                {
+                    autoReviewModeVM.ReviewFileLoadCompleted = true;
+                }
+            }
         }
 
         private void SendMessageToManualReviewVM()
@@ -619,7 +630,7 @@ namespace Chess.ViewModel.Game
             this.Board.ClearUpdates();
 
             this.recordModeNotReady = true; // Not ready for recording until the mode change is fully handled.
-
+           
             switch (SelectedAppModeValue)
             {
                 case AppMode.Play:
