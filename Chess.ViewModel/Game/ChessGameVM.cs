@@ -828,15 +828,22 @@ namespace Chess.ViewModel.Game
 
             await Task.Run(async () =>
             {
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    if ((SelectedAppModeValue != AppMode.Play) ||
-                        (previousSavedTitleNotes != TitleNotesText))
+                    while (!token.IsCancellationRequested)
                     {
-                        Debug.WriteLine("Auto Saving Title Notes...");
-                        SaveTitleNotesText();
+                        if ((SelectedAppModeValue != AppMode.Play) ||
+                            (previousSavedTitleNotes != TitleNotesText))
+                        {
+                            Debug.WriteLine("Auto Saving Title Notes...");
+                            SaveTitleNotesText();
+                        }
+                        await Task.Delay(TimeSpan.FromSeconds(waitTimeInSeconds), token);
                     }
-                    await Task.Delay(TimeSpan.FromSeconds(waitTimeInSeconds), token);
+                }
+                catch (TaskCanceledException)
+                {
+                    Debug.WriteLine("Task was canceled.");
                 }
             }, token);
         }
