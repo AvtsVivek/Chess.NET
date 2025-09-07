@@ -244,18 +244,18 @@ namespace Chess.ViewModel.Game
                     Application.Current.Dispatcher.Invoke(SendMessageToManualReviewVM);
                 });
 
-                AnnounceReviewFileLoadComplete();
+                SetReviewFileLoadComplete();
             });
         }
 
-        private void AnnounceReviewFileLoadComplete()
+        private void SetReviewFileLoadComplete(bool loadComplete = true)
         {
             if (reviewModeHeaderDisplyVM != null)
             {
                 AutoReviewModeVM autoReviewModeVM = reviewModeHeaderDisplyVM.CurrentReviewModeVM as AutoReviewModeVM;
                 if (autoReviewModeVM != null)
                 {
-                    autoReviewModeVM.ReviewFileLoadCompleted = true;
+                    autoReviewModeVM.ReviewFileLoadCompleted = loadComplete;
                 }
             }
         }
@@ -571,6 +571,13 @@ namespace Chess.ViewModel.Game
         private void OnTitleNotesGotFocus()
         {
             PlaceHolderTextForTitleNotesTextBox = string.Empty;
+
+            if (SelectedAppModeValue == AppMode.Review &&
+                reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Auto)
+            {
+                // If in Auto Review mode, switch to Manual mode when user tries to edit title notes.
+                reviewModeHeaderDisplyVM.SelectedReviewModeValue = ReviewMode.Manual;
+            }
         }
 
         private void OnTitleNotesLostFocus()
@@ -609,11 +616,9 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedHandler(AppMode previousAppMode)
         {
-            if ((SelectedAppModeValue != AppMode.Play)
-                && (previousSavedTitleNotes != TitleNotesText))
-            {
-                SaveTitleNotesText();
-            }
+            SetReviewFileLoadComplete(loadComplete: false);
+
+            SaveTitleNotesText();
 
             if (SelectedAppModeValue == AppMode.Review &&
                 reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Manual)
@@ -715,6 +720,12 @@ namespace Chess.ViewModel.Game
                 StartNewGame();
             }
             SetReviewMode();
+
+            // If coming from Record mode, and recording is in progress, this means the file is already loaded.
+            if (previousAppMode == AppMode.Record && recordReviewModeVM.RecordingInProgress)
+            {
+                SetReviewFileLoadComplete(loadComplete: true);
+            }
         }
 
         private void AddUpdateXmlToFile()
@@ -835,7 +846,7 @@ namespace Chess.ViewModel.Game
             saveNotesCts?.Cancel(); // Cancel any previous loop
             saveNotesCts = new CancellationTokenSource();
             var token = saveNotesCts.Token;
-            int waitTimeInSeconds = 4;
+            int waitTimeInSeconds = 2000;
 
             await Task.Run(async () =>
             {
@@ -849,7 +860,7 @@ namespace Chess.ViewModel.Game
                             Debug.WriteLine("Auto Saving Title Notes...");
                             SaveTitleNotesText();
                         }
-                        await Task.Delay(TimeSpan.FromSeconds(waitTimeInSeconds), token);
+                        await Task.Delay(TimeSpan.FromMilliseconds(waitTimeInSeconds), token);
                     }
                 }
                 catch (TaskCanceledException)

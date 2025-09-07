@@ -150,8 +150,6 @@ namespace Chess.ViewModel.StatusAndMode
 
             if (RecordingInProgress)
             {
-                
-
                 var oldRecordingPath = FullFilePath;
                 var result = windowService.ShowMessageBox(
                     "Recording is in progress at the following file location " + Environment.NewLine +
