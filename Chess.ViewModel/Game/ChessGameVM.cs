@@ -22,6 +22,7 @@ namespace Chess.ViewModel.Game
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
 
@@ -174,6 +175,17 @@ namespace Chess.ViewModel.Game
 
         private void DoMessengerRegistration()
         {
+            WeakReferenceMessenger.Default.Register<MessageFromReviewModeHeaderDisplayVMToChessGameVM>(this, (r, m) =>
+            {
+                if(m.ReviewModeValue == ReviewMode.Auto)
+                {
+                    StopSaveTitleNotesTextLoop();
+                }
+                else if(m.ReviewModeValue == ReviewMode.Manual)
+                {
+                    StartSaveTitleNotesTextLoop();
+                }
+            });
 
             WeakReferenceMessenger.Default.Register<MessageFromAutoReviewModeVMToChessGameVM>(this, async (r, m) =>
             {
@@ -433,20 +445,6 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        private void RemoveNextUpdates()
-        {
-            this.Game.NextUpdate = new Nothing<Update>();
-            var moveCount = this.Game.History.Count();
-
-            foreach (var key in ChessGame.TitleNotesDictionary.Keys.ToList())
-            {
-                if (key >= moveCount)
-                {
-                    ChessGame.TitleNotesDictionary.Remove(key);
-                }
-            }
-        }
-
         /// <summary>
         /// Executes a <see cref="SequenceCommand"/> in order to change the presented game state.
         /// </summary>
@@ -604,6 +602,17 @@ namespace Chess.ViewModel.Game
                 && (previousSavedTitleNotes != TitleNotesText))
             {
                 SaveTitleNotesText();
+            }
+
+            if (SelectedAppModeValue == AppMode.Review &&
+                reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Manual)
+            {
+                StartSaveTitleNotesTextLoop();
+            }
+
+            if (SelectedAppModeValue == AppMode.Record)
+            {
+                StartSaveTitleNotesTextLoop();
             }
 
             this.NewCommand.FireCanExecuteChanged();
@@ -793,23 +802,51 @@ namespace Chess.ViewModel.Game
 
         private async void StartSaveTitleNotesTextLoop()
         {
+            if(SelectedAppModeValue == AppMode.Play)
+            {
+                return; // Only start the loop in Record or review mode.
+            }
+
+            // If in Review Mode and Auto Review is running, do not start the loop.
+            // Start only in Manual review mode.
+            if (SelectedAppModeValue == AppMode.Review &&
+                reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Auto)
+            {
+                return; // Do not start the loop in Auto Review mode
+            }
+
+            if (saveNotesCts != null && !saveNotesCts.IsCancellationRequested)
+            {
+                // Already running, do nothing
+                return;
+            }
+
+            saveNotesCts?.Cancel(); // Cancel any previous loop
+            saveNotesCts = new CancellationTokenSource();
+            var token = saveNotesCts.Token;
             int waitTimeInSeconds = 4;
 
             await Task.Run(async () =>
             {
-                while (true)
+                while (!token.IsCancellationRequested)
                 {
                     if ((SelectedAppModeValue != AppMode.Play) ||
                         (previousSavedTitleNotes != TitleNotesText))
                     {
+                        Debug.WriteLine("Auto Saving Title Notes...");
                         SaveTitleNotesText();
                     }
-
-                    await Task.Delay(TimeSpan.FromSeconds(waitTimeInSeconds));
+                    await Task.Delay(TimeSpan.FromSeconds(waitTimeInSeconds), token);
                 }
-            });
+            }, token);
         }
 
+        private CancellationTokenSource? saveNotesCts;
+
+        private void StopSaveTitleNotesTextLoop()
+        {
+            saveNotesCts?.Cancel();
+        }
 
         private void SetReviewMode()
         {

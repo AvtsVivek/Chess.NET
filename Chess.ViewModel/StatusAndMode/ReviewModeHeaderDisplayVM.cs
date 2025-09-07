@@ -76,6 +76,9 @@ namespace Chess.ViewModel.StatusAndMode
                 CurrentReviewModeVM = manualReviewModeVM;
                 await autoReviewModeVM.StopAutoReviewLoop();
             }
+
+            var message = new MessageFromReviewModeHeaderDisplayVMToChessGameVM(selectedReviewModeValue);
+            WeakReferenceMessenger.Default.Send(message);
         }
 
         public async Task StopAutoReviewLoop()
