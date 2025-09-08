@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Xps.Packaging;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -14,6 +15,7 @@ namespace Chess.Services
 {
     public class XmlFileService
     {
+        XmlWriterSettings settings;
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlFileService"/> class.
         /// </summary>
@@ -22,7 +24,11 @@ namespace Chess.Services
         /// be added as needed.</remarks>
         public XmlFileService()
         {
-
+            settings = new();
+            settings.Indent = true;
+            settings.Encoding = Encoding.UTF8;
+            settings.IndentChars = ("\t");
+            settings.OmitXmlDeclaration = false;
         }
 
         /// <summary>
@@ -41,6 +47,17 @@ namespace Chess.Services
         {
             XDocument doc = XDocument.Load(fullFilePath);
             ChessGame chessGame = LoadBoardFromXmlFile(doc);
+
+            // Navigate to the Title element
+            string title = doc
+                .Element(XmlConstants.RootElementName)?
+                .Element(XmlConstants.InstructionsElementName)?
+                .Element(XmlConstants.MetadataElementName)?
+                .Element(XmlConstants.TitleElementName)?
+                .Value ?? string.Empty;
+
+            ChessGame.TitleNotesDictionary[0] = (title, null);
+
             XElement pieceMoveCommandElements = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
             List<XElement> commandElements = pieceMoveCommandElements.Elements(nameof(SequenceCommand)).ToList();
             commandElements.Reverse(); // Reverse the order to maintain the original sequence when executing
@@ -74,6 +91,8 @@ namespace Chess.Services
 
                     if (!string.IsNullOrWhiteSpace(notesText))
                     {
+                        // Store in the dictionary. But the update is not yet created.
+                        // So we store null for now, and update it later.
                         if (ChessGame.TitleNotesDictionary.ContainsKey(updateId))
                         {
                             ChessGame.TitleNotesDictionary[updateId] = (notesText, null);
@@ -143,12 +162,6 @@ namespace Chess.Services
                 AddLatestUpdateToXmlFile(xmlDocument, game, filePath);
             }
 
-            XmlWriterSettings settings = new();
-            settings.Indent = true;
-            settings.Encoding = Encoding.UTF8;
-            settings.IndentChars = ("\t");
-            settings.OmitXmlDeclaration = false;
-
             // Save with settings if needed
             using (var writer = XmlWriter.Create(filePath, settings))
             {
@@ -189,7 +202,13 @@ namespace Chess.Services
                 if (titleNode != null)
                 {
                     titleNode.InnerText = textToUpdate; // Update the title text
-                    xmlDocument.Save(filePath); // Save changes back to the file
+
+                    // Save with settings if needed
+                    using (var writer = XmlWriter.Create(filePath, settings))
+                    {
+                        xmlDocument.Save(writer);
+                    }
+
                     Debug.WriteLine($"Title updated successfully in file: {filePath}");
                 }
                 else
@@ -234,7 +253,11 @@ namespace Chess.Services
                 notesNode.InnerText = textToUpdate;
             }
 
-            xmlDocument.Save(filePath);
+            // Save with settings if needed
+            using (var writer = XmlWriter.Create(filePath, settings))
+            {
+                xmlDocument.Save(writer);
+            }
         }
 
         private ChessGame LoadBoardFromXmlFile(XDocument doc)
@@ -342,7 +365,6 @@ namespace Chess.Services
                     {
                         continue;
                     }
-
                     RemoveXmlCommandNodesFromXmlFile(xmlDocument, filePath, xmlCommandNodeId);
                 }
 
@@ -366,8 +388,6 @@ namespace Chess.Services
                     // throw new InvalidOperationException(message);
                 }
             }
-
-            // xmlDocument.Save(filePath);
         }
 
         private void RemoveXmlCommandNodesFromXmlFile(XmlDocument xmlDocument, string filePath, int xmlCommandNodeId)
@@ -387,9 +407,6 @@ namespace Chess.Services
             }
 
             UpdateDateModifiedOfXmlFile(xmlDocument);
-
-            // Save changes back to the file
-            // xmlDocument.Save(filePath);
         }
 
         private List<int> GetLatestUpdateIdFromXmlFile(XmlDocument xmlDocument, string filePath, out XmlNodeList xmlCommandNodeList)
@@ -561,8 +578,6 @@ namespace Chess.Services
 
         private void WriteCommandsToXmlFile(XmlDocument xmlDocument, ChessGame game, string filePath)
         {
-            // xmlDocument.Load(filePath);
-
             List<Update> history = game.History.ToList();
 
             history.Reverse(); // Reverse the history to start with the most recent update
@@ -571,8 +586,6 @@ namespace Chess.Services
             {
                 CreateAndAddUpdateCommandXmlElement(xmlDocument, filePath, update, update.Id);
             }
-            
-            // xmlDocument.Save(filePath);
         }
 
         private void CreateAndAddUpdateCommandXmlElement(XmlDocument xmlDocument, string filePath, Update update, int id)

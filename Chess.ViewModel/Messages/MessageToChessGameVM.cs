@@ -3,9 +3,9 @@
     using Chess.Model.Game;
     using CommunityToolkit.Mvvm.Messaging.Messages;
 
-    public class MessageToChessGameVM : ValueChangedMessage<ChessGame>
+    public class MessageFromRecordReviewModeVMToChessGameVM : ValueChangedMessage<ChessGame>
     {
-        public MessageToChessGameVM(ChessGame game) : base(game)
+        public MessageFromRecordReviewModeVMToChessGameVM(ChessGame game) : base(game)
         {
         }
     }

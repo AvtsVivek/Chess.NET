@@ -101,7 +101,6 @@ namespace Chess.ViewModel.Game
 
             this.titleNotesLostFocusCommand = new GenericCommand(() => true, OnTitleNotesLostFocus);
 
-
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
             this.rulebook = new StandardRulebook();
 
@@ -206,7 +205,7 @@ namespace Chess.ViewModel.Game
                 }
             });
 
-            WeakReferenceMessenger.Default.Register<MessageToChessGameVM>(this, async (r, m) =>
+            WeakReferenceMessenger.Default.Register<MessageFromRecordReviewModeVMToChessGameVM>(this, async (r, m) =>
             {
                 StartNewGame();
 
@@ -775,6 +774,7 @@ namespace Chess.ViewModel.Game
                 }
 
                 var moveCount = this.Game.History.Count();
+
                 var latestUpdate = this.Game.History.FirstOrDefault();
 
                 if (!ChessGame.TitleNotesDictionary.ContainsKey(moveCount))
@@ -786,7 +786,22 @@ namespace Chess.ViewModel.Game
                     var update = ChessGame.TitleNotesDictionary[moveCount].update;
                     if (latestUpdate != null)
                     {
-                        if(update == null || !update.Command.Equals(latestUpdate.Command))
+                        bool isUpdateSameAsLatest = false;
+
+                        if (update.Command is SequenceCommand && latestUpdate.Command is SequenceCommand)
+                        {
+                            var updateFirstCommand = (update.Command as SequenceCommand).FirstCommand;
+                            var latestUpdateFirstCommand = (latestUpdate.Command as SequenceCommand).FirstCommand;
+                            if (updateFirstCommand != null && latestUpdateFirstCommand != null)
+                            {
+                                if (updateFirstCommand.Equals(latestUpdateFirstCommand))
+                                {
+                                    isUpdateSameAsLatest = true;
+                                }
+                            }
+                        }
+
+                        if (isUpdateSameAsLatest)
                         {
                             // We are taking a different update for the same move count.
                             foreach (var key in ChessGame.TitleNotesDictionary.Keys.ToList())

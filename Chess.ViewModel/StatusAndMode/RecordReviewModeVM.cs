@@ -355,7 +355,7 @@ namespace Chess.ViewModel.StatusAndMode
             FullFilePath = fullFilePathForReview;
             SaveReviewFileAndFolderPathToSettings();
             var game = LoadFromXmlFile();
-            var message = new MessageToChessGameVM(game);
+            var message = new MessageFromRecordReviewModeVMToChessGameVM(game);
             WeakReferenceMessenger.Default.Send(message);
             PublishReviewMessage(true);
         }
