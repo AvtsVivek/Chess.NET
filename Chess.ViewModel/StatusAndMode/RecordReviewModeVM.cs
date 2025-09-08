@@ -191,6 +191,11 @@ namespace Chess.ViewModel.StatusAndMode
 
             if (!string.IsNullOrEmpty(selectedPath))
             {
+                if(!selectedPath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                {
+                    selectedPath += ".xml";
+                }
+
                 FullFilePath = selectedPath;
                 ChessAppSettings.Default.XmlFolderPath = Path.GetDirectoryName(selectedPath);
                 ChessAppSettings.Default.Save();

@@ -51,23 +51,25 @@ namespace Chess.ViewModel.StatusAndMode
             get => selectedReviewModeValue;
             set
             {
-                // Optionally, call the async method without await (fire-and-forget)
-                SetSelectedReviewModeValueAsync(value);
-                // Or just set the value and let the caller handle the async logic
-                // SetProperty(ref selectedReviewModeValue, value);
+                var previousReviewMode = selectedReviewModeValue;
+                SetProperty(ref selectedReviewModeValue, value);
+                SetSelectedReviewModeValueAsync(previousReviewMode);
             }
         }
 
-        public async void SetSelectedReviewModeValueAsync(ReviewMode value)
+        public async void SetSelectedReviewModeValueAsync(ReviewMode previousReviewMode)
         {
-            SetProperty(ref selectedReviewModeValue, value);
-
             SaveReviewModeSetting();
 
             IsInReviewMode = true;
 
             if (selectedReviewModeValue == ReviewMode.Auto)
             {
+                if(previousReviewMode == ReviewMode.Manual)
+                {
+                    // If the previous mode was manual, its likely the review file was already loaded.
+                    autoReviewModeVM.ReviewFileLoadCompleted = true;
+                }
                 CurrentReviewModeVM = autoReviewModeVM;
                 autoReviewModeVM.StartAutoReviewLoop();
             }

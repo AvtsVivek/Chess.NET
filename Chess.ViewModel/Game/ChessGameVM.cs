@@ -56,7 +56,7 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private readonly GenericCommand redoCommand;
 
-        private readonly GenericCommand titleNotesGotFocusCommand;
+        private readonly GenericCommand titleNotesTextBoxBorderMouseDownCommand;
         private readonly GenericCommand titleNotesLostFocusCommand;
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Chess.ViewModel.Game
 
         private StatusDisplayVM statusDisplayVM;
 
-        private ReviewModeHeaderDisplayVM reviewModeHeaderDisplyVM;
+        private ReviewModeHeaderDisplayVM reviewModeHeaderDisplayVM;
 
         private readonly IWindowService windowService;
 
@@ -97,7 +97,7 @@ namespace Chess.ViewModel.Game
         public ChessGameVM(Func<IList<Update>, Update> updateSelector, IWindowService windowService)
         {
 
-            this.titleNotesGotFocusCommand = new GenericCommand(() => true, OnTitleNotesGotFocus);
+            this.titleNotesTextBoxBorderMouseDownCommand = new GenericCommand(() => true, OnTitleNotesTextBoxBorderMouseDown);
 
             this.titleNotesLostFocusCommand = new GenericCommand(() => true, OnTitleNotesLostFocus);
 
@@ -141,7 +141,7 @@ namespace Chess.ViewModel.Game
             CurrentAppModeVM = playModeVM = new();
             recordReviewModeVM = new(windowService);
             SelectedAppModeValue = AppMode.Play; // Default mode is Play
-            reviewModeHeaderDisplyVM = new(this.undoCommand, this.redoCommand);
+            reviewModeHeaderDisplayVM = new(this.undoCommand, this.redoCommand);
 
             BoardInversionToggleCommand = new GenericCommand(
                 () => true,
@@ -169,6 +169,12 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private bool recordModeNotReady = true;
 
+        [ObservableProperty]
+        private bool titleNotesTextBoxFocused;
+
+        [ObservableProperty]
+        private bool titleNotesTextBoxIsEnabled;
+
         private void DoMessengerRegistration()
         {
             WeakReferenceMessenger.Default.Register<MessageFromReviewModeHeaderDisplayVMToChessGameVM>(this, (r, m) =>
@@ -176,10 +182,15 @@ namespace Chess.ViewModel.Game
                 if(m.ReviewModeValue == ReviewMode.Auto)
                 {
                     StopSaveTitleNotesTextLoop();
+                    // Set focus to the main board grid to avoid accidental edits to title notes while in auto review mode.
+                    // IsMainBoardGridFocused = true;
+                    // this.titleNotesLostFocusCommand.Execute(null);
+                    TitleNotesTextBoxIsEnabled = false; // Disable title notes text box in auto review mode.
                 }
                 else if(m.ReviewModeValue == ReviewMode.Manual)
                 {
                     StartSaveTitleNotesTextLoop();
+                    TitleNotesTextBoxIsEnabled = true; // Enable title notes text box in manual review mode.
                 }
             });
 
@@ -249,9 +260,9 @@ namespace Chess.ViewModel.Game
 
         private void SetReviewFileLoadComplete(bool loadComplete = true)
         {
-            if (reviewModeHeaderDisplyVM != null)
+            if (reviewModeHeaderDisplayVM != null)
             {
-                AutoReviewModeVM autoReviewModeVM = reviewModeHeaderDisplyVM.CurrentReviewModeVM as AutoReviewModeVM;
+                AutoReviewModeVM autoReviewModeVM = reviewModeHeaderDisplayVM.CurrentReviewModeVM as AutoReviewModeVM;
                 if (autoReviewModeVM != null)
                 {
                     autoReviewModeVM.ReviewFileLoadCompleted = loadComplete;
@@ -283,7 +294,7 @@ namespace Chess.ViewModel.Game
             }
         }
 
-        public GenericCommand TitleNotesGotFocusCommand => this.titleNotesGotFocusCommand;
+        public GenericCommand TitleNotesTextBoxBorderMouseDownCommand => this.titleNotesTextBoxBorderMouseDownCommand;
         public GenericCommand TitleNotesLostFocusCommand => this.titleNotesLostFocusCommand;
 
         private void ExecuteNewCommand()
@@ -559,23 +570,24 @@ namespace Chess.ViewModel.Game
 
             if (moveCount == 0)
             {
-                PlaceHolderTextForTitleNotesTextBox = "Start typing to Set Title for the game here:";
+                PlaceHolderTextForTitleNotesTextBox = "Click here to set Title for the game here:";
             }
             else
             {
-                PlaceHolderTextForTitleNotesTextBox = $"Start typing to take notes for move {moveCount} here:";
+                PlaceHolderTextForTitleNotesTextBox = $"Click here to take notes for move {moveCount} here:";
             }
         }
 
-        private void OnTitleNotesGotFocus()
+        private void OnTitleNotesTextBoxBorderMouseDown()
         {
             PlaceHolderTextForTitleNotesTextBox = string.Empty;
 
             if (SelectedAppModeValue == AppMode.Review &&
-                reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Auto)
+                reviewModeHeaderDisplayVM.SelectedReviewModeValue == ReviewMode.Auto)
             {
                 // If in Auto Review mode, switch to Manual mode when user tries to edit title notes.
-                reviewModeHeaderDisplyVM.SelectedReviewModeValue = ReviewMode.Manual;
+                reviewModeHeaderDisplayVM.SelectedReviewModeValue = ReviewMode.Manual;
+                TitleNotesTextBoxFocused = true; // Set focus to title notes text box after switching to manual mode.
             }
         }
 
@@ -620,7 +632,7 @@ namespace Chess.ViewModel.Game
             SaveTitleNotesText();
 
             if (SelectedAppModeValue == AppMode.Review &&
-                reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Manual)
+                reviewModeHeaderDisplayVM.SelectedReviewModeValue == ReviewMode.Manual)
             {
                 StartSaveTitleNotesTextLoop();
             }
@@ -669,7 +681,7 @@ namespace Chess.ViewModel.Game
         {
             if (recordReviewModeVM.RecordingInProgress)
             {
-                await reviewModeHeaderDisplyVM.StopAutoReviewLoop();
+                await reviewModeHeaderDisplayVM.StopAutoReviewLoop();
 
                 recordReviewModeVM.ResetRecordingState();
             }
@@ -712,7 +724,7 @@ namespace Chess.ViewModel.Game
             }
 
             CurrentAppModeVM = recordReviewModeVM;
-            ModeAndPlayerStatusDisplayVM = reviewModeHeaderDisplyVM;
+            ModeAndPlayerStatusDisplayVM = reviewModeHeaderDisplayVM;
 
             if (!File.Exists(recordReviewModeVM.FullFilePath))
             {
@@ -734,7 +746,7 @@ namespace Chess.ViewModel.Game
                 return;
             }
 
-            if (reviewModeHeaderDisplyVM.IsAutoReviewRunning)
+            if (reviewModeHeaderDisplayVM.IsAutoReviewRunning)
             {
                 return;
             }
@@ -815,11 +827,8 @@ namespace Chess.ViewModel.Game
                             TitleNotesText = string.Empty; // Reset title notes text as we are taking a different update for the same move count.
                             ChessGame.TitleNotesDictionary.Add(moveCount, (string.Empty, latestUpdate));
                         }
-                        else
-                        {
-                            ChessGame.TitleNotesDictionary[moveCount] = (TitleNotesText, update);
-                        }
                     }
+                    ChessGame.TitleNotesDictionary[moveCount] = (TitleNotesText, update);
                 }
 
                 previousSavedTitleNotes = TitleNotesText;
@@ -830,7 +839,7 @@ namespace Chess.ViewModel.Game
                 }
 
                 if (SelectedAppModeValue == AppMode.Review && 
-                    reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Manual)
+                    reviewModeHeaderDisplayVM.SelectedReviewModeValue == ReviewMode.Manual)
                 {
                     recordReviewModeVM.SaveTitleNotesText(moveCount);
                 }
@@ -847,7 +856,7 @@ namespace Chess.ViewModel.Game
             // If in Review Mode and Auto Review is running, do not start the loop.
             // Start only in Manual review mode.
             if (SelectedAppModeValue == AppMode.Review &&
-                reviewModeHeaderDisplyVM.SelectedReviewModeValue == ReviewMode.Auto)
+                reviewModeHeaderDisplayVM.SelectedReviewModeValue == ReviewMode.Auto)
             {
                 return; // Do not start the loop in Auto Review mode
             }
@@ -899,16 +908,16 @@ namespace Chess.ViewModel.Game
             {
                 if (manualAutoReview.Equals("Manual", StringComparison.OrdinalIgnoreCase))
                 {
-                    reviewModeHeaderDisplyVM.SelectedReviewModeValue = ReviewMode.Manual;
+                    reviewModeHeaderDisplayVM.SelectedReviewModeValue = ReviewMode.Manual;
                 }
                 else if (manualAutoReview.Equals("Auto", StringComparison.OrdinalIgnoreCase))
                 {
-                    reviewModeHeaderDisplyVM.SelectedReviewModeValue = ReviewMode.Auto;
+                    reviewModeHeaderDisplayVM.SelectedReviewModeValue = ReviewMode.Auto;
                 }
             }
             else
             {
-                reviewModeHeaderDisplyVM.SelectedReviewModeValue = ReviewMode.Manual;
+                reviewModeHeaderDisplayVM.SelectedReviewModeValue = ReviewMode.Manual;
             }
         }
     }
