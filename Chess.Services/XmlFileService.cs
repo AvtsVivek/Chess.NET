@@ -6,8 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Windows;
-using System.Windows.Xps.Packaging;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -15,6 +13,16 @@ namespace Chess.Services
 {
     public class XmlFileService
     {
+        /// <summary>
+        /// Generates a unique file name for a chess game, based on the current date and time.
+        /// </summary>
+        public static string GetFileName()
+        {
+            DateTime now = DateTime.Now;
+            string fileName = $"ChessGame-{now:yyyy-MM-dd-HH-mm-ss}.xml";
+            return fileName;
+        }
+
         XmlWriterSettings settings;
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlFileService"/> class.
@@ -31,24 +39,12 @@ namespace Chess.Services
             settings.OmitXmlDeclaration = false;
         }
 
-        /// <summary>
-        /// Generates a unique file name for a chess game, based on the current date and time.
-        /// </summary>
-        /// <returns>A string representing the file name in the format "ChessGame-yyyy-MM-dd-HH-mm-ss.xml", where the timestamp
-        /// corresponds to the current date and time.</returns>
-        public static string GetFileName()
-        {
-            DateTime now = DateTime.Now;
-            string fileName = $"ChessGame-{now:yyyy-MM-dd-HH-mm-ss}.xml";
-            return fileName;
-        }
-
         public ChessGame GetPieceMoveCommandsFromXmlFile(string fullFilePath)
         {
             XDocument doc = XDocument.Load(fullFilePath);
             ChessGame chessGame = LoadBoardFromXmlFile(doc);
 
-            // Navigate to the Title element
+            // Read Title
             string title = doc
                 .Element(XmlConstants.RootElementName)?
                 .Element(XmlConstants.InstructionsElementName)?
@@ -60,47 +56,29 @@ namespace Chess.Services
 
             XElement pieceMoveCommandElements = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
             List<XElement> commandElements = pieceMoveCommandElements.Elements(nameof(SequenceCommand)).ToList();
-            commandElements.Reverse(); // Reverse the order to maintain the original sequence when executing
+            commandElements.Reverse();
 
             var parsedCommandsWithIds = new List<(ICommand, int)>();
 
-            var success = false;
-            var updateId = 0;
             foreach (XElement commandElement in commandElements)
             {
                 ICommand command = ParseCommandElement(commandElement)!;
+                int updateId = 0;
+                bool success = false;
                 if (commandElement.Name.LocalName == "SequenceCommand")
                 {
-                    if (commandElement.Attribute("Id") != null)
-                    {
-                        XAttribute idAttribute = commandElement.Attribute("Id")!;
-                        if (idAttribute != null)
-                        {
-                            string idValue = idAttribute.Value;
-                            success = int.TryParse(idValue, out updateId);
-                        }
-                    }
+                    var idAttr = commandElement.Attribute("Id");
+                    if (idAttr != null)
+                        success = int.TryParse(idAttr.Value, out updateId);
                 }
                 if (success)
                 {
                     parsedCommandsWithIds.Add((command, updateId));
-
-                    // Read the content of the Notes element (direct child of commandElement)
                     var notesElement = commandElement.Element("Notes");
                     string notesText = notesElement != null ? notesElement.Value : string.Empty;
-
                     if (!string.IsNullOrWhiteSpace(notesText))
                     {
-                        // Store in the dictionary. But the update is not yet created.
-                        // So we store null for now, and update it later.
-                        if (ChessGame.TitleNotesDictionary.ContainsKey(updateId))
-                        {
-                            ChessGame.TitleNotesDictionary[updateId] = (notesText, null);
-                        }
-                        else
-                        {
-                            ChessGame.TitleNotesDictionary.Add(updateId, (notesText, null));
-                        }
+                        ChessGame.TitleNotesDictionary[updateId] = (notesText, null);
                     }
                 }
                 else
@@ -111,23 +89,19 @@ namespace Chess.Services
             }
 
             ChessGame updatedGame = chessGame;
-
             foreach (var parsedCommandWithId in parsedCommandsWithIds)
             {
                 var Update = new Update(updatedGame, parsedCommandWithId.Item1, "XmlFileRead", parsedCommandWithId.Item2);
                 var setLastUpdateCommand = new SetLastUpdateCommand(Update);
                 ICommand command = new SequenceCommand(parsedCommandWithId.Item1, setLastUpdateCommand);
                 var updates = command.Execute(updatedGame).Map(g => new Update(g, command, "XmlFileRead")).Yield();
-                if (!updates.Any())
-                {
-                    continue;
-                }
+                if (!updates.Any()) continue;
                 Update? update = updates.First();
                 updatedGame!.NextUpdate = new Just<Update>(update);
                 updatedGame = update.Game;
-                
-                ChessGame.TitleNotesDictionary[parsedCommandWithId.Item2] = 
-                    (ChessGame.TitleNotesDictionary.ContainsKey(parsedCommandWithId.Item2) ? 
+
+                ChessGame.TitleNotesDictionary[parsedCommandWithId.Item2] =
+                    (ChessGame.TitleNotesDictionary.ContainsKey(parsedCommandWithId.Item2) ?
                     ChessGame.TitleNotesDictionary[parsedCommandWithId.Item2].titleNotes : string.Empty, update);
             }
 
@@ -136,136 +110,87 @@ namespace Chess.Services
 
         public void WriteGameToXmlFile(ChessGame game, string filePath)
         {
-            XmlDocument xmlDocument = new();
-
             if (game == null)
                 throw new ArgumentNullException(nameof(game));
-
-            if(filePath == null)
-                throw new ArgumentNullException(nameof(filePath));
-
-            if (game.History == null || !game.History.Any())
-            {
-                // No history to write
-                // throw new InvalidOperationException("The game has no history to write.");
-                Debug.WriteLine("The game has no history to write.");
-            }
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("File path cannot be empty or whitespace.", nameof(filePath));
 
+            XDocument doc;
             if (!File.Exists(filePath))
             {
-                CreateAndWriteToXmlFile(xmlDocument, game, filePath);
+                doc = CreateAndWriteToXmlFile(game);
             }
             else
             {
-                AddLatestUpdateToXmlFile(xmlDocument, game, filePath);
+                doc = XDocument.Load(filePath);
+                AddLatestUpdateToXmlFile(doc, game);
             }
+            
+            SaveDocument(doc, filePath);
+        }
 
-            // Save with settings if needed
+        private void SaveDocument(XDocument doc, string filePath)
+        {
             using (var writer = XmlWriter.Create(filePath, settings))
             {
-                xmlDocument.Save(writer);
+                doc.Save(writer);
             }
         }
 
         public void SaveTitleNotesText(int titleNotesId, string filePath)
         {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                return;
 
-            // Debug.WriteLine($"Saving Title/Notes with ID {titleNotesId} to file: {filePath}, {ChessGame.TitleNotesDictionary[0]}");
-
-            //if (string.IsNullOrWhiteSpace(filePath))
-            //    throw new ArgumentException("File path cannot be empty or whitespace.", nameof(filePath));
-
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                Debug.WriteLine("File path is null or whitespace. Cannot save title/notes.");
-                return; // File path is invalid, cannot proceed
-            }
-
-
-            if (!File.Exists(filePath))
-            {
-                Debug.WriteLine($"File does not exist: {filePath}. Cannot update title/notes.");
-                return; // File does not exist, nothing to update
-            }
-
+            XDocument doc = XDocument.Load(filePath);
             var textToUpdate = ChessGame.TitleNotesDictionary[titleNotesId].titleNotes;
 
             if (titleNotesId == 0)
             {
-                // Update the title
-                // How to get to the title element in the XML file and update its value?
-                XmlDocument xmlDocument = new XmlDocument();
-                xmlDocument.Load(filePath);
-                XmlNode titleNode = xmlDocument.SelectSingleNode($"/{XmlConstants.RootElementName}/{XmlConstants.InstructionsElementName}/{XmlConstants.MetadataElementName}/{XmlConstants.TitleElementName}")!;
-                if (titleNode != null)
+                var titleElement = doc
+                    .Element(XmlConstants.RootElementName)?
+                    .Element(XmlConstants.InstructionsElementName)?
+                    .Element(XmlConstants.MetadataElementName)?
+                    .Element(XmlConstants.TitleElementName);
+                if (titleElement != null)
                 {
-                    titleNode.InnerText = textToUpdate; // Update the title text
-
-                    // Save with settings if needed
-                    using (var writer = XmlWriter.Create(filePath, settings))
-                    {
-                        xmlDocument.Save(writer);
-                    }
-
-                    Debug.WriteLine($"Title updated successfully in file: {filePath}");
-                }
-                else
-                {
-                    Debug.WriteLine($"Title node not found in file: {filePath}");
+                    titleElement.Value = textToUpdate;
+                    UpdateDateModifiedOfXmlFile(doc);
+                    SaveDocument(doc, filePath);
                 }
             }
             else
             {
-                SaveSequenceCommandNotes(titleNotesId, filePath, textToUpdate);
+                SaveSequenceCommandNotes(doc, titleNotesId, textToUpdate, filePath);
             }
         }
 
-        private void SaveSequenceCommandNotes(int titleNotesId, string filePath, string textToUpdate)
+        private void SaveSequenceCommandNotes(XDocument doc, int titleNotesId, string textToUpdate, string filePath)
         {
-            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
-                return;
+            var sequenceCommand = doc
+                .Descendants(XmlConstants.PieceMoveCommandsElementName)
+                .Elements("SequenceCommand")
+                .FirstOrDefault(e => (int.TryParse(e.Attribute("Id")?.Value, out int id) && id == titleNotesId));
+            if (sequenceCommand == null) return;
 
-            XmlDocument xmlDocument = new XmlDocument();
-            xmlDocument.Load(filePath);
-
-            // XPath to find the SequenceCommand with the given Id under PieceMoveCommands
-            string xpath = $"/{XmlConstants.RootElementName}/{XmlConstants.PieceMoveCommandsElementName}/SequenceCommand[@Id='{titleNotesId}']";
-            XmlNode sequenceCommandNode = xmlDocument.SelectSingleNode(xpath);
-
-            if (sequenceCommandNode == null)
-                return; // SequenceCommand with given Id not found
-
-            // Try to find Notes element
-            XmlNode notesNode = sequenceCommandNode.SelectSingleNode("Notes");
-
-            if (notesNode == null)
+            var notesElement = sequenceCommand.Element("Notes");
+            if (notesElement == null)
             {
-                // Create Notes element if it doesn't exist
-                XmlElement notesElement = xmlDocument.CreateElement("Notes");
-                notesElement.InnerText = textToUpdate;
-                sequenceCommandNode.AppendChild(notesElement);
+                notesElement = new XElement("Notes", textToUpdate);
+                sequenceCommand.Add(notesElement);
             }
             else
             {
-                // Edit existing Notes element
-                notesNode.InnerText = textToUpdate;
+                notesElement.Value = textToUpdate;
             }
-
-            // Save with settings if needed
-            using (var writer = XmlWriter.Create(filePath, settings))
-            {
-                xmlDocument.Save(writer);
-            }
+            UpdateDateModifiedOfXmlFile(doc);
+            SaveDocument(doc, filePath);
         }
 
         private ChessGame LoadBoardFromXmlFile(XDocument doc)
         {
             var piecesNode = doc.Descendants("Pieces").First();
-
             var allPlacedPieces = new List<PlacedPiece>();
-
             var pieceTypes = new[] { "Pawns", "Knights", "Bishops", "Rooks", "Queens", "King" };
 
             foreach (var pieceType in pieceTypes)
@@ -276,241 +201,62 @@ namespace Chess.Services
                 allPlacedPieces.AddRange(blackPieceList);
             }
 
-            var firstPiece = allPlacedPieces[0];
-            var weight = firstPiece.Piece.Weight;
-
             var emptyDictionary = ImmutableSortedDictionary.Create<Position, ChessPiece>(PositionComparer.DefaultComparer);
-
             var dict = allPlacedPieces.Aggregate(emptyDictionary, (s, p) => s.Add(p.Position, p.Piece));
-
             var board = new Board(dict);
             var whitePlayer = new Player(Color.White);
             var blackPlayer = new Player(Color.Black);
             return new ChessGame(board, whitePlayer, blackPlayer);
         }
 
-        private void AddLatestUpdateToXmlFile(XmlDocument xmlDocument, ChessGame game, string filePath)
+        private XDocument CreateAndWriteToXmlFile(ChessGame game)
         {
-            List<Update> history = game.History.ToList();
-
-            int historyCount = history.Count;
-
-            history.Reverse(); // Reverse the history to start with the most recent update
-
-            var historyIdList = history.Select(h => h.Id).ToList();
-
-            var xmlCommandNodeIdList = GetLatestUpdateIdFromXmlFile(xmlDocument, filePath, out XmlNodeList xmlCommandNodeList);
-
-            int latestId = xmlCommandNodeIdList.Any() ? xmlCommandNodeIdList.Max() : 0;
-
-            int xmlCommandNodeCount = xmlCommandNodeList.Count;
-
-            if (historyCount > xmlCommandNodeCount)
-            {
-                foreach (int xmlCommandNodeId in xmlCommandNodeIdList)
-                {
-                    List<int> problematicIds = new ();
-
-                    if (!historyIdList.Contains(xmlCommandNodeId))
-                    {
-                        // Problem. IDs in XML file do not match IDs in history
-                        problematicIds.Add(xmlCommandNodeId);
-                    }
-
-                    if(problematicIds.Any())
-                    {
-                        string message = "The following IDs are present in the XML file but not in the game history: "
-                            + string.Join(", ", problematicIds);
-                        Debugger.Break();
-                        MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        // throw new InvalidOperationException(message);
-                        return;
-                    }
-                }
-
-                foreach (var update in history)
-                {
-                    if (update.Id <= latestId)
-                        continue; // Skip updates that are already in the file
-
-                    CreateAndAddUpdateCommandXmlElement(xmlDocument, filePath, update, update.Id);
-                }
-            }
-            else if (historyCount < xmlCommandNodeCount)
-            {
-                List<int> problematicIds = new();
-                foreach (int historyId in historyIdList)
-                {
-                    if (!xmlCommandNodeIdList.Contains(historyId))
-                    {
-                        problematicIds.Add(historyId);
-                    }
-                }
-
-                if (problematicIds.Any())
-                {
-                    string message = "The following IDs are present in the history but not in the xml file: "
-                        + string.Join(", ", problematicIds);
-                    Debugger.Break();
-                    MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    // throw new InvalidOperationException(message);
-                    return;
-                }
-
-                // Remove Those Ids From Xml file.
-
-                foreach (int xmlCommandNodeId in xmlCommandNodeIdList)
-                {
-                    if (historyIdList.Contains(xmlCommandNodeId))
-                    {
-                        continue;
-                    }
-                    RemoveXmlCommandNodesFromXmlFile(xmlDocument, filePath, xmlCommandNodeId);
-                }
-
-            }
-            else // historyCount == xmlCommandNodeCount
-            {
-                // Ensure ids match in both lists
-                bool areSetsEqual = new HashSet<int>(historyIdList).SetEquals(xmlCommandNodeIdList);
-                bool areListsEqual = historyIdList.OrderBy(x => x).SequenceEqual(xmlCommandNodeIdList.OrderBy(x => x));
-
-                if (areSetsEqual)
-                {
-                    Debugger.Break();
-                    MessageBox.Show("The sets historyIdList and xmlCommandNodeIdList are not equal", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    // throw new InvalidOperationException(message);
-                }
-                if (areListsEqual)
-                {
-                    Debugger.Break();
-                    MessageBox.Show("The lists historyIdList and xmlCommandNodeIdList are not equal", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    // throw new InvalidOperationException(message);
-                }
-            }
-        }
-
-        private void RemoveXmlCommandNodesFromXmlFile(XmlDocument xmlDocument, string filePath, int xmlCommandNodeId)
-        {
-            // xmlDocument.Load(filePath);
-
-            // XPath to select nodes with the given Id attribute under PieceMoveCommands
-            string xpath = $"{XmlConstants.RootElementName}//{XmlConstants.PieceMoveCommandsElementName}/*[@Id='{xmlCommandNodeId}']";
-            XmlNodeList nodesToRemove = xmlDocument.SelectNodes(xpath);
-
-            if (nodesToRemove != null)
-            {
-                foreach (XmlNode node in nodesToRemove)
-                {
-                    node.ParentNode?.RemoveChild(node);
-                }
-            }
-
-            UpdateDateModifiedOfXmlFile(xmlDocument);
-        }
-
-        private List<int> GetLatestUpdateIdFromXmlFile(XmlDocument xmlDocument, string filePath, out XmlNodeList xmlCommandNodeList)
-        {
-            xmlDocument.Load(filePath);
-            
-            xmlCommandNodeList = xmlDocument.SelectNodes(XmlConstants.RootElementName + "//" + XmlConstants.PieceMoveCommandsElementName + "/*")!;
-
-            List<int> xmlNodeIdList = new ();
-
-            int maxId = 0;
-
-            foreach (XmlNode commandNode in xmlCommandNodeList)
-            {
-                if (commandNode.Attributes != null && commandNode.Attributes["Id"] != null)
-                {
-                    if (int.TryParse(commandNode.Attributes["Id"].Value, out int currentId))
-                    {
-                        xmlNodeIdList.Add(currentId);
-                    }
-                }
-            }
-            return xmlNodeIdList;
-        }
-
-        private void CreateAndWriteToXmlFile(XmlDocument xmlDocument, ChessGame game, string filePath)
-        {
-            XmlElement root = xmlDocument.CreateElement(XmlConstants.RootElementName);
-            xmlDocument.AppendChild(root);
-
-            XmlElement instructionsElement = xmlDocument.CreateElement(XmlConstants.InstructionsElementName);
-            root.AppendChild(instructionsElement);
+            var root = new XElement(XmlConstants.RootElementName);
+            var instructions = new XElement(XmlConstants.InstructionsElementName);
 
             // Warning section
-            XmlElement warningElement = xmlDocument.CreateElement(XmlConstants.WarningElementName);
-            warningElement.AppendChild(xmlDocument.CreateComment("Please Note"));
-            warningElement.AppendChild(xmlDocument.CreateComment("This file is not to be manually edited. This is edited and parsed by a computer program."));
-            instructionsElement.AppendChild(warningElement);
+            var warning = new XElement(XmlConstants.WarningElementName,
+                new XComment("Please Note"),
+                new XComment("This file is not to be manually edited. This is edited and parsed by a computer program."));
+            instructions.Add(warning);
 
             // GeneralNotes section
-            XmlElement generalNotesElement = xmlDocument.CreateElement(XmlConstants.GeneralNotesElementName);
-            generalNotesElement.AppendChild(xmlDocument.CreateComment("Any manual changes may lead to unexpected behavior when the file is processed by the program."));
-            generalNotesElement.AppendChild(xmlDocument.CreateComment("This XML file represents a chess game, including the starting positions of the pieces and the sequence of moves made during the game."));
-            generalNotesElement.AppendChild(xmlDocument.CreateComment("The 'StartPositions' element contains the initial arrangement of pieces on the board."));
-            generalNotesElement.AppendChild(xmlDocument.CreateComment("The 'PieceMoveCommands' element contains a list of commands representing the moves made in the game."));
-            generalNotesElement.AppendChild(xmlDocument.CreateComment("Each command is represented as an XML element with attributes and child elements as needed."));
-            generalNotesElement.AppendChild(xmlDocument.CreateComment("The order of commands in 'PieceMoveCommands' reflects the sequence of moves made during the game."));
-            instructionsElement.AppendChild(generalNotesElement);
+            var generalNotes = new XElement(XmlConstants.GeneralNotesElementName,
+                new XComment("Any manual changes may lead to unexpected behavior when the file is processed by the program."),
+                new XComment("This XML file represents a chess game, including the starting positions of the pieces and the sequence of moves made during the game."),
+                new XComment("The 'StartPositions' element contains the initial arrangement of pieces on the board."),
+                new XComment("The 'PieceMoveCommands' element contains a list of commands representing the moves made in the game."),
+                new XComment("Each command is represented as an XML element with attributes and child elements as needed."),
+                new XComment("The order of commands in 'PieceMoveCommands' reflects the sequence of moves made during the game."));
+            instructions.Add(generalNotes);
 
             // Metadata section
-            XmlElement metadataElement = xmlDocument.CreateElement(XmlConstants.MetadataElementName);
+            var metadata = new XElement(XmlConstants.MetadataElementName);
+            var title = new XElement(XmlConstants.TitleElementName,
+                ChessGame.TitleNotesDictionary.ContainsKey(0) ? ChessGame.TitleNotesDictionary[0].titleNotes : string.Empty);
+            metadata.Add(title);
+            metadata.Add(new XElement(XmlConstants.UserElementName, "Player Name"));
+            metadata.Add(new XElement(XmlConstants.CreatedDateElementName, DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss")));
+            metadata.Add(new XElement(XmlConstants.ModifiedDateElementName, DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss")));
+            metadata.Add(new XElement(XmlConstants.DescriptionElementName, "This XML file represents a chess game, including the starting positions of the pieces and the sequence of moves made during the game."));
+            metadata.Add(new XElement(XmlConstants.VersionElementName, "1.0"));
+            instructions.Add(metadata);
 
-            XmlElement titleElement = xmlDocument.CreateElement(XmlConstants.TitleElementName);
+            root.Add(instructions);
 
-            if (ChessGame.TitleNotesDictionary.ContainsKey(0))
-            {
-                titleElement.InnerText = ChessGame.TitleNotesDictionary[0].titleNotes;
-            }
-            else
-            {
-                titleElement.InnerText = string.Empty;
-            }
+            var pieceMoveCommands = new XElement(XmlConstants.PieceMoveCommandsElementName);
+            root.Add(pieceMoveCommands);
 
-            metadataElement.AppendChild(titleElement);
+            WriteStartPositionsToXmlFile(root, game);
+            WriteCommandsToXmlFile(pieceMoveCommands, game);
 
-            XmlElement userElement = xmlDocument.CreateElement(XmlConstants.UserElementName);
-            userElement.InnerText = "Player Name";
-            metadataElement.AppendChild(userElement);
-
-            XmlElement createdDateElement = xmlDocument.CreateElement(XmlConstants.CreatedDateElementName);
-            createdDateElement.InnerText = DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss");
-            metadataElement.AppendChild(createdDateElement);
-
-            XmlElement modifiedDateElement = xmlDocument.CreateElement(XmlConstants.ModifiedDateElementName);
-            modifiedDateElement.InnerText = DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss");
-            metadataElement.AppendChild(modifiedDateElement);
-
-            XmlElement descriptionElement = xmlDocument.CreateElement(XmlConstants.DescriptionElementName);
-            descriptionElement.InnerText = "This XML file represents a chess game, including the starting positions of the pieces and the sequence of moves made during the game.";
-            metadataElement.AppendChild(descriptionElement);
-
-            XmlElement versionElement = xmlDocument.CreateElement(XmlConstants.VersionElementName);
-            versionElement.InnerText = "1.0";
-            metadataElement.AppendChild(versionElement);
-
-            instructionsElement.AppendChild(metadataElement);
-
-            // Append instructions to root
-            xmlDocument.DocumentElement?.AppendChild(instructionsElement);
-
-            XmlElement pieceMoveCommandsElement = xmlDocument.CreateElement(XmlConstants.PieceMoveCommandsElementName);
-            root.AppendChild(pieceMoveCommandsElement);
-
-            WriteStartPositionsToXmlFile(xmlDocument, root, game);
-
-            WriteCommandsToXmlFile(xmlDocument, game, filePath);
+            return new XDocument(root);
         }
 
-        private void WriteStartPositionsToXmlFile(XmlDocument xmlDocument, XmlElement root, ChessGame game)
+        private void WriteStartPositionsToXmlFile(XElement root, ChessGame game)
         {
-            XmlElement startPositionsElement = xmlDocument.CreateElement(XmlConstants.StartPositionsElementName);
-            root.AppendChild(startPositionsElement);
-
-            List<Update> history = game.History.ToList();
+            var startPositions = new XElement(XmlConstants.StartPositionsElementName);
+            var history = game.History.ToList();
             var board = game.Board;
 
             if (history.Count != 0)
@@ -524,26 +270,23 @@ namespace Chess.Services
             var blackPiecesOrdered = board.Where(placedPiece => placedPiece.Color == Color.Black)
                                           .OrderBy(placedPiece => placedPiece.Piece);
 
-            XmlElement piecesElement = xmlDocument.CreateElement(XmlConstants.PiecesElementName);
+            var piecesElement = new XElement(XmlConstants.PiecesElementName);
 
             // Blacks
-            XmlElement blacksElement = xmlDocument.CreateElement(XmlConstants.BlacksElementName);
-            AppendPiecesToXmlElement(xmlDocument, blacksElement, blackPiecesOrdered);
-            piecesElement.AppendChild(blacksElement);
+            var blacksElement = new XElement(XmlConstants.BlacksElementName);
+            AppendPiecesToXElement(blacksElement, blackPiecesOrdered);
+            piecesElement.Add(blacksElement);
 
             // Whites
-            XmlElement whitesElement = xmlDocument.CreateElement(XmlConstants.WhitesElementName);
-            AppendPiecesToXmlElement(xmlDocument, whitesElement, whitePiecesOrdered);
-            piecesElement.AppendChild(whitesElement);
+            var whitesElement = new XElement(XmlConstants.WhitesElementName);
+            AppendPiecesToXElement(whitesElement, whitePiecesOrdered);
+            piecesElement.Add(whitesElement);
 
-            startPositionsElement.AppendChild(piecesElement);
-
-            // Append to root
-            xmlDocument.DocumentElement?.AppendChild(startPositionsElement);
+            startPositions.Add(piecesElement);
+            root.Add(startPositions);
         }
 
-        // Helper method to group and append pieces
-        private void AppendPiecesToXmlElement(XmlDocument xmlDocument, XmlElement parentElement, IEnumerable<PlacedPiece> placedPieces)
+        private void AppendPiecesToXElement(XElement parentElement, IEnumerable<PlacedPiece> placedPieces)
         {
             var groupedPlacedPieces = placedPieces.GroupBy(
                 placedPiece => placedPiece.Piece.Weight,
@@ -559,159 +302,129 @@ namespace Chess.Services
                 var typeName = group.PlacedPieces.First().Piece.GetType().Name;
                 if (typeName != "King")
                 {
-                    typeName += "s"; // Pluralize
+                    typeName += "s";
                 }
 
-                XmlElement typeElement = xmlDocument.CreateElement(typeName);
-
+                var typeElement = new XElement(typeName);
                 foreach (var piece in group.PlacedPieces.OrderByDescending(placedPiece => placedPiece.Position.Row))
                 {
-                    XmlElement positionElement = xmlDocument.CreateElement("Position");
-                    positionElement.SetAttribute("Row", (piece.Position.Row + 1).ToString());
-                    positionElement.SetAttribute("Column", (piece.Position.Column + 1).ToString());
-                    typeElement.AppendChild(positionElement);
+                    var positionElement = new XElement("Position",
+                        new XAttribute("Row", (piece.Position.Row + 1).ToString()),
+                        new XAttribute("Column", (piece.Position.Column + 1).ToString()));
+                    typeElement.Add(positionElement);
                 }
-
-                parentElement.AppendChild(typeElement);
+                parentElement.Add(typeElement);
             }
         }
 
-        private void WriteCommandsToXmlFile(XmlDocument xmlDocument, ChessGame game, string filePath)
+        private void WriteCommandsToXmlFile(XElement pieceMoveCommandsElement, ChessGame game)
         {
             List<Update> history = game.History.ToList();
 
-            history.Reverse(); // Reverse the history to start with the most recent update
+            var orderedHistory = history.OrderByDescending(u => u.Id).ToList();
+
+            foreach (var update in orderedHistory)
+            {
+                var xmlElement = GetCommandXElement(update.Command, update.Id);
+                var textToUpdate = ChessGame.TitleNotesDictionary.ContainsKey(update.Id)
+                    ? ChessGame.TitleNotesDictionary[update.Id].titleNotes
+                    : string.Empty;
+                xmlElement.Add(new XElement(XmlConstants.CommandNotesElementName, textToUpdate));
+                pieceMoveCommandsElement.Add(xmlElement); // Add to the end
+            }
+        }
+
+        private void AddLatestUpdateToXmlFile(XDocument doc, ChessGame game)
+        {
+            var pieceMoveCommandsElement = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
+            var existingIds = pieceMoveCommandsElement.Elements().Select(e => int.TryParse(e.Attribute("Id")?.Value, out int id) ? id : 0).ToList();
+            var history = game.History.ToList();
+            var historyIds = history.Select(h => h.Id).ToList();
+
+            int latestId = existingIds.Any() ? existingIds.Max() : 0;
 
             foreach (var update in history)
             {
-                CreateAndAddUpdateCommandXmlElement(xmlDocument, filePath, update, update.Id);
+                if (update.Id <= latestId)
+                    continue;
+                var xmlElement = GetCommandXElement(update.Command, update.Id);
+                var textToUpdate = ChessGame.TitleNotesDictionary.ContainsKey(update.Id)
+                    ? ChessGame.TitleNotesDictionary[update.Id].titleNotes
+                    : string.Empty;
+                xmlElement.Add(new XElement(XmlConstants.CommandNotesElementName, textToUpdate));
+                pieceMoveCommandsElement.AddFirst(xmlElement);
+            }
+            UpdateDateModifiedOfXmlFile(doc);
+        }
+
+        private void UpdateDateModifiedOfXmlFile(XDocument doc)
+        {
+            var modifiedDateElement = doc
+                .Element(XmlConstants.RootElementName)?
+                .Element(XmlConstants.InstructionsElementName)?
+                .Element(XmlConstants.MetadataElementName)?
+                .Element(XmlConstants.ModifiedDateElementName);
+            if (modifiedDateElement != null)
+            {
+                modifiedDateElement.Value = DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss");
             }
         }
 
-        private void CreateAndAddUpdateCommandXmlElement(XmlDocument xmlDocument, string filePath, Update update, int id)
+        private XElement GetCommandXElement(ICommand command, int id = 0)
         {
-            XmlNode parent = xmlDocument.SelectSingleNode(XmlConstants.RootElementName + "//" + XmlConstants.PieceMoveCommandsElementName);
-
-            var xmlElement = GetCommandXmlElement(xmlDocument, update.Command, id);
-
-            XmlElement notesElement = xmlDocument.CreateElement(XmlConstants.CommandNotesElementName);
-            
-            var textToUpdate = string.Empty;
-
-            if (ChessGame.TitleNotesDictionary.ContainsKey(id))
-            {
-                textToUpdate = ChessGame.TitleNotesDictionary[id].titleNotes;
-            }
-
-            notesElement.InnerText = textToUpdate;
-            xmlElement.AppendChild(notesElement);
-
-            if (parent != null && xmlElement != null)
-            {
-                // Insert at the beginning
-                if (parent.HasChildNodes)
-                {
-                    parent.InsertBefore(xmlElement, parent.FirstChild);
-                }
-                else
-                {
-                    parent.AppendChild(xmlElement);
-                }
-            }
-
-            UpdateDateModifiedOfXmlFile(xmlDocument);
-        }
-
-        private void UpdateDateModifiedOfXmlFile(XmlDocument xmlDocument)
-        {
-            XmlNode modifiedDateNode = xmlDocument.SelectSingleNode(XmlConstants.RootElementName + 
-                "//" + XmlConstants.InstructionsElementName + "//" + XmlConstants.MetadataElementName + "//" + XmlConstants.ModifiedDateElementName);
-
-            if (modifiedDateNode != null)
-            {
-                modifiedDateNode.InnerText = DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss");
-            }
-        }
-
-        private XmlElement? GetCommandXmlElement(XmlDocument xmlDocument, ICommand command, int id = 0)
-        {
-            XmlElement xmlElement = xmlDocument.CreateElement(command.GetType().Name);
-
+            var xmlElement = new XElement(command.GetType().Name);
             if (id != 0)
             {
-                xmlElement.SetAttribute("Id", id.ToString());
-                xmlElement.SetAttribute("CreatedDate", DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss"));
+                xmlElement.SetAttributeValue("Id", id.ToString());
+                xmlElement.SetAttributeValue("CreatedDate", DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss"));
             }
 
             switch (command)
             {
                 case MoveCommand moveCommand:
                     {
-                        XmlElement pieceElement = xmlDocument.CreateElement(moveCommand.Piece.GetType().Name);
-                        pieceElement.SetAttribute(XmlConstants.PieceColorAttributeName, moveCommand.Piece.Color.ToString());
-
-                        XmlElement sourceElement = xmlDocument.CreateElement(XmlConstants.SourcePositionAttributeName);
-                        sourceElement.SetAttribute(XmlConstants.RowAttributeName, (moveCommand.Source.Row + 1).ToString());
-                        sourceElement.SetAttribute(XmlConstants.ColumnAttributeName, (moveCommand.Source.Column + 1).ToString());
-
-                        XmlElement targetElement = xmlDocument.CreateElement(XmlConstants.TargetPositionAttributeName);
-                        targetElement.SetAttribute(XmlConstants.RowAttributeName, (moveCommand.Target.Row + 1).ToString());
-                        targetElement.SetAttribute(XmlConstants.ColumnAttributeName, (moveCommand.Target.Column + 1).ToString());
-
-                        xmlElement.AppendChild(pieceElement);
-                        xmlElement.AppendChild(sourceElement);
-                        xmlElement.AppendChild(targetElement);
-
+                        var pieceElement = new XElement(moveCommand.Piece.GetType().Name,
+                            new XAttribute(XmlConstants.PieceColorAttributeName, moveCommand.Piece.Color.ToString()));
+                        var sourceElement = new XElement(XmlConstants.SourcePositionAttributeName,
+                            new XAttribute(XmlConstants.RowAttributeName, (moveCommand.Source.Row + 1).ToString()),
+                            new XAttribute(XmlConstants.ColumnAttributeName, (moveCommand.Source.Column + 1).ToString()));
+                        var targetElement = new XElement(XmlConstants.TargetPositionAttributeName,
+                            new XAttribute(XmlConstants.RowAttributeName, (moveCommand.Target.Row + 1).ToString()),
+                            new XAttribute(XmlConstants.ColumnAttributeName, (moveCommand.Target.Column + 1).ToString()));
+                        xmlElement.Add(pieceElement, sourceElement, targetElement);
                         return xmlElement;
                     }
                 case SequenceCommand sequenceCommand:
                     {
-                        var firstCommandXmlElement = GetCommandXmlElement(xmlDocument, sequenceCommand.FirstCommand);
-                        var secondCommandXmlElement = GetCommandXmlElement(xmlDocument, sequenceCommand.SecondCommand);
-
-                        if (firstCommandXmlElement != null)
-                            xmlElement.AppendChild(firstCommandXmlElement);
-
-                        if (secondCommandXmlElement != null)
-                            xmlElement.AppendChild(secondCommandXmlElement);
-
+                        var firstCommandXmlElement = GetCommandXElement(sequenceCommand.FirstCommand);
+                        var secondCommandXmlElement = GetCommandXElement(sequenceCommand.SecondCommand);
+                        xmlElement.Add(firstCommandXmlElement, secondCommandXmlElement);
                         return xmlElement;
                     }
-                case EndTurnCommand endTurnCommand:
-                    {
-                        return xmlElement; // No additional attributes needed for EndTurnCommand
-                    }
+                case EndTurnCommand:
+                    return xmlElement;
                 case RemoveCommand removeCommand:
                     {
-                        XmlElement pieceElement = xmlDocument.CreateElement(removeCommand.Piece.GetType().Name);
-                        pieceElement.SetAttribute(XmlConstants.PieceColorAttributeName, removeCommand.Piece.Color.ToString());
-
-                        XmlElement positionElement = xmlDocument.CreateElement(XmlConstants.SourcePositionAttributeName);
-                        positionElement.SetAttribute(XmlConstants.RowAttributeName, (removeCommand.Position.Row + 1).ToString());
-                        positionElement.SetAttribute(XmlConstants.ColumnAttributeName, (removeCommand.Position.Column + 1).ToString());
-
-                        xmlElement.AppendChild(pieceElement);
-                        xmlElement.AppendChild(positionElement);
-
-                        xmlElement.SetAttribute("IsPromotion", removeCommand.IsPromotion.ToString());
-
+                        var pieceElement = new XElement(removeCommand.Piece.GetType().Name,
+                            new XAttribute(XmlConstants.PieceColorAttributeName, removeCommand.Piece.Color.ToString()));
+                        var positionElement = new XElement(XmlConstants.SourcePositionAttributeName,
+                            new XAttribute(XmlConstants.RowAttributeName, (removeCommand.Position.Row + 1).ToString()),
+                            new XAttribute(XmlConstants.ColumnAttributeName, (removeCommand.Position.Column + 1).ToString()));
+                        xmlElement.Add(pieceElement, positionElement);
+                        xmlElement.SetAttributeValue("IsPromotion", removeCommand.IsPromotion.ToString());
                         return xmlElement;
                     }
                 case SpawnCommand spawnCommand:
                     {
-                        XmlElement pieceElement = xmlDocument.CreateElement(spawnCommand.Piece.GetType().Name);
-                        pieceElement.SetAttribute(XmlConstants.PieceColorAttributeName, spawnCommand.Piece.Color.ToString());
-
-                        XmlElement positionElement = xmlDocument.CreateElement(XmlConstants.SourcePositionAttributeName);
-                        positionElement.SetAttribute(XmlConstants.RowAttributeName, (spawnCommand.Position.Row + 1).ToString());
-                        positionElement.SetAttribute(XmlConstants.ColumnAttributeName, (spawnCommand.Position.Column + 1).ToString());
-
-                        xmlElement.AppendChild(pieceElement);
-                        xmlElement.AppendChild(positionElement);
-
+                        var pieceElement = new XElement(spawnCommand.Piece.GetType().Name,
+                            new XAttribute(XmlConstants.PieceColorAttributeName, spawnCommand.Piece.Color.ToString()));
+                        var positionElement = new XElement(XmlConstants.SourcePositionAttributeName,
+                            new XAttribute(XmlConstants.RowAttributeName, (spawnCommand.Position.Row + 1).ToString()),
+                            new XAttribute(XmlConstants.ColumnAttributeName, (spawnCommand.Position.Column + 1).ToString()));
+                        xmlElement.Add(pieceElement, positionElement);
                         return xmlElement;
                     }
-                case SetLastUpdateCommand setLastUpdateCommand:
+                case SetLastUpdateCommand:
                     return xmlElement;
                 default:
                     throw new NotSupportedException($"Unsupported command type: {command.GetType().Name}");
@@ -720,7 +433,6 @@ namespace Chess.Services
 
         private ICommand? ParseCommandElement(XElement command)
         {
-            // Use switch expression for command type
             return command.Name.LocalName switch
             {
                 "MoveCommand" => ParseMoveCommand(command),
@@ -733,7 +445,6 @@ namespace Chess.Services
             };
         }
 
-        // Helper for MoveCommand
         private ICommand ParseMoveCommand(XElement command)
         {
             var pieceElement = command.Elements().FirstOrDefault(e =>
@@ -757,7 +468,6 @@ namespace Chess.Services
             return new MoveCommand(source, target, piece, isUndo: false);
         }
 
-        // Helper for SequenceCommand
         private ICommand ParseSequenceCommand(XElement command)
         {
             var children = command.Elements().ToList();
@@ -769,18 +479,13 @@ namespace Chess.Services
             return new SequenceCommand(firstCommand, secondCommand);
         }
 
-        // Helper for RemoveCommand
         private ICommand ParseRemoveCommand(XElement command)
         {
             var isPromotion = false;
-            if (command.Attribute("Id") != null)
+            var promotionAttr = command.Attribute("IsPromotion");
+            if (promotionAttr != null)
             {
-                XAttribute promotionAttribute = command.Attribute("Id")!;
-                if (promotionAttribute != null)
-                {
-                    string isPromotionValue = promotionAttribute.Value; 
-                    isPromotion = bool.Parse(isPromotionValue); 
-                }
+                bool.TryParse(promotionAttr.Value, out isPromotion);
             }
 
             var pieceElement = command.Elements().FirstOrDefault(e =>
@@ -788,7 +493,7 @@ namespace Chess.Services
 
             var color = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
                 ? Color.Black : Color.White;
-            
+
             ChessPiece piece = CreatePiece(pieceElement?.Name.LocalName, color);
 
             var positionElement = command.Element(XmlConstants.SourcePositionAttributeName);
@@ -799,7 +504,6 @@ namespace Chess.Services
             return new RemoveCommand(position, piece, isUndo: false, isPromotion);
         }
 
-        // Helper for SpawnCommand
         private ICommand ParseSpawnCommand(XElement command)
         {
             var pieceElement = command.Elements().FirstOrDefault(e =>
@@ -833,10 +537,8 @@ namespace Chess.Services
         private List<PlacedPiece> GetPieces(XElement piecesNode, string pieceType, Color color)
         {
             var placedPieces = new List<PlacedPiece>();
-
             var colorPieceNodes = piecesNode.Descendants(color.ToString() + "s");
 
-            // Map pieceType string to the correct ChessPiece constructor
             Func<Color, ChessPiece> pieceFactory = pieceType switch
             {
                 "Pawns" => c => new Pawn(c),
@@ -845,7 +547,7 @@ namespace Chess.Services
                 "Rooks" => c => new Rook(c),
                 "Queens" => c => new Queen(c),
                 "King" => c => new King(c),
-                _ => c => new Pawn(c) // fallback, should not happen
+                _ => c => new Pawn(c)
             };
 
             foreach (var piece in colorPieceNodes.Descendants(pieceType))
