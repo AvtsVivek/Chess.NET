@@ -72,7 +72,7 @@ namespace Chess.ViewModel.Command
         /// </summary>
         public void FireCanExecuteChanged()
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher.Invoke(() =>
             {
                 this.CanExecuteChanged?.Invoke(this, new EventArgs());
             });

@@ -25,11 +25,15 @@ namespace Chess.ViewModel.StatusAndMode
         private object currentReviewModeVM;
 
         [ObservableProperty]
-        private Status status;
+        private Status statusForManual;
+
+        [ObservableProperty]
+        private Status statusForAuto;
 
         public ReviewModeHeaderDisplayVM(GenericCommand undoCommand, GenericCommand redoCommand, Status status)
         {
-            Status = status;
+            StatusForManual = status;
+            StatusForAuto = status;
             autoReviewModeVM = new(undoCommand, redoCommand);
             manualReviewModeVM = new(undoCommand, redoCommand);
             CurrentReviewModeVM = manualReviewModeVM;
@@ -64,7 +68,14 @@ namespace Chess.ViewModel.StatusAndMode
 
         public void UpdateStatus(Status status)
         {
-            Status = status; 
+            if (selectedReviewModeValue == ReviewMode.Manual)
+            {
+                StatusForAuto = status;
+            }
+            else
+            {
+                StatusForManual = status;
+            }
         }
 
         public async void SetSelectedReviewModeValueAsync(ReviewMode previousReviewMode)

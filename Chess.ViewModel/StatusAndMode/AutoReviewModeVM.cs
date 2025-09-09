@@ -162,13 +162,14 @@ namespace Chess.ViewModel.StatusAndMode
 
                         if (undoAvailable && undoInProgress)
                         {
-                            if (Application.Current.Dispatcher.CheckAccess())
+                            if (Application.Current != null &&
+                                Application.Current.Dispatcher.CheckAccess())
                             {
                                 this.undoCommand.Execute(null);
                             }
                             else
                             {
-                                Application.Current.Dispatcher.Invoke(() => this.undoCommand.Execute(null));
+                                Application.Current?.Dispatcher.Invoke(() => this.undoCommand.Execute(null));
                             }
                         }
 
@@ -176,13 +177,14 @@ namespace Chess.ViewModel.StatusAndMode
 
                         if (redoAvailable && !undoInProgress)
                         {
-                            if (Application.Current.Dispatcher.CheckAccess())
+                            if (Application.Current != null &&
+                            Application.Current.Dispatcher.CheckAccess())
                             {
                                 this.redoCommand.Execute(null);
                             }
                             else
                             {
-                                Application.Current.Dispatcher.Invoke(() => this.redoCommand.Execute(null));
+                                Application.Current?.Dispatcher.Invoke(() => this.redoCommand.Execute(null));
                             }
                         }
 

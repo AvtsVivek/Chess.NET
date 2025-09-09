@@ -480,7 +480,7 @@ namespace Chess.ViewModel.Game
         /// <param name="command">The spawn command to be executed.</param>
         public void Execute(SpawnCommand command)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher.Invoke(() =>
             {
                 this.Pieces.Add(new PlacedPieceVM(command.Position, command.Piece));
             });
@@ -574,7 +574,7 @@ namespace Chess.ViewModel.Game
                 .Where(move => move.MoveNumber == chessMoveSequenceIndex)
                 .ToList();
 
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher.Invoke(() =>
             {
                 foreach (var move in movesToBeRemoved)
                     this.ChessMoveSequence.ChessMoves.Remove(move);
@@ -629,7 +629,7 @@ namespace Chess.ViewModel.Game
                 {                    
                     // Insert the move at the beginning of the sequence to
                     // ensure the most recent move is at the top.
-                    Application.Current.Dispatcher.Invoke(() =>
+                    Application.Current?.Dispatcher.Invoke(() =>
                     {
                         this.ChessMoveSequence.ChessMoves.Insert(0, chessMove);
                     });

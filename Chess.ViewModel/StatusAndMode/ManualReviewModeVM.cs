@@ -74,7 +74,7 @@ namespace Chess.ViewModel.StatusAndMode
                 ChessAppSettings.Default.Save();
 
                 // RaiseCanExecuteChanged must be called on the UI thread
-                Application.Current.Dispatcher.Invoke(RaiseCanExecuteChanged);
+                Application.Current?.Dispatcher.Invoke(RaiseCanExecuteChanged);
             });
         }
 
@@ -91,7 +91,7 @@ namespace Chess.ViewModel.StatusAndMode
                 ChessAppSettings.Default.ReviewFromLast = true;
                 ChessAppSettings.Default.Save();
                 // SendMessageToManualReviewVM must be called on the UI thread
-                Application.Current.Dispatcher.Invoke(RaiseCanExecuteChanged);
+                Application.Current?.Dispatcher.Invoke(RaiseCanExecuteChanged);
             });
         }
 

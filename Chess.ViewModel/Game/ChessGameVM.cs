@@ -210,7 +210,7 @@ namespace Chess.ViewModel.Game
                                 this.redoCommand.Execute(null);
                             }
                             // SendMessageToManualReviewVM must be called on the UI thread
-                            Application.Current.Dispatcher.Invoke(SendMessageToManualReviewVM);
+                            Application.Current?.Dispatcher.Invoke(SendMessageToManualReviewVM);
                             recordModeNotReady = false; // Now ready for recording.
                         });
                     }
@@ -252,7 +252,7 @@ namespace Chess.ViewModel.Game
                         commandToExecute.Execute(null);
                     }
                     // SendMessageToManualReviewVM must be called on the UI thread
-                    Application.Current.Dispatcher.Invoke(SendMessageToManualReviewVM);
+                    Application.Current?.Dispatcher.Invoke(SendMessageToManualReviewVM);
                 });
 
                 SetReviewFileLoadComplete();

@@ -34,7 +34,7 @@
                                                     <Storyboard>
                                                         <ColorAnimation
                                                             Duration="{StaticResource duration}"
-                                                            To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
+                                                            To="{Binding StatusForManual, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
                                                             Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
                                                     </Storyboard>
                                                 </BeginStoryboard>
@@ -73,14 +73,14 @@
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="RadioButton">
-                                    <Border BorderBrush="DarkBlue" BorderThickness="2" CornerRadius="4" Padding="4">
+                                    <Border BorderBrush="White" BorderThickness="2" CornerRadius="4" Padding="4">
                                         <Border.Triggers>
                                             <EventTrigger RoutedEvent="Binding.TargetUpdated">
                                                 <BeginStoryboard>
                                                     <Storyboard>
                                                         <ColorAnimation
                                                         Duration="{StaticResource duration}"
-                                                        To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
+                                                        To="{Binding StatusForAuto, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
                                                         Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
                                                     </Storyboard>
                                                 </BeginStoryboard>
