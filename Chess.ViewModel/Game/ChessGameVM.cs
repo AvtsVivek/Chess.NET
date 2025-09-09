@@ -570,11 +570,11 @@ namespace Chess.ViewModel.Game
 
             if (moveCount == 0)
             {
-                PlaceHolderTextForTitleNotesTextBox = "Click here to set Title for the game here:";
+                PlaceHolderTextForTitleNotesTextBox = "Click here to set Title for the game";
             }
             else
             {
-                PlaceHolderTextForTitleNotesTextBox = $"Click here to take notes for move {moveCount} here:";
+                PlaceHolderTextForTitleNotesTextBox = $"Click here to take notes for move {moveCount}";
             }
         }
 

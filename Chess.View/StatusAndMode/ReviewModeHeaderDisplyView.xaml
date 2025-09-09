@@ -12,12 +12,76 @@
     <UserControl.Resources>
         <conv:AppModeConverter x:Key="AppModeConverter"/>
     </UserControl.Resources>
-            
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
         <TextBlock Text="Review Mode" VerticalAlignment="Center" Margin="0 0 5 0"/>
         <StackPanel Margin="0" Orientation="Horizontal">
-            <RadioButton Margin="5" Background="Transparent" Content="Manual" Name="ManualRadioButton" GroupName="ReviewModeSelection" IsChecked="{Binding SelectedReviewModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:ReviewMode.Manual}}" />
-            <RadioButton Margin="5" Background="Transparent" Content="Auto" Name="AutoRadioButton" GroupName="ReviewModeSelection" IsChecked="{Binding SelectedReviewModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:ReviewMode.Auto}}" />
+            <RadioButton Margin="0"
+             Background="Transparent"
+             Content="Manual"
+             Name="ManualRadioButton"
+             GroupName="ReviewModeSelection"
+             IsChecked="{Binding SelectedReviewModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:ReviewMode.Manual}}">
+                <RadioButton.Style>
+                    <Style TargetType="RadioButton">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="RadioButton">
+                                    <Border BorderBrush="DarkBlue" BorderThickness="2" CornerRadius="4" Padding="4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Grid Width="16" Height="16">
+                                                <!-- Outer ring -->
+                                                <Ellipse Stroke="Gray" StrokeThickness="1" Fill="White"/>
+                                                <!-- Inner circle, only visible when checked -->
+                                                <Ellipse x:Name="RadioInnerEllipse" Width="8.5" Height="8.5" Fill="DarkBlue" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Grid>
+                                            <ContentPresenter Content="{TemplateBinding Content}" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="RadioInnerEllipse" Property="Visibility" Value="Visible"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </RadioButton.Style>
+            </RadioButton>
+
+            <RadioButton Margin="0"
+                Background="Transparent"
+                Content="Manual"
+                Name="AutoRadioButton"
+                GroupName="ReviewModeSelection"
+                IsChecked="{Binding SelectedReviewModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:ReviewMode.Auto}}">
+                <RadioButton.Style>
+                    <Style TargetType="RadioButton">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="RadioButton">
+                                    <Border BorderBrush="DarkBlue" BorderThickness="2" CornerRadius="4" Padding="4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Grid Width="16" Height="16">
+                                                <!-- Outer ring -->
+                                                <Ellipse Stroke="Gray" StrokeThickness="1" Fill="White"/>
+                                                <!-- Inner circle, only visible when checked -->
+                                                <Ellipse x:Name="RadioInnerEllipse" Width="8.5" Height="8.5" Fill="DarkBlue" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Grid>
+                                            <ContentPresenter Content="{TemplateBinding Content}" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="RadioInnerEllipse" Property="Visibility" Value="Visible"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </RadioButton.Style>
+            </RadioButton>
         </StackPanel>
         <ContentControl Margin="0" Content="{Binding CurrentReviewModeVM}"  />
     </StackPanel>

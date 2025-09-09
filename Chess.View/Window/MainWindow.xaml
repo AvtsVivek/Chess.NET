@@ -193,10 +193,11 @@
                                    DataContext="{Binding HeaderNotificationMessage}"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
-            <Button Grid.Column="2" Margin="0 0 5 0"  VerticalAlignment="Center" Command="{Binding BoardInversionToggleCommand}" ToolTip="Invert the board">
-                Invert Board
+            <Button Margin="0 10 0 10" Grid.Column="2" Padding="8 5 0 0" Width="34" 
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Command="{Binding BoardInversionToggleCommand}" ToolTip="Invert the board">
+                <icon:RotateIcon Width="44" Height="44"/>
             </Button>
-
 
             <Menu Grid.Column="3" >
                 <MenuItem HorizontalAlignment="Right">

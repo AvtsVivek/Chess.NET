@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 namespace Chess.View.Converter
 {
+    using Chess.ViewModel.Game;
     using System;
     using System.Globalization;
     using System.Windows.Data;
@@ -31,8 +32,8 @@ namespace Chess.View.Converter
         /// </summary>
         public FieldBrushConverter()
         {
-            this.whiteBrush = new SolidColorBrush(Colors.NavajoWhite);
-            this.blackBrush = new SolidColorBrush(Colors.Peru);
+            this.whiteBrush = new SolidColorBrush(BoardConstants.BoardFieldLightBrushColor);
+            this.blackBrush = new SolidColorBrush(BoardConstants.BoardFieldDarkBrushColor);
         }
 
         /// <summary>
