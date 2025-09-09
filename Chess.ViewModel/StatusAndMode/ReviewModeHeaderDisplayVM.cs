@@ -1,4 +1,5 @@
-﻿using Chess.ViewModel.Command;
+﻿using Chess.Model.Game;
+using Chess.ViewModel.Command;
 using Chess.ViewModel.Game;
 using Chess.ViewModel.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -23,8 +24,12 @@ namespace Chess.ViewModel.StatusAndMode
         [ObservableProperty]
         private object currentReviewModeVM;
 
-        public ReviewModeHeaderDisplayVM(GenericCommand undoCommand, GenericCommand redoCommand)
+        [ObservableProperty]
+        private Status status;
+
+        public ReviewModeHeaderDisplayVM(GenericCommand undoCommand, GenericCommand redoCommand, Status status)
         {
+            Status = status;
             autoReviewModeVM = new(undoCommand, redoCommand);
             manualReviewModeVM = new(undoCommand, redoCommand);
             CurrentReviewModeVM = manualReviewModeVM;
@@ -55,6 +60,11 @@ namespace Chess.ViewModel.StatusAndMode
                 SetProperty(ref selectedReviewModeValue, value);
                 SetSelectedReviewModeValueAsync(previousReviewMode);
             }
+        }
+
+        public void UpdateStatus(Status status)
+        {
+            Status = status; 
         }
 
         public async void SetSelectedReviewModeValueAsync(ReviewMode previousReviewMode)

@@ -11,6 +11,7 @@
              IsEnabled="{Binding IsInReviewMode}" >
     <UserControl.Resources>
         <conv:AppModeConverter x:Key="AppModeConverter"/>
+        <conv:StatusConverter x:Key="statusConverter" />
     </UserControl.Resources>
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
         <TextBlock Text="Review Mode" VerticalAlignment="Center" Margin="0 0 5 0"/>
@@ -26,7 +27,19 @@
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="RadioButton">
-                                    <Border BorderBrush="DarkBlue" BorderThickness="2" CornerRadius="4" Padding="4">
+                                    <Border BorderBrush="White" BorderThickness="2" CornerRadius="4" Padding="4">
+                                        <Border.Triggers>
+                                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <ColorAnimation
+                                                            Duration="{StaticResource duration}"
+                                                            To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
+                                                            Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </Border.Triggers>
                                         <StackPanel Orientation="Horizontal">
                                             <Grid Width="16" Height="16">
                                                 <!-- Outer ring -->
@@ -51,7 +64,7 @@
 
             <RadioButton Margin="0"
                 Background="Transparent"
-                Content="Manual"
+                Content="Auto"
                 Name="AutoRadioButton"
                 GroupName="ReviewModeSelection"
                 IsChecked="{Binding SelectedReviewModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:ReviewMode.Auto}}">
@@ -61,6 +74,18 @@
                             <Setter.Value>
                                 <ControlTemplate TargetType="RadioButton">
                                     <Border BorderBrush="DarkBlue" BorderThickness="2" CornerRadius="4" Padding="4">
+                                        <Border.Triggers>
+                                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <ColorAnimation
+                                                        Duration="{StaticResource duration}"
+                                                        To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
+                                                        Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </Border.Triggers>
                                         <StackPanel Orientation="Horizontal">
                                             <Grid Width="16" Height="16">
                                                 <!-- Outer ring -->

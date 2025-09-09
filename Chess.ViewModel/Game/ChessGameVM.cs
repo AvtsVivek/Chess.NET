@@ -102,9 +102,12 @@ namespace Chess.ViewModel.Game
             this.titleNotesLostFocusCommand = new GenericCommand(() => true, OnTitleNotesLostFocus);
 
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
-            this.rulebook = new StandardRulebook();
 
-            StartNewGame();
+            this.rulebook = new StandardRulebook();
+            this.xmlFileService = new();
+            this.CurrentAppModeVM = playModeVM = new();
+            this.recordReviewModeVM = new(windowService);
+            this.ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn);
 
             this.updateSelector = updateSelector;
             this.negator = new CommandNegator();
@@ -137,18 +140,16 @@ namespace Chess.ViewModel.Game
                 )
             );
 
-            xmlFileService = new();
-            CurrentAppModeVM = playModeVM = new();
-            recordReviewModeVM = new(windowService);
-            SelectedAppModeValue = AppMode.Play; // Default mode is Play
-            reviewModeHeaderDisplayVM = new(this.undoCommand, this.redoCommand);
+            StartNewGame();
+
+            this.reviewModeHeaderDisplayVM = new(this.undoCommand, this.redoCommand, Status);
 
             BoardInversionToggleCommand = new GenericCommand(
                 () => true,
                 ToggleBoardInvertedField
             );
 
-            ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn);
+            this.SelectedAppModeValue = AppMode.Play; // Default mode is Play
 
             DoMessengerRegistration();
 
@@ -336,7 +337,7 @@ namespace Chess.ViewModel.Game
             this.Board = new BoardVM(this.Game.Board);
             this.OnPropertyChanged(nameof(this.Status));
             this.Board.ClearChessMoveSequence();
-            UpdateMoveCount();
+            RefreshAfterEndTurn();
         }
 
         private bool CanExecuteNewCommand()
@@ -495,11 +496,7 @@ namespace Chess.ViewModel.Game
         {
             this.Board.Execute(command);
 
-            this.OnPropertyChanged(nameof(this.Status));
-
-            UpdateMoveCount();
-
-            statusDisplayVM.UpdateStatus(this.Status);
+            RefreshAfterEndTurn();
 
             AddUpdateXmlToFile();
         }
@@ -546,8 +543,14 @@ namespace Chess.ViewModel.Game
         /// Temp. Will be removed.
         /// Just to update move count.
         /// </summary>
-        private void UpdateMoveCount()
+        private void RefreshAfterEndTurn()
         {
+            this.OnPropertyChanged(nameof(this.Status));
+
+            reviewModeHeaderDisplayVM?.UpdateStatus(this.Status);
+
+            statusDisplayVM.UpdateStatus(this.Status);
+
             var moveCount = this.Game.History.Count();
             if (playModeVM != null)
                 playModeVM.GameMoveCount = moveCount;

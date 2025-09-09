@@ -439,7 +439,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
+                    <Border Background="LightGray" Margin="10 10 2 10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
                         <Border.Triggers>
                             <EventTrigger RoutedEvent="Binding.TargetUpdated">
                                 <BeginStoryboard>
@@ -458,7 +458,7 @@
                             <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Review" Tag="Review" Name="ReviewRadioButton" GroupName="ModeSelection" Click="PlayReCordReviewRadioButton_Click" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Review}}" />
                         </StackPanel>
                     </Border>
-                    <Border Grid.Column="1" Background="LightGray" Margin="10" BorderBrush="White" BorderThickness="2" CornerRadius="5" MouseDown="BoardMouseDown">
+                    <Border Grid.Column="1" Background="LightGray" Margin="2 10 10 10" BorderBrush="White" BorderThickness="2" CornerRadius="5" MouseDown="BoardMouseDown">
                         <Border.Triggers>
                             <EventTrigger RoutedEvent="Binding.TargetUpdated">
                                 <BeginStoryboard>
