@@ -17,7 +17,7 @@
 			<Title>MyTitle</Title>
 			<User>Player Name</User>
 			<CreatedDate>2025-09-07-T-17:30:44</CreatedDate>
-			<ModifiedDate>2025-09-08-T-17:37:19</ModifiedDate>
+			<ModifiedDate>2025-09-11-T-12:58:11</ModifiedDate>
 			<Description>This XML file represents a chess game, including the starting positions of the pieces and the sequence of moves made during the game.</Description>
 			<Version>1.0</Version>
 		</Metadata>
@@ -66,7 +66,7 @@
 				<Target Row="5" Column="1" />
 			</MoveCommand>
 			<EndTurnCommand />
-			<Notes>27</Notes>
+			<Notes>222</Notes>
 		</SequenceCommand>
 		<SequenceCommand Id="1" CreatedDate="2025-09-07-T-17:38:01">
 			<MoveCommand>

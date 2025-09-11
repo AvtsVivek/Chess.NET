@@ -86,6 +86,7 @@ namespace Chess.ViewModel.StatusAndMode
 
             if (selectedReviewModeValue == ReviewMode.Auto)
             {
+                StatusForAuto = Status.WhiteTurn;
                 if(previousReviewMode == ReviewMode.Manual)
                 {
                     // If the previous mode was manual, its likely the review file was already loaded.
@@ -96,6 +97,7 @@ namespace Chess.ViewModel.StatusAndMode
             }
             else
             {
+                StatusForManual = Status.WhiteTurn;
                 CurrentReviewModeVM = manualReviewModeVM;
                 await autoReviewModeVM.StopAutoReviewLoop();
             }

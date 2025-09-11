@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Windows;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -52,10 +53,10 @@ namespace Chess.Services
                 .Element(XmlConstants.TitleElementName)?
                 .Value ?? string.Empty;
 
-            ChessGame.TitleNotesDictionary[0] = (title, null);
+            ChessGame.TitleNotesConcurrentDictionary[0] = (title, null);
 
-            XElement pieceMoveCommandElements = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
-            List<XElement> commandElements = pieceMoveCommandElements.Elements(nameof(SequenceCommand)).ToList();
+            XElement pieceMoveCommandElement = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
+            List<XElement> commandElements = pieceMoveCommandElement.Elements(nameof(SequenceCommand)).ToList();
             commandElements.Reverse();
 
             var parsedCommandsWithIds = new List<(ICommand, int)>();
@@ -74,11 +75,32 @@ namespace Chess.Services
                 if (success)
                 {
                     parsedCommandsWithIds.Add((command, updateId));
+                    // Read the content of the Notes element (direct child of commandElement)
                     var notesElement = commandElement.Element("Notes");
                     string notesText = notesElement != null ? notesElement.Value : string.Empty;
                     if (!string.IsNullOrWhiteSpace(notesText))
                     {
-                        ChessGame.TitleNotesDictionary[updateId] = (notesText, null);
+                        // Store in the dictionary. But the update is not yet created.
+                        // So we store null for now, and update it later.
+                        // ChessGame.NewTitleNotesDictionary[updateId] = (notesText, null);
+
+                        // ToDo. Need to check the following.
+                        // Earlier, the following is what it was. But now, this is replaced by the above line.
+                        if (ChessGame.TitleNotesConcurrentDictionary.ContainsKey(updateId))
+                        {
+                            ChessGame.TitleNotesConcurrentDictionary[updateId] = (notesText, null);
+                        }
+                        else
+                        {
+                            if (ChessGame.TitleNotesConcurrentDictionary.TryAdd(updateId, (notesText, null)))
+                            {
+                                Debug.WriteLine($"Added notes for Id {updateId} to NewTitleNotesDictionary.");
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"Failed to add notes for Id {updateId} to NewTitleNotesDictionary.");
+                            }
+                        }
                     }
                 }
                 else
@@ -91,29 +113,37 @@ namespace Chess.Services
             ChessGame updatedGame = chessGame;
             foreach (var parsedCommandWithId in parsedCommandsWithIds)
             {
-                var Update = new Update(updatedGame, parsedCommandWithId.Item1, "XmlFileRead", parsedCommandWithId.Item2);
-                var setLastUpdateCommand = new SetLastUpdateCommand(Update);
-                ICommand command = new SequenceCommand(parsedCommandWithId.Item1, setLastUpdateCommand);
+                var parsedCommand = parsedCommandWithId.Item1;
+                var parsedUpdate = new Update(updatedGame, parsedCommand, "XmlFileRead", parsedCommandWithId.Item2);
+                var setLastUpdateCommand = new SetLastUpdateCommand(parsedUpdate);
+                ICommand command = new SequenceCommand(parsedCommand, setLastUpdateCommand);
                 var updates = command.Execute(updatedGame).Map(g => new Update(g, command, "XmlFileRead")).Yield();
                 if (!updates.Any()) continue;
                 Update? update = updates.First();
                 updatedGame!.NextUpdate = new Just<Update>(update);
                 updatedGame = update.Game;
 
-                ChessGame.TitleNotesDictionary[parsedCommandWithId.Item2] =
-                    (ChessGame.TitleNotesDictionary.ContainsKey(parsedCommandWithId.Item2) ?
-                    ChessGame.TitleNotesDictionary[parsedCommandWithId.Item2].titleNotes : string.Empty, update);
+                ChessGame.TitleNotesConcurrentDictionary[parsedCommandWithId.Item2] =
+                    (ChessGame.TitleNotesConcurrentDictionary.ContainsKey(parsedCommandWithId.Item2) ?
+                    ChessGame.TitleNotesConcurrentDictionary[parsedCommandWithId.Item2].titleNotes : string.Empty, parsedUpdate);
             }
 
             return updatedGame;
-        }
+        } // Done
 
         public void WriteGameToXmlFile(ChessGame game, string filePath)
         {
             if (game == null)
                 throw new ArgumentNullException(nameof(game));
+
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("File path cannot be empty or whitespace.", nameof(filePath));
+
+            if (game.History == null || !game.History.Any())
+                // No history to write
+                // throw new InvalidOperationException("The game has no history to write.");
+                Debug.WriteLine("The game has no history to write.");
+
 
             XDocument doc;
             if (!File.Exists(filePath))
@@ -127,7 +157,7 @@ namespace Chess.Services
             }
             
             SaveDocument(doc, filePath);
-        }
+        }  // Done
 
         private void SaveDocument(XDocument doc, string filePath)
         {
@@ -140,10 +170,14 @@ namespace Chess.Services
         public void SaveTitleNotesText(int titleNotesId, string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            {
+                Debug.WriteLine("File path is null or whitespace. Cannot save title/notes.");
+                Debug.WriteLine($"Or file does not exist: {filePath}. Cannot update title/notes.");
                 return;
+            }
 
             XDocument doc = XDocument.Load(filePath);
-            var textToUpdate = ChessGame.TitleNotesDictionary[titleNotesId].titleNotes;
+            var textToUpdate = ChessGame.TitleNotesConcurrentDictionary[titleNotesId].titleNotes;
 
             if (titleNotesId == 0)
             {
@@ -152,6 +186,7 @@ namespace Chess.Services
                     .Element(XmlConstants.InstructionsElementName)?
                     .Element(XmlConstants.MetadataElementName)?
                     .Element(XmlConstants.TitleElementName);
+
                 if (titleElement != null)
                 {
                     titleElement.Value = textToUpdate;
@@ -163,20 +198,20 @@ namespace Chess.Services
             {
                 SaveSequenceCommandNotes(doc, titleNotesId, textToUpdate, filePath);
             }
-        }
+        } // Done
 
         private void SaveSequenceCommandNotes(XDocument doc, int titleNotesId, string textToUpdate, string filePath)
         {
             var sequenceCommand = doc
                 .Descendants(XmlConstants.PieceMoveCommandsElementName)
-                .Elements("SequenceCommand")
+                .Elements( nameof(SequenceCommand))
                 .FirstOrDefault(e => (int.TryParse(e.Attribute("Id")?.Value, out int id) && id == titleNotesId));
             if (sequenceCommand == null) return;
 
-            var notesElement = sequenceCommand.Element("Notes");
+            var notesElement = sequenceCommand.Element(XmlConstants.CommandNotesElementName);
             if (notesElement == null)
             {
-                notesElement = new XElement("Notes", textToUpdate);
+                notesElement = new XElement(XmlConstants.CommandNotesElementName, textToUpdate);
                 sequenceCommand.Add(notesElement);
             }
             else
@@ -185,11 +220,11 @@ namespace Chess.Services
             }
             UpdateDateModifiedOfXmlFile(doc);
             SaveDocument(doc, filePath);
-        }
+        } // Done
 
         private ChessGame LoadBoardFromXmlFile(XDocument doc)
         {
-            var piecesNode = doc.Descendants("Pieces").First();
+            var piecesNode = doc.Descendants(XmlConstants.PiecesElementName).First();
             var allPlacedPieces = new List<PlacedPiece>();
             var pieceTypes = new[] { "Pawns", "Knights", "Bishops", "Rooks", "Queens", "King" };
 
@@ -207,7 +242,7 @@ namespace Chess.Services
             var whitePlayer = new Player(Color.White);
             var blackPlayer = new Player(Color.Black);
             return new ChessGame(board, whitePlayer, blackPlayer);
-        }
+        } // Done
 
         private XDocument CreateAndWriteToXmlFile(ChessGame game)
         {
@@ -233,7 +268,7 @@ namespace Chess.Services
             // Metadata section
             var metadata = new XElement(XmlConstants.MetadataElementName);
             var title = new XElement(XmlConstants.TitleElementName,
-                ChessGame.TitleNotesDictionary.ContainsKey(0) ? ChessGame.TitleNotesDictionary[0].titleNotes : string.Empty);
+                ChessGame.TitleNotesConcurrentDictionary.ContainsKey(0) ? ChessGame.TitleNotesConcurrentDictionary[0].titleNotes : string.Empty);
             metadata.Add(title);
             metadata.Add(new XElement(XmlConstants.UserElementName, "Player Name"));
             metadata.Add(new XElement(XmlConstants.CreatedDateElementName, DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss")));
@@ -251,7 +286,7 @@ namespace Chess.Services
             WriteCommandsToXmlFile(pieceMoveCommands, game);
 
             return new XDocument(root);
-        }
+        } // Done
 
         private void WriteStartPositionsToXmlFile(XElement root, ChessGame game)
         {
@@ -284,7 +319,7 @@ namespace Chess.Services
 
             startPositions.Add(piecesElement);
             root.Add(startPositions);
-        }
+        } // Done
 
         private void AppendPiecesToXElement(XElement parentElement, IEnumerable<PlacedPiece> placedPieces)
         {
@@ -315,7 +350,7 @@ namespace Chess.Services
                 }
                 parentElement.Add(typeElement);
             }
-        }
+        } // Done
 
         private void WriteCommandsToXmlFile(XElement pieceMoveCommandsElement, ChessGame game)
         {
@@ -326,36 +361,245 @@ namespace Chess.Services
             foreach (var update in orderedHistory)
             {
                 var xmlElement = GetCommandXElement(update.Command, update.Id);
-                var textToUpdate = ChessGame.TitleNotesDictionary.ContainsKey(update.Id)
-                    ? ChessGame.TitleNotesDictionary[update.Id].titleNotes
+                var textToUpdate = ChessGame.TitleNotesConcurrentDictionary.ContainsKey(update.Id)
+                    ? ChessGame.TitleNotesConcurrentDictionary[update.Id].titleNotes
                     : string.Empty;
                 xmlElement.Add(new XElement(XmlConstants.CommandNotesElementName, textToUpdate));
                 pieceMoveCommandsElement.Add(xmlElement); // Add to the end
             }
-        }
+        } // Done
 
         private void AddLatestUpdateToXmlFile(XDocument doc, ChessGame game)
         {
             var pieceMoveCommandsElement = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
+            // ToDo the following line needs to be removed.
             var existingIds = pieceMoveCommandsElement.Elements().Select(e => int.TryParse(e.Attribute("Id")?.Value, out int id) ? id : 0).ToList();
             var history = game.History.ToList();
-            var historyIds = history.Select(h => h.Id).ToList();
+            int historyCount = history.Count;
+            history.Reverse(); // Reverse the history to start with the most recent update
+            var historyIdList = history.Select(h => h.Id).ToList();
 
-            int latestId = existingIds.Any() ? existingIds.Max() : 0;
+            var xmlCommandNodeIdList = GetLatestUpdateIdFromXmlFile(doc, out List<XElement> xmlCommandNodeList);
 
-            foreach (var update in history)
+            int latestId = xmlCommandNodeIdList.Any() ? xmlCommandNodeIdList.Max() : 0;
+
+            int xmlCommandNodeCount = xmlCommandNodeList.Count;
+
+            if (historyCount > xmlCommandNodeCount)
             {
-                if (update.Id <= latestId)
-                    continue;
-                var xmlElement = GetCommandXElement(update.Command, update.Id);
-                var textToUpdate = ChessGame.TitleNotesDictionary.ContainsKey(update.Id)
-                    ? ChessGame.TitleNotesDictionary[update.Id].titleNotes
-                    : string.Empty;
-                xmlElement.Add(new XElement(XmlConstants.CommandNotesElementName, textToUpdate));
-                pieceMoveCommandsElement.AddFirst(xmlElement);
+                foreach (int xmlCommandNodeId in xmlCommandNodeIdList)
+                {
+                    List<int> problematicIds = new();
+
+                    if (!historyIdList.Contains(xmlCommandNodeId))
+                    {
+                        // Problem. IDs in XML file do not match IDs in history
+                        problematicIds.Add(xmlCommandNodeId);
+                    }
+
+                    if (problematicIds.Any())
+                    {
+                        string message = "The following IDs are present in the XML file but not in the game history: "
+                            + string.Join(", ", problematicIds);
+                        Debugger.Break();
+                        MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // throw new InvalidOperationException(message);
+                        return;
+                    }
+                }
+
+                foreach (var update in history)
+                {
+                    if (update.Id <= latestId)
+                        continue; // Skip updates that are already in the file
+
+                    CreateAndAddUpdateCommandXmlElement(doc, update, update.Id);
+                }
+            }
+            else if (historyCount < xmlCommandNodeCount)
+            {
+                List<int> problematicIds = new();
+                foreach (int historyId in historyIdList)
+                {
+                    if (!xmlCommandNodeIdList.Contains(historyId))
+                    {
+                        problematicIds.Add(historyId);
+                    }
+                }
+
+                if (problematicIds.Any())
+                {
+                    string message = "The following IDs are present in the history but not in the xml file: "
+                        + string.Join(", ", problematicIds);
+                    Debugger.Break();
+                    MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // throw new InvalidOperationException(message);
+                    return;
+                }
+
+                // Remove Those Ids From Xml file.
+
+                foreach (int xmlCommandNodeId in xmlCommandNodeIdList)
+                {
+                    if (historyIdList.Contains(xmlCommandNodeId))
+                    {
+                        continue;
+                    }
+                    RemoveXmlCommandNodesFromXmlFile(doc, xmlCommandNodeId);
+                }
+
+            }
+            else // historyCount == xmlCommandNodeCount
+            {
+                // Ensure ids match in both lists. If they don't, it's an error.
+                bool areSetsEqual = new HashSet<int>(historyIdList).SetEquals(xmlCommandNodeIdList);
+                bool areListsEqual = historyIdList.OrderBy(x => x).SequenceEqual(xmlCommandNodeIdList.OrderBy(x => x));
+
+                if (areSetsEqual)
+                {
+                    Debugger.Break();
+                    MessageBox.Show("The sets historyIdList and xmlCommandNodeIdList are not equal", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // throw new InvalidOperationException(message);
+                }
+                if (areListsEqual)
+                {
+                    Debugger.Break();
+                    MessageBox.Show("The lists historyIdList and xmlCommandNodeIdList are not equal", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // throw new InvalidOperationException(message);
+                }
+            }
+        } // Done
+
+        private void RemoveXmlCommandNodesFromXmlFile(XDocument doc, int xmlCommandNodeId)
+        {
+            //// xmlDocument.Load(filePath);
+
+            //// XPath to select nodes with the given Id attribute under PieceMoveCommands
+            //string xpath = $"{XmlConstants.RootElementName}//{XmlConstants.PieceMoveCommandsElementName}/*[@Id='{xmlCommandNodeId}']";
+            //XmlNodeList nodesToRemove = doc.SelectNodes(xpath);
+
+            //if (nodesToRemove != null)
+            //{
+            //    foreach (XmlNode node in nodesToRemove)
+            //    {
+            //        node.ParentNode?.RemoveChild(node);
+            //    }
+            //}
+
+
+            // Assume doc is your XDocument and xmlCommandNodeId is the int Id to remove
+            var pieceMoveCommandsElement = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).FirstOrDefault();
+            if (pieceMoveCommandsElement != null)
+            {
+                var elementToRemove = pieceMoveCommandsElement
+                    .Elements()
+                    .FirstOrDefault(e =>
+                        int.TryParse(e.Attribute("Id")?.Value, out int id) && id == xmlCommandNodeId);
+
+                if (elementToRemove != null)
+                {
+                    elementToRemove.Remove();
+                }
+            }
+
+            UpdateDateModifiedOfXmlFile(doc);
+        } // Done
+
+        private void CreateAndAddUpdateCommandXmlElement(XDocument doc, Update update, int id)
+        {
+            var pieceMoveCommandsElement = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
+            // XmlNode parent = xmlDocument.SelectSingleNode(XmlConstants.RootElementName + "//" + XmlConstants.PieceMoveCommandsElementName);
+
+            // var xmlElement = GetCommandXmlElement(doc, update.Command, id);
+            var xmlElement = GetCommandXElement(update.Command, update.Id);
+
+            var textToUpdate = string.Empty;
+
+            if (ChessGame.TitleNotesConcurrentDictionary.ContainsKey(id))
+            {
+                textToUpdate = ChessGame.TitleNotesConcurrentDictionary[id].titleNotes;
+            }
+
+            var notesElement = new XElement(XmlConstants.CommandNotesElementName, textToUpdate);
+            xmlElement.Add(notesElement); // Adds as the last child
+
+            // XmlElement notesElement = xmlDocument.CreateElement(XmlConstants.CommandNotesElementName);
+
+            //var textToUpdate = string.Empty;
+
+            //if (ChessGame.TitleNotesDictionary.ContainsKey(id))
+            //{
+            //    textToUpdate = ChessGame.TitleNotesDictionary[id].titleNotes;
+            //}
+
+            // notesElement.InnerText = textToUpdate;
+            // xmlElement.AppendChild(notesElement);
+
+            if (pieceMoveCommandsElement != null && xmlElement != null)
+            {
+                // Insert at the beginning
+                if (pieceMoveCommandsElement.HasElements)
+                {
+                    pieceMoveCommandsElement.AddFirst(xmlElement);
+                }
+                else
+                {
+                    pieceMoveCommandsElement.Add(xmlElement);
+                }
             }
             UpdateDateModifiedOfXmlFile(doc);
-        }
+        } // Done
+
+        private List<int> GetLatestUpdateIdFromXmlFile(XDocument doc, out List<XElement> sequenceCommandElements)
+        {
+            // xmlDocument.Load(filePath);
+
+            // xmlCommandNodeList = xmlDocument.SelectNodes(XmlConstants.RootElementName + "//" + XmlConstants.PieceMoveCommandsElementName + "/*")!;
+
+            //var pieceMoveCommandElement = doc.Element(XmlConstants.RootElementName)?
+            //    .Element(XmlConstants.PieceMoveCommandsElementName);
+
+            XElement pieceMoveCommandElement = doc.Descendants(XmlConstants.PieceMoveCommandsElementName).First();
+            sequenceCommandElements = pieceMoveCommandElement.Elements(nameof(SequenceCommand)).ToList();
+
+            /*
+
+                             var titleElement = doc
+                    .Element(XmlConstants.RootElementName)?
+                    .Element(XmlConstants.PieceMoveCommandsElementName)?
+                    .Element(XmlConstants.MetadataElementName)?
+                    .Element(XmlConstants.TitleElementName);
+             */
+
+
+
+            // List<int> xmlNodeIdList = new();
+
+            // int maxId = 0;
+
+            //foreach (XElement element in sequenceCommandElements)
+            //{
+            //    List<XAttribute> attributeList = element.Attributes().ToList();
+
+            //    if (attributeList != null && attributeList["Id"] != null)
+            //    {
+            //        if (int.TryParse(element.Attributes["Id"].Value, out int currentId))
+            //        {
+            //            xmlNodeIdList.Add(currentId);
+            //        }
+            //    }
+            //}
+
+            var xmlNodeIdList = sequenceCommandElements
+                .Select(e => e.Attribute("Id")?.Value)
+                .Where(val => !string.IsNullOrEmpty(val))
+                .Select(val => int.TryParse(val, out int id) ? id : (int?)null)
+                .Where(id => id.HasValue)
+                .Select(id => id.Value)
+                .ToList();
+
+            return xmlNodeIdList;
+        } // Done
 
         private void UpdateDateModifiedOfXmlFile(XDocument doc)
         {
@@ -368,7 +612,7 @@ namespace Chess.Services
             {
                 modifiedDateElement.Value = DateTime.Now.ToString("yyyy-MM-dd-T-HH:mm:ss");
             }
-        }
+        } // Done
 
         private XElement GetCommandXElement(ICommand command, int id = 0)
         {
@@ -429,7 +673,7 @@ namespace Chess.Services
                 default:
                     throw new NotSupportedException($"Unsupported command type: {command.GetType().Name}");
             }
-        }
+        } // Done
 
         private ICommand? ParseCommandElement(XElement command)
         {
@@ -443,7 +687,7 @@ namespace Chess.Services
                 "SetLastUpdateCommand" => null,
                 _ => null
             };
-        }
+        } // Done
 
         private ICommand ParseMoveCommand(XElement command)
         {
@@ -466,7 +710,7 @@ namespace Chess.Services
                 int.Parse(targetElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
 
             return new MoveCommand(source, target, piece, isUndo: false);
-        }
+        } // Done
 
         private ICommand ParseSequenceCommand(XElement command)
         {
@@ -477,7 +721,7 @@ namespace Chess.Services
             var firstCommand = ParseCommandElement(children[0]);
             var secondCommand = ParseCommandElement(children[1]);
             return new SequenceCommand(firstCommand, secondCommand);
-        }
+        } // Done
 
         private ICommand ParseRemoveCommand(XElement command)
         {
@@ -502,7 +746,7 @@ namespace Chess.Services
                 int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
 
             return new RemoveCommand(position, piece, isUndo: false, isPromotion);
-        }
+        } // Done
 
         private ICommand ParseSpawnCommand(XElement command)
         {
@@ -518,7 +762,7 @@ namespace Chess.Services
                 int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
 
             return new SpawnCommand(position, piece, isUndo: false);
-        }
+        } // Done
 
         private ChessPiece CreatePiece(string pieceType, Color color)
         {
@@ -532,7 +776,7 @@ namespace Chess.Services
                 "King" => new King(color),
                 _ => throw new InvalidOperationException("Unknown piece type")
             };
-        }
+        } // Done
 
         private List<PlacedPiece> GetPieces(XElement piecesNode, string pieceType, Color color)
         {
@@ -569,6 +813,6 @@ namespace Chess.Services
                 }
             }
             return placedPieces;
-        }
+        } // Done
     }
 }

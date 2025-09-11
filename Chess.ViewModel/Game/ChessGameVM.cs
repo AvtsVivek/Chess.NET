@@ -174,7 +174,7 @@ namespace Chess.ViewModel.Game
         private bool titleNotesTextBoxFocused;
 
         [ObservableProperty]
-        private bool titleNotesTextBoxIsEnabled;
+        private bool titleNotesTextBoxIsEnabled = true;
 
         private void DoMessengerRegistration()
         {
@@ -552,18 +552,65 @@ namespace Chess.ViewModel.Game
             statusDisplayVM.UpdateStatus(this.Status);
 
             var moveCount = this.Game.History.Count();
+            var latestUpdate = this.Game.History.FirstOrDefault();
+
             if (playModeVM != null)
                 playModeVM.GameMoveCount = moveCount;
 
-            previousSavedTitleNotes = string.Empty; // Reset previous saved title notes to force save if there is any change.
-
-            if (ChessGame.TitleNotesDictionary.ContainsKey(moveCount))
+            if (ChessGame.TitleNotesConcurrentDictionary.ContainsKey(moveCount))
             {
-                TitleNotesText = ChessGame.TitleNotesDictionary[moveCount].titleNotes;
+                var earlierUpdate = ChessGame.TitleNotesConcurrentDictionary[moveCount].update;
+
+                // If the latest update is different from the earlier update, it means we are taking a different update for the same move count.
+
+                if (earlierUpdate != null)
+                {
+                    bool isUpdateSameAsLatest = false;
+                    if (earlierUpdate.Command is SequenceCommand && latestUpdate.Command is SequenceCommand)
+                    {
+                        var earlierUpdateFirstCommand = (earlierUpdate.Command as SequenceCommand).FirstCommand;
+                        var latestUpdateFirstCommand = (latestUpdate.Command as SequenceCommand).FirstCommand;
+                        if (earlierUpdateFirstCommand != null && latestUpdateFirstCommand != null)
+                        {
+                            if (earlierUpdateFirstCommand.Equals(latestUpdateFirstCommand))
+                            {
+                                isUpdateSameAsLatest = true;
+                            }
+                        }
+                    }
+                    if (!isUpdateSameAsLatest)
+                    {
+                        // We are taking a different update for the same move count.
+                        foreach (var key in ChessGame.TitleNotesConcurrentDictionary.Keys.ToList())
+                        {
+                            if (key >= moveCount)
+                            {
+                                ChessGame.TitleNotesConcurrentDictionary.Remove(key, out _);
+                            }
+                        }
+                        TitleNotesText = string.Empty; // Reset title notes text as we are taking a different update for the same move count.
+                        if (!ChessGame.TitleNotesConcurrentDictionary.TryAdd(moveCount, (string.Empty, latestUpdate)))
+                        {
+                            Debug.WriteLine("Failed to add to TitleNotesDictionaryNew");
+                        }
+                    }
+                }
+
+                TitleNotesText = ChessGame.TitleNotesConcurrentDictionary[moveCount].titleNotes;
             }
             else
             {
                 TitleNotesText = string.Empty;
+            }
+
+            ResetPreviousSavedTitleNotes();
+        }
+        private object previousSavedTitleNotesLock = new();
+        private void ResetPreviousSavedTitleNotes()
+        {
+            lock (previousSavedTitleNotesLock)
+            {
+                previousSavedTitleNotes = TitleNotesText;
             }
         }
 
@@ -792,49 +839,52 @@ namespace Chess.ViewModel.Game
 
                 var latestUpdate = this.Game.History.FirstOrDefault();
 
-                if (!ChessGame.TitleNotesDictionary.ContainsKey(moveCount))
+                if (!ChessGame.TitleNotesConcurrentDictionary.ContainsKey(moveCount))
                 {
-                    ChessGame.TitleNotesDictionary.Add(moveCount, (TitleNotesText, this.Game.History.FirstOrDefault()));
+                    if (!ChessGame.TitleNotesConcurrentDictionary.TryAdd(moveCount, (TitleNotesText, this.Game.History.FirstOrDefault())))
+                    { 
+                        Debug.WriteLine("Failed to add to TitleNotesDictionaryNew");
+                    }
                 }
                 else
                 {
-                    var update = ChessGame.TitleNotesDictionary[moveCount].update;
-                    if (latestUpdate != null)
-                    {
-                        bool isUpdateSameAsLatest = false;
+                    var update = ChessGame.TitleNotesConcurrentDictionary[moveCount].update;
+                    //if (latestUpdate != null)
+                    //{
+                    //    bool isUpdateSameAsLatest = false;
 
-                        if (update.Command is SequenceCommand && latestUpdate.Command is SequenceCommand)
-                        {
-                            var updateFirstCommand = (update.Command as SequenceCommand).FirstCommand;
-                            var latestUpdateFirstCommand = (latestUpdate.Command as SequenceCommand).FirstCommand;
-                            if (updateFirstCommand != null && latestUpdateFirstCommand != null)
-                            {
-                                if (updateFirstCommand.Equals(latestUpdateFirstCommand))
-                                {
-                                    isUpdateSameAsLatest = true;
-                                }
-                            }
-                        }
+                    //    if (update.Command is SequenceCommand && latestUpdate.Command is SequenceCommand)
+                    //    {
+                    //        var updateFirstCommand = (update.Command as SequenceCommand).FirstCommand;
+                    //        var latestUpdateFirstCommand = (latestUpdate.Command as SequenceCommand).FirstCommand;
+                    //        if (updateFirstCommand != null && latestUpdateFirstCommand != null)
+                    //        {
+                    //            if (updateFirstCommand.Equals(latestUpdateFirstCommand))
+                    //            {
+                    //                isUpdateSameAsLatest = true;
+                    //            }
+                    //        }
+                    //    }
 
-                        if (isUpdateSameAsLatest)
-                        {
-                            // We are taking a different update for the same move count.
-                            foreach (var key in ChessGame.TitleNotesDictionary.Keys.ToList())
-                            {
-                                if (key >= moveCount)
-                                {
-                                    ChessGame.TitleNotesDictionary.Remove(key);
-                                }
-                            }
+                    //    if (isUpdateSameAsLatest)
+                    //    {
+                    //        // We are taking a different update for the same move count.
+                    //        foreach (var key in ChessGame.TitleNotesDictionary.Keys.ToList())
+                    //        {
+                    //            if (key >= moveCount)
+                    //            {
+                    //                ChessGame.TitleNotesDictionary.Remove(key);
+                    //            }
+                    //        }
 
-                            TitleNotesText = string.Empty; // Reset title notes text as we are taking a different update for the same move count.
-                            ChessGame.TitleNotesDictionary.Add(moveCount, (string.Empty, latestUpdate));
-                        }
-                    }
-                    ChessGame.TitleNotesDictionary[moveCount] = (TitleNotesText, update);
+                    //        // TitleNotesText = string.Empty; // Reset title notes text as we are taking a different update for the same move count.
+                    //        ChessGame.TitleNotesDictionary.Add(moveCount, (string.Empty, latestUpdate));
+                    //    }
+                    //}
+                    ChessGame.TitleNotesConcurrentDictionary[moveCount] = (TitleNotesText, update);
                 }
 
-                previousSavedTitleNotes = TitleNotesText;
+                ResetPreviousSavedTitleNotes();
 
                 if (SelectedAppModeValue == AppMode.Record)
                 {

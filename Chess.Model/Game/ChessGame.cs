@@ -7,6 +7,7 @@
 namespace Chess.Model.Game
 {
     using Chess.Model.Data;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -125,12 +126,13 @@ namespace Chess.Model.Game
             this.GameId = InstanceCounter;
         }
 
-        public static Dictionary<int, (string titleNotes, Update update)> TitleNotesDictionary = new();
+        public static ConcurrentDictionary<int, (string titleNotes, Update update)> TitleNotesConcurrentDictionary = new();
 
-        /// <summary>
-        /// Represents the update that will lead to the next game state.
-        /// </summary>
-        public IMaybe<Update> NextUpdate { get; set; }
+
+    /// <summary>
+    /// Represents the update that will lead to the next game state.
+    /// </summary>
+    public IMaybe<Update> NextUpdate { get; set; }
 
         /// <summary>
         /// Gets the history of updates that led to this game state.
