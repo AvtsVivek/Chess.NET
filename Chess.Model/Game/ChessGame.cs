@@ -129,10 +129,10 @@ namespace Chess.Model.Game
         public static ConcurrentDictionary<int, (string titleNotes, Update update)> TitleNotesConcurrentDictionary = new();
 
 
-    /// <summary>
-    /// Represents the update that will lead to the next game state.
-    /// </summary>
-    public IMaybe<Update> NextUpdate { get; set; }
+        /// <summary>
+        /// Represents the update that will lead to the next game state.
+        /// </summary>
+        public IMaybe<Update> NextUpdate { get; set; }
 
         /// <summary>
         /// Gets the history of updates that led to this game state.

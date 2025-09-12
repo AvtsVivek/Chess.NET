@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -27,6 +28,7 @@ namespace Chess.ViewModel.StatusAndMode
         private readonly GenericCommand openFolderInVsCodeCommand;
         private readonly GenericCommand setParentFolderCommand;
         private readonly GenericCommand copyFolderPathCommand;
+        private readonly MoveSequenceService moveSequenceService = new MoveSequenceService();
 
         public RecordReviewModeVM(IWindowService windowService)
         {
@@ -202,6 +204,33 @@ namespace Chess.ViewModel.StatusAndMode
             }
         }
 
+        private void ReSetFullFilePathForRecordUndo(int moveCount)
+        {
+            if (moveSequenceService.ShouldResetFileName(moveCount))
+            {
+                var fileName = Path.GetFileNameWithoutExtension(FullFilePath);
+                var directory = Path.GetDirectoryName(FullFilePath);
+
+                bool endsWithUnderscoreDigit = System.Text.RegularExpressions.Regex.IsMatch(fileName, @"_\d$");
+                if (endsWithUnderscoreDigit)
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(fileName, @"_(\d)$");
+                    if (match.Success)
+                    {
+                        int digit = int.Parse(match.Groups[1].Value);
+                        digit++;
+                        fileName = fileName.Substring(0, fileName.Length - 2) + "_" + digit;
+                    }
+                }
+                else
+                {
+                    fileName += "_1";
+                }
+
+                FullFilePath = Path.Combine(directory ?? string.Empty, fileName + ".xml");
+            }
+        }
+
         public void WriteToXmlFile(ChessGame chessGame)
         {
             if (string.IsNullOrWhiteSpace(FullFilePath))
@@ -210,6 +239,9 @@ namespace Chess.ViewModel.StatusAndMode
                     "Cannot continue.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
+
+            var moveCount = chessGame.History.Count();
+            ReSetFullFilePathForRecordUndo(moveCount);
 
             Task.Run(() =>
             {
