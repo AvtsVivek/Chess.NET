@@ -227,6 +227,12 @@ namespace Chess.ViewModel.StatusAndMode
                     fileName += "_1";
                 }
 
+                var messageText = $"Undo: Recording to a new file." + Environment.NewLine +
+                    $"{fileName}.xml";
+
+                var message = new MessageFromRecordReviewModeVMToChessGameVM(null, messageText);
+                WeakReferenceMessenger.Default.Send(message);
+
                 FullFilePath = Path.Combine(directory ?? string.Empty, fileName + ".xml");
             }
         }

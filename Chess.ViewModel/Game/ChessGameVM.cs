@@ -58,6 +58,7 @@ namespace Chess.ViewModel.Game
 
         private readonly GenericCommand titleNotesTextBoxBorderMouseDownCommand;
         private readonly GenericCommand titleNotesLostFocusCommand;
+        private readonly GenericCommand buildCustomBoardCommand;
 
         /// <summary>
         /// Represents the current game state.
@@ -98,6 +99,27 @@ namespace Chess.ViewModel.Game
         {
 
             this.titleNotesTextBoxBorderMouseDownCommand = new GenericCommand(() => true, OnTitleNotesTextBoxBorderMouseDown);
+
+            this.buildCustomBoardCommand = new GenericCommand
+            (
+                () => {
+                    if (SelectedAppModeValue == AppMode.Review)
+                    {
+                        return false;
+                    }
+                    
+                    if(this.Game.History.Count() == 0)
+                    {
+                        return true;
+                    }
+                    return false;
+                },
+                () =>
+                {
+                    //WeakReferenceMessenger.Default.Send(new MessageFromChessGameVMToCustomBoardWindowVM(this.Game));
+                    //windowService.ShowCustomBoardWindow();
+                }
+            );
 
             this.titleNotesLostFocusCommand = new GenericCommand(() => true, OnTitleNotesLostFocus);
 
@@ -156,6 +178,8 @@ namespace Chess.ViewModel.Game
             HeaderNotificationMessage = new();
 
             StartSaveTitleNotesTextLoop();
+
+            // HeaderNotificationMessage.MessageText = "Chess Moves cannot be done in Review Mode";
         }
 
         private void ToggleBoardInvertedField()
@@ -175,6 +199,12 @@ namespace Chess.ViewModel.Game
 
         [ObservableProperty]
         private bool titleNotesTextBoxIsEnabled = true;
+
+        [ObservableProperty]
+        private Visibility customBoardButtonVisibility = Visibility.Visible;
+
+
+
 
         private void DoMessengerRegistration()
         {
@@ -219,9 +249,25 @@ namespace Chess.ViewModel.Game
 
             WeakReferenceMessenger.Default.Register<MessageFromRecordReviewModeVMToChessGameVM>(this, async (r, m) =>
             {
-                StartNewGame();
+                if (!string.IsNullOrWhiteSpace(m.IsHeaderNotificationMessage))
+                {
+                    HeaderNotificationMessage.MessageText = m.IsHeaderNotificationMessage;
+                    HeaderNotificationMessage.MessageFontSize = 14; // Smaller font size for longer messages.
+                    return;
+                }
 
+                // Review Game. Load the game in the board.
                 var game = m.Value;
+
+                if (game == null)
+                {
+                    Debug.WriteLine("No game available for review.");
+                    MessageBox.Show("No game available for review.");
+                    Debugger.Break();
+                    return;
+                }
+
+                StartNewGame();
 
                 if (game.History.Any())
                 {
@@ -297,6 +343,7 @@ namespace Chess.ViewModel.Game
 
         public GenericCommand TitleNotesTextBoxBorderMouseDownCommand => this.titleNotesTextBoxBorderMouseDownCommand;
         public GenericCommand TitleNotesLostFocusCommand => this.titleNotesLostFocusCommand;
+        public GenericCommand BuildCustomBoardCommand => this.buildCustomBoardCommand;
 
         private void ExecuteNewCommand()
         {
@@ -392,10 +439,10 @@ namespace Chess.ViewModel.Game
         private object currentAppModeVM;
 
         [ObservableProperty]
-        private object _modeAndPlayerStatusDisplayVM;
+        private object modeAndPlayerStatusDisplayVM;
 
         [ObservableProperty]
-        private HeaderNotificationVM _headerNotificationMessage;
+        private HeaderNotificationVM headerNotificationMessage;
 
         private AppMode selectedAppModeValue;
         public AppMode SelectedAppModeValue
@@ -545,6 +592,8 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void RefreshAfterEndTurn()
         {
+            this.BuildCustomBoardCommand.FireCanExecuteChanged();
+
             this.OnPropertyChanged(nameof(this.Status));
 
             reviewModeHeaderDisplayVM?.UpdateStatus(this.Status);
@@ -677,6 +726,15 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedHandler(AppMode previousAppMode)
         {
+            if(SelectedAppModeValue == AppMode.Review)
+            {
+                CustomBoardButtonVisibility = Visibility.Collapsed;
+            }
+            else
+            {
+                CustomBoardButtonVisibility = Visibility.Visible;
+            }
+
             SetReviewFileLoadComplete(loadComplete: false);
 
             SaveTitleNotesText();

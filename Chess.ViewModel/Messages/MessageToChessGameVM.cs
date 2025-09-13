@@ -5,8 +5,10 @@
 
     public class MessageFromRecordReviewModeVMToChessGameVM : ValueChangedMessage<ChessGame>
     {
-        public MessageFromRecordReviewModeVMToChessGameVM(ChessGame game) : base(game)
+        public string IsHeaderNotificationMessage { get; set; } = string.Empty;
+        public MessageFromRecordReviewModeVMToChessGameVM(ChessGame game, string isHeaderNotificationMessage = "") : base(game)
         {
+            this.IsHeaderNotificationMessage = isHeaderNotificationMessage;
         }
     }
 

@@ -11,10 +11,13 @@ namespace Chess.ViewModel.StatusAndMode
         [ObservableProperty]
         private string messageText;
 
-        public void ClearMessage()
-        {
-            MessageText = string.Empty;
-        }
+        [ObservableProperty]
+        private int messageFontSize = 20;
+
+        //public void ClearMessage()
+        //{
+        //    MessageText = string.Empty;
+        //}
 
     }
 }
