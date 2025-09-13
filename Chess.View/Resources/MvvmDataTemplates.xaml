@@ -5,6 +5,15 @@
                     xmlns:statusAndModeWindow="clr-namespace:Chess.View.StatusAndMode" 
                     xmlns:statusAndMode="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel">
 
+    <DataTemplate DataType="{x:Type statusAndMode:BuildCustomBoardVM}">
+        <statusAndModeWindow:BuildCustomBoardView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type statusAndMode:StatusModeListViewVM}">
+        <statusAndModeWindow:StatusModeListViewView/>
+    </DataTemplate>
+
+
     <DataTemplate DataType="{x:Type statusAndMode:PlayModeVM}">
         <statusAndModeWindow:PlayModeView/>
     </DataTemplate>

@@ -12,6 +12,7 @@ namespace Chess.View.Window
     using MahApps.Metro.Controls;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
@@ -48,7 +49,7 @@ namespace Chess.View.Window
 
             this.SaveWindowPosition = true;
 
-            this.gridLengthConverter = new GridLengthConverter();
+            this.gridLengthConverter = new();
 
             if(!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessGameColumnWidth))
                 ChessGameColumn.Width = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessGameColumnWidth);
@@ -58,17 +59,17 @@ namespace Chess.View.Window
 
 
 
-            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessMovesListViewRowHeight))
-                ChessMovesListViewRow.Height = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessMovesListViewRowHeight);
+            //if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessMovesListViewRowHeight))
+            //    ChessMovesListViewRow.Height = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessMovesListViewRowHeight);
 
-            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessMovesNotesRowHeight))
-                ChessMovesNotesRow.Height = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessMovesNotesRowHeight);
+            //if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ChessMovesNotesRowHeight))
+            //    ChessMovesNotesRow.Height = (GridLength)gridLengthConverter.ConvertFromString(ChessAppSettings.Default.ChessMovesNotesRowHeight);
 
-            PlayRadioButton.IsChecked = true;
+            //PlayRadioButton.IsChecked = true;
 
-            _chessMovesNotesRowHeight = ChessMovesNotesRow.Height;
-            ChessMovesNotesRow.Height = new GridLength(0);
-            HorizontalSplitterRow.Height = new GridLength(0);
+            //_chessMovesNotesRowHeight = ChessMovesNotesRow.Height;
+            //ChessMovesNotesRow.Height = new GridLength(0);
+            //HorizontalSplitterRow.Height = new GridLength(0);
         }
 
         /// <summary>
@@ -82,6 +83,7 @@ namespace Chess.View.Window
 
             if (sender is Border)
             {
+                Debugger.Break();
                 return;
             }
 
@@ -175,44 +177,74 @@ namespace Chess.View.Window
 
         private void HorizontalGridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
         {
-            var chessMovesListRowHeight = gridLengthConverter.ConvertToString(ChessMovesListViewRow.Height);
-            var chessMovesNotesRowHeight = gridLengthConverter.ConvertToString(ChessMovesNotesRow.Height);
+            //var chessMovesListRowHeight = gridLengthConverter.ConvertToString(ChessMovesListViewRow.Height);
+            //var chessMovesNotesRowHeight = gridLengthConverter.ConvertToString(ChessMovesNotesRow.Height);
 
-            ChessAppSettings.Default.ChessMovesListViewRowHeight = chessMovesListRowHeight;
-            ChessAppSettings.Default.ChessMovesNotesRowHeight = chessMovesNotesRowHeight;
+            //ChessAppSettings.Default.ChessMovesListViewRowHeight = chessMovesListRowHeight;
+            //ChessAppSettings.Default.ChessMovesNotesRowHeight = chessMovesNotesRowHeight;
             ChessAppSettings.Default.Save();
         }
 
-        private GridLength _chessMovesNotesRowHeight;
+        // private GridLength _chessMovesNotesRowHeight;
 
         private void PlayReCordReviewRadioButton_Click(object sender, RoutedEventArgs e)
         {
             var radioButton = sender as RadioButton;
             var mode = radioButton?.Tag as string; 
 
-            switch (mode)
+            //switch (mode)
+            //{
+            //    case "Play":
+            //        {
+            //            _chessMovesNotesRowHeight = ChessMovesNotesRow.Height;
+            //            ChessMovesNotesRow.Height = new GridLength(0);
+            //            HorizontalSplitterRow.Height = new GridLength(0);
+            //        }
+            //        break;
+            //    case "Record":
+            //        {
+            //            ChessMovesNotesRow.Height = _chessMovesNotesRowHeight;
+            //            HorizontalSplitterRow.Height = new GridLength(5);
+            //        }
+            //        break;
+            //    case "Review":
+            //        {
+            //            ChessMovesNotesRow.Height = _chessMovesNotesRowHeight;
+            //            HorizontalSplitterRow.Height = new GridLength(5);
+            //        }
+            //        break;
+            //    default:
+            //        throw new InvalidOperationException($"Unknown mode: {mode}");
+            //}
+        }
+
+        //// In MainWindow.xaml.cs, override OnPreviewMouseDown or OnMouseDown to handle routed MouseDown events:
+        //protected override void OnPreviewMouseDown(System.Windows.Input.MouseButtonEventArgs e)
+        //{
+        //    base.OnPreviewMouseDown(e);
+
+        //    // Check if the event originated from ChessMovesListViewBorder
+        //    var sourceBorder = e.OriginalSource as System.Windows.Controls.Border;
+        //    if (sourceBorder != null && sourceBorder.Name == "ChessMovesListViewBorder")
+        //    {
+        //        // Handle the event here
+        //        // Example: MessageBox.Show("MouseDown from ChessMovesListViewBorder handled in MainWindow!");
+        //    }
+        //}
+
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            base.OnMouseDown(e);
+
+            // Check if the event originated from ChessMovesListViewBorder
+            var sourceBorder = e.OriginalSource as Border;
+            if (sourceBorder != null 
+                // && sourceBorder.Name == "ChessMovesListViewBorder"
+                )
             {
-                case "Play":
-                    {
-                        _chessMovesNotesRowHeight = ChessMovesNotesRow.Height;
-                        ChessMovesNotesRow.Height = new GridLength(0);
-                        HorizontalSplitterRow.Height = new GridLength(0);
-                    }
-                    break;
-                case "Record":
-                    {
-                        ChessMovesNotesRow.Height = _chessMovesNotesRowHeight;
-                        HorizontalSplitterRow.Height = new GridLength(5);
-                    }
-                    break;
-                case "Review":
-                    {
-                        ChessMovesNotesRow.Height = _chessMovesNotesRowHeight;
-                        HorizontalSplitterRow.Height = new GridLength(5);
-                    }
-                    break;
-                default:
-                    throw new InvalidOperationException($"Unknown mode: {mode}");
+                MainBoardGrid.Focus();
+                // Handle the event here
+                // Example: MessageBox.Show("MouseDown from ChessMovesListViewBorder handled in MainWindow!");
             }
         }
     }
