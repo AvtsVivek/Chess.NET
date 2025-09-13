@@ -5,14 +5,14 @@
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        xmlns:conv="clr-namespace:Chess.View.Converter"
         xmlns:icon="clr-namespace:Chess.View.Icon"
         xmlns:localView="clr-namespace:Chess.View.Window"
         xmlns:statusAndMode="clr-namespace:Chess.View.StatusAndMode"
         xmlns:select="clr-namespace:Chess.View.Selector"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:conv="clr-namespace:Chess.View.Converter"
         xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
         xmlns:statusAndModeVm="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel"
-        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:gameModel="clr-namespace:Chess.Model.Game;assembly=Chess.Model"
         d:DataContext="{d:DesignInstance Type=game:ChessGameVM}"
         mc:Ignorable="d"
@@ -42,41 +42,7 @@
                     Duration="{StaticResource duration}" To="Black" />
             </Storyboard>
             <SolidColorBrush x:Key="LabelBackgroundBrush" Color="White"/>
-            <Style x:Key="CustomRadioButtonStyle" TargetType="RadioButton">
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="RadioButton">
-                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
-                                <Grid Width="16" Height="16">
-                                    <!-- Outer circle -->
-                                    <Ellipse
-                                        Width="16" Height="16"
-                                        Stroke="Gray" StrokeThickness="2"
-                                        Fill="White" />
-                                    <!-- Inner circle, visible only when checked -->
-                                    <Ellipse
-                                        x:Name="InnerCircle"
-                                        Width="8" Height="8"
-                                        Fill="DarkBlue"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Visibility="Collapsed" />
-                                </Grid>
-                                <ContentPresenter Content="{TemplateBinding Content}"
-                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                  ContentStringFormat="{TemplateBinding ContentStringFormat}"
-                                                  Margin="0,5,0,0"
-                                                  HorizontalAlignment="Center"/>
-                            </StackPanel>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="InnerCircle" Property="Visibility" Value="Visible"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+            
         </ResourceDictionary>
     </Window.Resources>
 
@@ -138,9 +104,7 @@
     </mah:MetroWindow.RightWindowCommands>
 
     <DockPanel>
-        <DockPanel.Resources>
-            <conv:StatusConverter x:Key="statusConverter" />
-        </DockPanel.Resources>
+
 
         <Grid DockPanel.Dock="Top" Background="White">
             <Grid.ColumnDefinitions>
@@ -435,105 +399,7 @@
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" DragCompleted="VerticalGridSplitter_DragCompleted" />
 
-            <DockPanel Grid.Column="2">
-                <Grid DockPanel.Dock="Top" >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Border Background="LightGray" Margin="10 10 2 10" BorderBrush="White" BorderThickness="2" CornerRadius="5">
-                        <Border.Triggers>
-                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation
-                                                Duration="{StaticResource duration}"
-                                                To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
-                                                Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Border.Triggers>
-                        <StackPanel Margin="5" Orientation="Horizontal">
-                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Play" Tag="Play" Name="PlayRadioButton" GroupName="ModeSelection" Click="PlayReCordReviewRadioButton_Click" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Play}}"/>
-                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Record" Tag="Record"  Name="RecordRadioButton" GroupName="ModeSelection" Click="PlayReCordReviewRadioButton_Click" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Record}}" />
-                            <RadioButton Style="{StaticResource CustomRadioButtonStyle}" Width="40" Margin="5" Background="Transparent" Content="Review" Tag="Review" Name="ReviewRadioButton" GroupName="ModeSelection" Click="PlayReCordReviewRadioButton_Click" IsChecked="{Binding SelectedAppModeValue, Converter={StaticResource AppModeConverter}, ConverterParameter={x:Static game:AppMode.Review}}" />
-                        </StackPanel>
-                    </Border>
-                    <Border Grid.Column="1" Background="LightGray" Margin="2 10 10 10" BorderBrush="White" BorderThickness="2" CornerRadius="5" MouseDown="BoardMouseDown">
-                        <Border.Triggers>
-                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation
-                                                Duration="{StaticResource duration}"
-                                                To="{Binding Status, Converter={StaticResource statusConverter}, NotifyOnTargetUpdated=True}"
-                                                Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)" />
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Border.Triggers>
-                        <ContentControl Margin="0" Content="{Binding CurrentAppModeVM}"/>
-                    </Border>
-                </Grid>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition x:Name="ChessMovesListViewRow" Height="*" />
-                        <RowDefinition x:Name="HorizontalSplitterRow" Height="5" />
-                        <RowDefinition x:Name="ChessMovesNotesRow" Height="{Binding ChessMovesNotesRowHeight}" />
-                    </Grid.RowDefinitions>
-                    <Border CornerRadius="5" Background="LightGray" Margin="10,5,10,10" x:Name="ChessMovesListViewBorder" Focusable="True" MouseDown="BoardMouseDown">
-                        <ListView x:Name="myListView" Grid.Row="0"
-                        ItemsSource="{Binding Path=Board.ChessMoveSequence.ChessMoves}"
-                        Height="Auto" Margin="10 5 10 10 " Width="Auto"
-                        VerticalAlignment="Top" Background="AliceBlue">
-                            <ListView.Resources>
-                                <select:PieceSelectorForMoveSequenceListView x:Key="pieceSelectorForMoveSequenceListView" />
-                            </ListView.Resources>
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Width="15" VerticalAlignment="Center" Text="{Binding MoveNumber}" 
-                                               HorizontalAlignment="Center" Margin="10" FontWeight="Bold"/>
-                                        <ContentControl Content="{Binding}">
-                                            <ContentControl.ContentTemplateSelector>
-                                                <StaticResource ResourceKey="pieceSelectorForMoveSequenceListView" />
-                                            </ContentControl.ContentTemplateSelector>
-                                        </ContentControl>
-                                        <TextBlock Width="30" VerticalAlignment="Center" Text="{Binding PieceColor}" Margin="10" />
-                                        <TextBlock Width="30" VerticalAlignment="Center" Text="{Binding PieceName}" Margin="10" />
-                                        <TextBlock Width="20" VerticalAlignment="Center" Text="{Binding SourceString}" Margin="10"/>
-                                        <TextBlock Width="20" VerticalAlignment="Center" Text="{Binding TargetString}" Margin="10"/>
-                                        <TextBlock Width="65" VerticalAlignment="Center" Text="{Binding ShortDescription}" Margin="10"/>
-                                        <TextBlock VerticalAlignment="Center" Text="{Binding GameAndUpdateInfo}" Margin="10"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </Border>
-                    <GridSplitter Grid.Row="1" Height="5" VerticalAlignment="Stretch" DragCompleted="HorizontalGridSplitter_DragCompleted" />
-                    <Border Grid.Row="2" CornerRadius="5" Background="LightGray" Margin="10" >
-                        <i:Interaction.Triggers>
-                            <i:EventTrigger EventName="MouseDown">
-                                <i:InvokeCommandAction Command="{Binding TitleNotesTextBoxBorderMouseDownCommand}" />
-                            </i:EventTrigger>
-                        </i:Interaction.Triggers>
-                        <TextBox Margin="5" Name="TitleNotesTextBox" FontSize="15" IsEnabled="{Binding TitleNotesTextBoxIsEnabled}"
-                                Text="{Binding TitleNotesText, Mode=TwoWay, UpdateSourceTrigger=Explicit}"
-                                conv:DebounceTextBoxBehavior.DebounceDelay="0:0:0.4"
-                                BorderThickness="0" AcceptsReturn="True"
-                                VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                                Background="LightGray" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                conv:TextBoxPlaceholderBehavior.Placeholder="{Binding PlaceHolderTextForTitleNotesTextBox}">
-                            <i:Interaction.Triggers>
-                                <i:EventTrigger EventName="LostFocus">
-                                    <i:InvokeCommandAction Command="{Binding TitleNotesLostFocusCommand}" />
-                                </i:EventTrigger>
-                            </i:Interaction.Triggers>
-                        </TextBox>
-                    </Border>
-                </Grid>
-            </DockPanel>
+            <ContentControl Grid.Column="2" Margin="0" Content="{Binding CustomBoardStatusModeVM}"/>
         </Grid>
     </DockPanel>
 </mah:MetroWindow>

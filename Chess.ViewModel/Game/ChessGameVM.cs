@@ -89,6 +89,10 @@ namespace Chess.ViewModel.Game
 
         private ReviewModeHeaderDisplayVM reviewModeHeaderDisplayVM;
 
+        private BuildCustomBoardVM buildCustomBoardVM;
+
+        private StatusModeListViewVM statusModeListViewVM;
+
         private readonly IWindowService windowService;
 
         /// <summary>
@@ -97,6 +101,9 @@ namespace Chess.ViewModel.Game
         /// <param name="updateSelector">The disambiguation mechanism if multiple updates are available for a target field.</param>
         public ChessGameVM(Func<IList<Update>, Update> updateSelector, IWindowService windowService)
         {
+            this.buildCustomBoardVM = new();
+
+            this.customBoardStatusModeVM = this.statusModeListViewVM = new();
 
             this.titleNotesTextBoxBorderMouseDownCommand = new GenericCommand(() => true, OnTitleNotesTextBoxBorderMouseDown);
 
@@ -116,6 +123,24 @@ namespace Chess.ViewModel.Game
                 },
                 () =>
                 {
+                    if(selectedAppModeValue == AppMode.Review)
+                    {
+                        return; // Do nothing in review mode.
+                    }
+
+                    if (this.Game.History.Count() > 0)
+                    {
+                        return;
+                    }
+
+                    if (CustomBoardStatusModeVM is BuildCustomBoardVM)
+                    {
+                        CustomBoardStatusModeVM = statusModeListViewVM;
+                    }
+                    else
+                    {
+                        CustomBoardStatusModeVM = buildCustomBoardVM;
+                    }
                     //WeakReferenceMessenger.Default.Send(new MessageFromChessGameVMToCustomBoardWindowVM(this.Game));
                     //windowService.ShowCustomBoardWindow();
                 }
@@ -202,9 +227,6 @@ namespace Chess.ViewModel.Game
 
         [ObservableProperty]
         private Visibility customBoardButtonVisibility = Visibility.Visible;
-
-
-
 
         private void DoMessengerRegistration()
         {
@@ -437,6 +459,9 @@ namespace Chess.ViewModel.Game
 
         [ObservableProperty]
         private object currentAppModeVM;
+
+        [ObservableProperty]
+        private object customBoardStatusModeVM;
 
         [ObservableProperty]
         private object modeAndPlayerStatusDisplayVM;
