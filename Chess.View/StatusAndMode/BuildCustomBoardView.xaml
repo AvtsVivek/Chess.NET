@@ -4,9 +4,83 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Chess.View.StatusAndMode"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <TextBlock>Custom Board View</TextBlock>
-    </Grid>
+             mc:Ignorable="d" xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
+             xmlns:conv="clr-namespace:Chess.View.Converter"
+             xmlns:gameModel="clr-namespace:Chess.Model.Game;assembly=Chess.Model"
+             xmlns:select="clr-namespace:Chess.View.Selector"
+             d:DesignHeight="4" d:DesignWidth="4">
+    <Viewbox >
+        <Canvas Width="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" Name="MainBoardCanvas" Focusable="True"
+                Height="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" MouseDown="MainBoardCanvas_MouseDown">
+            <Canvas.Resources>
+                <PowerEase x:Key="ease" EasingMode="EaseInOut" />
+                <Storyboard x:Key="fadeIn">
+                    <DoubleAnimation Duration="{StaticResource duration}" To="1" Storyboard.TargetProperty="Opacity" />
+                </Storyboard>
+                <Storyboard x:Key="fadeOut">
+                    <DoubleAnimation Duration="{StaticResource duration}" To="0" Storyboard.TargetProperty="Opacity" />
+                </Storyboard>
+                <Storyboard x:Key="fadeOutWithEvent" >
+                    <DoubleAnimation Duration="{StaticResource duration}" To="0" Storyboard.TargetProperty="Opacity" />
+                </Storyboard>
+            </Canvas.Resources>
+
+            <!-- Row Column Labels -->
+
+            <!-- Board fields -->
+            <ItemsControl ItemsSource="{Binding Fields}">
+                <ItemsControl.Resources>
+                    <conv:FieldBrushConverter x:Key="fieldBrushConverter" />
+                </ItemsControl.Resources>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas Width="{x:Static game:BoardConstants.CustomBoardFieldLength}" 
+                                Height="{x:Static game:BoardConstants.CustomBoardFieldLength}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Width" Value="1" />
+                        <Setter Property="Height" Value="1" />
+                        <Setter Property="Canvas.Bottom" Value="{Binding DistanceFromBottom}" />
+                        <Setter Property="Canvas.Left" Value="{Binding DistanceFromLeft}" />
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border>
+                            <Border.Background>
+                                <MultiBinding Converter="{StaticResource fieldBrushConverter}" Mode="OneTime">
+                                    <Binding Path="Row" />
+                                    <Binding Path="Column" />
+                                </MultiBinding>
+                            </Border.Background>
+                            <Rectangle Margin="0.075" Fill="SeaGreen" Opacity="0">
+                                <Rectangle.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsTarget}" Value="True" >
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <StaticResource ResourceKey="fadeIn" />
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <StaticResource ResourceKey="fadeOut" />
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Rectangle.Style>
+                            </Rectangle>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <!-- Board pieces -->
+
+        </Canvas>
+    </Viewbox>
 </UserControl>

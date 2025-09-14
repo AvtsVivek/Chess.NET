@@ -81,10 +81,13 @@ namespace Chess.ViewModel.Game
             this.activePlayerCommands = new List<ICommand>();
             this.chessMoveSequence = new ChessMoveSequenceVM();
             var pieces = board.Select(p => new PlacedPieceVM(p));
-            var fieldArray = new FieldVM[8, 8];
+
+            int boardLength = (int)BoardConstants.BoardLength; // This is 8, but using the constant for clarity.
+
+            var fieldArray = new FieldVM[boardLength, boardLength];
             var fieldVMs =
-               from row in Enumerable.Range(0, 8)
-               from column in Enumerable.Range(0, 8)
+               from row in Enumerable.Range(0, boardLength)
+               from column in Enumerable.Range(0, boardLength)
                select new FieldVM(row, column);
 
             foreach (var field in fieldVMs)
