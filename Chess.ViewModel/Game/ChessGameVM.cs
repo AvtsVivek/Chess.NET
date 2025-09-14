@@ -199,11 +199,6 @@ namespace Chess.ViewModel.Game
 
         public GenericCommand BoardInversionToggleCommand { get; }
 
-        /// <summary>
-        /// Flag to indicate, the record mode is not yet ready for recording.
-        /// </summary>
-        private bool recordModeNotReady = true;
-
         [ObservableProperty]
         private Visibility customBoardButtonVisibility = Visibility.Visible;
 
@@ -211,13 +206,19 @@ namespace Chess.ViewModel.Game
 
         private void DoMessengerRegistration()
         {
-            WeakReferenceMessenger.Default.Register<MessageFromStatusModeListViewVMToChessGameVM>(this, (r, m) =>
+            WeakReferenceMessenger.Default.Register<MessageFromStatusModeListViewVMToChessGameVM>(this, async (r, m) =>
             {
                 var previousAppMode = selectedAppModeValue;
 
                 selectedAppModeValue = m.AppModeValue;
 
                 AppModeChangedHandler(previousAppMode);
+                statusModeListViewVM.recordModeNotReady = true; // Still not ready for recording until all redos are done.
+
+                if (m.AppModeValue == AppMode.Record)
+                {
+                    await RedoTillEnd();
+                }
 
                 if (m.AppModeValue == AppMode.Review)
                 {
@@ -236,16 +237,7 @@ namespace Chess.ViewModel.Game
                     if (selectedAppModeValue == AppMode.Record
                     || selectedAppModeValue == AppMode.Play)
                     {
-                        await Task.Run(() =>
-                        {
-                            while (this.redoCommand.CanExecute(null))
-                            {
-                                recordModeNotReady = true; // Still not ready for recording until all redos are done.
-                                this.redoCommand.Execute(null);
-                            }
-                            Application.Current?.Dispatcher.Invoke(SendMessageToManualReviewVM);
-                            recordModeNotReady = false; // Now ready for recording.
-                        });
+                        await RedoTillEnd();
                     }
                 }
             });
@@ -269,8 +261,6 @@ namespace Chess.ViewModel.Game
                     Debugger.Break();
                     return;
                 }
-
-                StartNewGame();
 
                 if (game.History.Any())
                 {
@@ -298,12 +288,31 @@ namespace Chess.ViewModel.Game
                 {
                     while (commandToExecute.CanExecute(null))
                     {
+                        // Sometimes the UI does not update properly without a small delay.
+                        // I tried with the following three options. The second one seems to work best.
+                        // Task.CompletedTask.Wait(200); // Small delay to simulate loading time.
+                        Task.Delay(100).Wait();
+                        // Task.Delay(20);
                         commandToExecute.Execute(null);
                     }
                     Application.Current?.Dispatcher.Invoke(SendMessageToManualReviewVM);
                 });
 
                 SetReviewFileLoadComplete();
+            });
+        }
+
+        private async Task RedoTillEnd()
+        {
+            await Task.Run(() =>
+            {
+                while (this.redoCommand.CanExecute(null))
+                {
+                    statusModeListViewVM.recordModeNotReady = true; // Still not ready for recording until all redos are done.
+                    this.redoCommand.Execute(null);
+                }
+                Application.Current?.Dispatcher.Invoke(SendMessageToManualReviewVM);
+                statusModeListViewVM.recordModeNotReady = false; // Now ready for recording.
             });
         }
 
@@ -360,7 +369,7 @@ namespace Chess.ViewModel.Game
             this.Board = new BoardVM(this.Game.Board);
             this.OnPropertyChanged(nameof(this.Status));
             this.Board.ClearChessMoveSequence();
-
+            this.OnPropertyChanged(nameof(statusModeListViewVM.Status));
             RefreshAfterEndTurn();
         }
 
@@ -577,7 +586,7 @@ namespace Chess.ViewModel.Game
 
             this.Board.ClearUpdates();
 
-            this.recordModeNotReady = true; // Not ready for recording until the mode change is fully handled.
+            this.statusModeListViewVM.recordModeNotReady = true; // Not ready for recording until the mode change is fully handled.
            
             switch (selectedAppModeValue)
             {
@@ -609,7 +618,7 @@ namespace Chess.ViewModel.Game
         private void AppModeChangedToRecordMode(AppMode previousAppMode)
         {
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
-            recordModeNotReady = false; // Now ready for recording.
+            this.statusModeListViewVM.recordModeNotReady = false; // Now ready for recording.
         }
 
         /// <summary>

@@ -45,15 +45,13 @@ namespace Chess.ViewModel.StatusAndMode
         private bool titleNotesTextBoxFocused;
 
         private readonly IWindowService windowService;
-
         private readonly GenericCommand titleNotesTextBoxBorderMouseDownCommand;
         private readonly GenericCommand titleNotesLostFocusCommand;
-        //private readonly GenericCommand buildCustomBoardCommand;
 
         /// <summary>
         /// Flag to indicate, the record mode is not yet ready for recording.
         /// </summary>
-        private bool recordModeNotReady = true;
+        public bool recordModeNotReady = true;
 
         private readonly Func<(ChessGame Game, BoardVM Board, Action StartNewGame)> getCurrentGameBoardDelegateAndStartNewGame;
 
