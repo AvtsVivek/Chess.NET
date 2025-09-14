@@ -281,7 +281,7 @@
                         </ItemsControl.Resources>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <Canvas Width="8" Height="8" />
+                                <Canvas Width="{x:Static game:BoardConstants.BoardLength}" Height="{x:Static game:BoardConstants.BoardLength}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemContainerStyle>

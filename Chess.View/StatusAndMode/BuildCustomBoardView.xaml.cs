@@ -11,5 +11,10 @@ namespace Chess.View.StatusAndMode
         {
             InitializeComponent();
         }
+
+        private void MainBoardCanvas_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+
+        }
     }
 }
