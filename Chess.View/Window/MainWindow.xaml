@@ -47,7 +47,7 @@
     </Window.Resources>
 
     <Window.InputBindings>
-        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewCommand}" />
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewGameCommand}" />
         <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding UndoCommand}" />
         <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding RedoCommand}" />
     </Window.InputBindings>
@@ -125,7 +125,7 @@
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
                 <MenuItem Header="Game Menu" Margin="10" HorizontalAlignment="Left">
-                    <MenuItem Header="New" Command="{Binding NewCommand}" InputGestureText="Ctrl+N" 
+                    <MenuItem Header="New" Command="{Binding NewGameCommand}" InputGestureText="Ctrl+N" 
                           Style="{StaticResource AppThemeMenuItemStyle}">
                         <MenuItem.Icon>
                             <icon:NewIcon />
