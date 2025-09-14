@@ -17,4 +17,9 @@ namespace Chess.ViewModel.Messages
     {
         public ReviewMode ReviewModeValue { get; private set; } = reviewModeValue;
     }
+
+    public record MessageFromStatusModeListViewVMToChessGameVM(AppMode appModeValue)
+    {
+        public AppMode AppModeValue { get; private set; } = appModeValue;
+    }
 }

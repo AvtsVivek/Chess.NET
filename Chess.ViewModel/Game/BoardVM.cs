@@ -22,7 +22,7 @@ namespace Chess.ViewModel.Game
     /// <summary>
     /// Represents the view model of a chess board.
     /// </summary>
-    public class BoardVM : ObservableObject
+    public partial class BoardVM : ObservableObject
     {
         /// <summary>
         /// Represents the visitor that can set potential targets for chess pieces on the board.
@@ -50,7 +50,9 @@ namespace Chess.ViewModel.Game
         /// <remarks>This property is used to track and manage the sequence of moves made during a chess
         /// game. It provides access to the move history and supports operations related to move analysis or
         /// replay.</remarks>
-        private ChessMoveSequenceVM moveSequence;
+        [ObservableProperty]
+        private ChessMoveSequenceVM chessMoveSequence;
+
 
         /// <summary>
         /// Represents the current index in the sequence of chess moves.
@@ -77,7 +79,7 @@ namespace Chess.ViewModel.Game
         public BoardVM(Board board)
         {
             this.activePlayerCommands = new List<ICommand>();
-            this.moveSequence = new ChessMoveSequenceVM();
+            this.chessMoveSequence = new ChessMoveSequenceVM();
             var pieces = board.Select(p => new PlacedPieceVM(p));
             var fieldArray = new FieldVM[8, 8];
             var fieldVMs =
@@ -219,13 +221,13 @@ namespace Chess.ViewModel.Game
         /// <summary>
         /// Gets the sequence of chess moves represented by the view model.
         /// </summary>
-        public ChessMoveSequenceVM ChessMoveSequence
-        {
-            get
-            {
-                return moveSequence;
-            }
-        }
+        //public ChessMoveSequenceVM ChessMoveSequence
+        //{
+        //    get
+        //    {
+        //        return chessMoveSequence;
+        //    }
+        //}
 
         /// <summary>
         /// Gets or sets the selected source field for which the <see cref="targets"/> were determined.

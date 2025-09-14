@@ -20,9 +20,7 @@ namespace Chess.ViewModel.Game
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
 
@@ -56,8 +54,6 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private readonly GenericCommand redoCommand;
 
-        private readonly GenericCommand titleNotesTextBoxBorderMouseDownCommand;
-        private readonly GenericCommand titleNotesLostFocusCommand;
         private readonly GenericCommand buildCustomBoardCommand;
 
         /// <summary>
@@ -73,17 +69,6 @@ namespace Chess.ViewModel.Game
 
         [ObservableProperty]
         private bool isBoardInverted;
-
-        /// <summary>
-        /// Provides functionality for managing and interacting with XML files.
-        /// </summary>
-        /// <remarks>This service is used internally to handle operations such as reading, writing,  and
-        /// processing XML files. It is not exposed publicly and is intended for internal use only.</remarks>
-        private XmlFileService xmlFileService;
-
-        private PlayModeVM playModeVM;
-
-        private RecordReviewModeVM recordReviewModeVM;
 
         private StatusDisplayVM statusDisplayVM;
 
@@ -103,19 +88,16 @@ namespace Chess.ViewModel.Game
         {
             this.buildCustomBoardVM = new();
 
-            this.customBoardStatusModeVM = this.statusModeListViewVM = new();
-
-            this.titleNotesTextBoxBorderMouseDownCommand = new GenericCommand(() => true, OnTitleNotesTextBoxBorderMouseDown);
-
             this.buildCustomBoardCommand = new GenericCommand
             (
-                () => {
-                    if (SelectedAppModeValue == AppMode.Review)
+                () =>
+                {
+                    if (selectedAppModeValue == AppMode.Review)
                     {
                         return false;
                     }
-                    
-                    if(this.Game.History.Count() == 0)
+
+                    if (this.Game.History.Count() == 0)
                     {
                         return true;
                     }
@@ -123,7 +105,7 @@ namespace Chess.ViewModel.Game
                 },
                 () =>
                 {
-                    if(selectedAppModeValue == AppMode.Review)
+                    if (selectedAppModeValue == AppMode.Review)
                     {
                         return; // Do nothing in review mode.
                     }
@@ -141,22 +123,17 @@ namespace Chess.ViewModel.Game
                     {
                         CustomBoardStatusModeVM = buildCustomBoardVM;
                     }
-                    //WeakReferenceMessenger.Default.Send(new MessageFromChessGameVMToCustomBoardWindowVM(this.Game));
-                    //windowService.ShowCustomBoardWindow();
                 }
             );
-
-            this.titleNotesLostFocusCommand = new GenericCommand(() => true, OnTitleNotesLostFocus);
 
             this.windowService = windowService ?? throw new ArgumentNullException(nameof(windowService));
 
             this.rulebook = new StandardRulebook();
-            this.xmlFileService = new();
-            this.CurrentAppModeVM = playModeVM = new();
-            this.recordReviewModeVM = new(windowService);
+
             this.ModeAndPlayerStatusDisplayVM = statusDisplayVM = new(Status.WhiteTurn);
 
             this.updateSelector = updateSelector;
+
             this.negator = new CommandNegator();
 
             this.undoCommand = new GenericCommand
@@ -166,6 +143,7 @@ namespace Chess.ViewModel.Game
                 (
                     e =>
                     {
+                        statusModeListViewVM.SaveTitleNotesText();
                         this.Game = e.Game;
                         this.Board.ClearUpdates();
                         e.Command.Accept(this.negator).Accept(this);
@@ -180,6 +158,7 @@ namespace Chess.ViewModel.Game
                 (
                     e =>
                     {
+                        statusModeListViewVM.SaveTitleNotesText();
                         this.Game = e.Game;
                         this.Board.ClearUpdates();
                         e.Command.Accept(this);
@@ -187,24 +166,30 @@ namespace Chess.ViewModel.Game
                 )
             );
 
-            StartNewGame();
+            this.reviewModeHeaderDisplayVM = new(this.undoCommand, this.redoCommand, Status.WhiteTurn);
 
-            this.reviewModeHeaderDisplayVM = new(this.undoCommand, this.redoCommand, Status);
+            Func<(ChessGame Game, BoardVM Board, Action StartNewGame)> 
+                getCurrentGameBoardDelegateAndStartNewGame = () => (this.Game, this.Board, StartNewGame);
+
+            this.statusModeListViewVM = new(this.rulebook, windowService, reviewModeHeaderDisplayVM, 
+                getCurrentGameBoardDelegateAndStartNewGame);
+
+            this.OnPropertyChanged(nameof(this.Status));
+
+            this.Board.ClearChessMoveSequence();
+
+            RefreshAfterEndTurn();
+
+            CustomBoardStatusModeVM = statusModeListViewVM;
 
             BoardInversionToggleCommand = new GenericCommand(
                 () => true,
                 ToggleBoardInvertedField
             );
 
-            this.SelectedAppModeValue = AppMode.Play; // Default mode is Play
-
             DoMessengerRegistration();
 
             HeaderNotificationMessage = new();
-
-            StartSaveTitleNotesTextLoop();
-
-            // HeaderNotificationMessage.MessageText = "Chess Moves cannot be done in Review Mode";
         }
 
         private void ToggleBoardInvertedField()
@@ -220,30 +205,27 @@ namespace Chess.ViewModel.Game
         private bool recordModeNotReady = true;
 
         [ObservableProperty]
-        private bool titleNotesTextBoxFocused;
-
-        [ObservableProperty]
-        private bool titleNotesTextBoxIsEnabled = true;
-
-        [ObservableProperty]
         private Visibility customBoardButtonVisibility = Visibility.Visible;
+
+        private AppMode selectedAppModeValue;
 
         private void DoMessengerRegistration()
         {
-            WeakReferenceMessenger.Default.Register<MessageFromReviewModeHeaderDisplayVMToChessGameVM>(this, (r, m) =>
+            WeakReferenceMessenger.Default.Register<MessageFromStatusModeListViewVMToChessGameVM>(this, (r, m) =>
             {
-                if(m.ReviewModeValue == ReviewMode.Auto)
+                var previousAppMode = selectedAppModeValue;
+
+                selectedAppModeValue = m.AppModeValue;
+
+                AppModeChangedHandler(previousAppMode);
+
+                if (m.AppModeValue == AppMode.Review)
                 {
-                    StopSaveTitleNotesTextLoop();
-                    // Set focus to the main board grid to avoid accidental edits to title notes while in auto review mode.
-                    // IsMainBoardGridFocused = true;
-                    // this.titleNotesLostFocusCommand.Execute(null);
-                    TitleNotesTextBoxIsEnabled = false; // Disable title notes text box in auto review mode.
+                    CustomBoardButtonVisibility = Visibility.Collapsed;
                 }
-                else if(m.ReviewModeValue == ReviewMode.Manual)
+                else
                 {
-                    StartSaveTitleNotesTextLoop();
-                    TitleNotesTextBoxIsEnabled = true; // Enable title notes text box in manual review mode.
+                    CustomBoardButtonVisibility = Visibility.Visible;
                 }
             });
 
@@ -251,8 +233,8 @@ namespace Chess.ViewModel.Game
             {
                 if (m.Code == "AutoReviewStoppedSuccessfully")
                 {
-                    if (SelectedAppModeValue == AppMode.Record
-                    || SelectedAppModeValue == AppMode.Play)
+                    if (selectedAppModeValue == AppMode.Record
+                    || selectedAppModeValue == AppMode.Play)
                     {
                         await Task.Run(() =>
                         {
@@ -261,7 +243,6 @@ namespace Chess.ViewModel.Game
                                 recordModeNotReady = true; // Still not ready for recording until all redos are done.
                                 this.redoCommand.Execute(null);
                             }
-                            // SendMessageToManualReviewVM must be called on the UI thread
                             Application.Current?.Dispatcher.Invoke(SendMessageToManualReviewVM);
                             recordModeNotReady = false; // Now ready for recording.
                         });
@@ -319,7 +300,6 @@ namespace Chess.ViewModel.Game
                     {
                         commandToExecute.Execute(null);
                     }
-                    // SendMessageToManualReviewVM must be called on the UI thread
                     Application.Current?.Dispatcher.Invoke(SendMessageToManualReviewVM);
                 });
 
@@ -349,55 +329,29 @@ namespace Chess.ViewModel.Game
         /// Gets the current status of the chess game.
         /// </summary>
         /// <value>The current status of the presented chess game.</value>
+        /// Todo. Only one status should be enough. Either on ChessGameVM or on StatusModeListViewVM.
         public Status Status => this.rulebook.GetStatus(this.Game);
 
         /// <summary>
         /// Gets the command that starts a new chess game.
         /// </summary>
         /// <value>The command that starts a new chess game.</value>
-        public GenericCommand NewCommand
+        public GenericCommand NewGameCommand
         {
             get
             {
-                return new GenericCommand(CanExecuteNewCommand, ExecuteNewCommand);
+                return new GenericCommand(CanExecuteNewGameCommand, ExecuteNewGameCommand);
             }
         }
 
-        public GenericCommand TitleNotesTextBoxBorderMouseDownCommand => this.titleNotesTextBoxBorderMouseDownCommand;
-        public GenericCommand TitleNotesLostFocusCommand => this.titleNotesLostFocusCommand;
         public GenericCommand BuildCustomBoardCommand => this.buildCustomBoardCommand;
 
-        private void ExecuteNewCommand()
+        private void ExecuteNewGameCommand()
         {
-            if (SelectedAppModeValue == AppMode.Review)
+            if (statusModeListViewVM.ShouldExecuteNewGameCommand())
             {
-                return;
+                StartNewGame();
             }
-            if (SelectedAppModeValue == AppMode.Record)
-            {
-                if (recordReviewModeVM.RecordingInProgress)
-                {
-                    var result = windowService.ShowMessageBox(
-                       "Recording is in progress." + Environment.NewLine +
-                       "Do you want to stop the recording and start a new game?" + Environment.NewLine +
-                       "Click Yes to Stop this recording and start recording a new game." + Environment.NewLine +
-                       "Click No to continue recording the current game.," + Environment.NewLine,
-                       "Recording in progress", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                    if (result == MessageBoxResult.No)
-                    {
-                        return;
-                    }
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        recordReviewModeVM.SetFullFilePath();
-                    }
-                }
-                else
-                {
-                    recordReviewModeVM.SetFullFilePath();
-                }
-            }
-            StartNewGame();
         }
 
         private void StartNewGame()
@@ -406,17 +360,18 @@ namespace Chess.ViewModel.Game
             this.Board = new BoardVM(this.Game.Board);
             this.OnPropertyChanged(nameof(this.Status));
             this.Board.ClearChessMoveSequence();
+
             RefreshAfterEndTurn();
         }
 
-        private bool CanExecuteNewCommand()
+        private bool CanExecuteNewGameCommand()
         {
-            if (SelectedAppModeValue == AppMode.Play)
+            if (selectedAppModeValue == AppMode.Play)
             {
                 return true;
             }
 
-            if (SelectedAppModeValue == AppMode.Record)
+            if (selectedAppModeValue == AppMode.Record)
             {
                 return true;
             }
@@ -458,9 +413,6 @@ namespace Chess.ViewModel.Game
         }
 
         [ObservableProperty]
-        private object currentAppModeVM;
-
-        [ObservableProperty]
         private object customBoardStatusModeVM;
 
         [ObservableProperty]
@@ -468,19 +420,6 @@ namespace Chess.ViewModel.Game
 
         [ObservableProperty]
         private HeaderNotificationVM headerNotificationMessage;
-
-        private AppMode selectedAppModeValue;
-        public AppMode SelectedAppModeValue
-        {
-            get => selectedAppModeValue;
-            set
-            {
-                var previousAppMode = selectedAppModeValue;
-                SetProperty(ref selectedAppModeValue, value);
-                AppModeChangedHandler(previousAppMode);
-            }
-        }
-
 
         public double BoardBorderThickness => BoardConstants.BoardMarginForId;
 
@@ -495,7 +434,7 @@ namespace Chess.ViewModel.Game
         /// <param name="column">The column of the field.</param>
         public void Select(int row, int column)
         {
-            if (SelectedAppModeValue == AppMode.Review)
+            if (selectedAppModeValue == AppMode.Review)
             {
                 Debug.WriteLine("Review Mode: Select is not allowed in Review Mode.");
                 HeaderNotificationMessage.MessageText = "Chess Moves cannot be done in Review Mode";
@@ -518,6 +457,7 @@ namespace Chess.ViewModel.Game
 
             if (selectedUpdate != null)
             {
+                statusModeListViewVM.SaveTitleNotesText();
                 this.Game.NextUpdate = new Just<Update>(selectedUpdate);
                 this.Game = selectedUpdate.Game;
                 selectedUpdate.Command.Accept(this);
@@ -567,10 +507,9 @@ namespace Chess.ViewModel.Game
         public void Visit(EndTurnCommand command)
         {
             this.Board.Execute(command);
-
             RefreshAfterEndTurn();
-
-            AddUpdateXmlToFile();
+            statusModeListViewVM.RefreshAfterEndTurn();
+            statusModeListViewVM.AddUpdateXmlToFile();
         }
 
         /// <summary>
@@ -619,131 +558,12 @@ namespace Chess.ViewModel.Game
         {
             this.BuildCustomBoardCommand.FireCanExecuteChanged();
 
+            // Need to check this.
             this.OnPropertyChanged(nameof(this.Status));
 
             reviewModeHeaderDisplayVM?.UpdateStatus(this.Status);
 
             statusDisplayVM.UpdateStatus(this.Status);
-
-            var moveCount = this.Game.History.Count();
-            var latestUpdate = this.Game.History.FirstOrDefault();
-
-            if (playModeVM != null)
-                playModeVM.GameMoveCount = moveCount;
-
-            if (ChessGame.TitleNotesConcurrentDictionary.ContainsKey(moveCount))
-            {
-                var earlierUpdate = ChessGame.TitleNotesConcurrentDictionary[moveCount].update;
-
-                // If the latest update is different from the earlier update, it means we are taking a different update for the same move count.
-
-                if (earlierUpdate != null)
-                {
-                    bool isUpdateSameAsLatest = false;
-                    if (earlierUpdate.Command is SequenceCommand && latestUpdate.Command is SequenceCommand)
-                    {
-                        var earlierUpdateFirstCommand = (earlierUpdate.Command as SequenceCommand).FirstCommand;
-                        var latestUpdateFirstCommand = (latestUpdate.Command as SequenceCommand).FirstCommand;
-                        if (earlierUpdateFirstCommand != null && latestUpdateFirstCommand != null)
-                        {
-                            if (earlierUpdateFirstCommand.Equals(latestUpdateFirstCommand))
-                            {
-                                isUpdateSameAsLatest = true;
-                            }
-                        }
-                    }
-                    if (!isUpdateSameAsLatest)
-                    {
-                        // We are taking a different update for the same move count.
-                        foreach (var key in ChessGame.TitleNotesConcurrentDictionary.Keys.ToList())
-                        {
-                            if (key >= moveCount)
-                            {
-                                ChessGame.TitleNotesConcurrentDictionary.Remove(key, out _);
-                            }
-                        }
-                        TitleNotesText = string.Empty; // Reset title notes text as we are taking a different update for the same move count.
-                        if (!ChessGame.TitleNotesConcurrentDictionary.TryAdd(moveCount, (string.Empty, latestUpdate)))
-                        {
-                            Debug.WriteLine("Failed to add to TitleNotesDictionaryNew");
-                        }
-                    }
-                }
-
-                TitleNotesText = ChessGame.TitleNotesConcurrentDictionary[moveCount].titleNotes;
-            }
-            else
-            {
-                TitleNotesText = string.Empty;
-            }
-
-            ResetPreviousSavedTitleNotes();
-        }
-        private object previousSavedTitleNotesLock = new();
-        private void ResetPreviousSavedTitleNotes()
-        {
-            lock (previousSavedTitleNotesLock)
-            {
-                previousSavedTitleNotes = TitleNotesText;
-            }
-        }
-
-        private void SetPlaceHolderTextForTitleNotesTextBox()
-        {
-            var moveCount = this.Game.History.Count();
-
-            if (moveCount == 0)
-            {
-                PlaceHolderTextForTitleNotesTextBox = "Click here to set Title for the game";
-            }
-            else
-            {
-                PlaceHolderTextForTitleNotesTextBox = $"Click here to take notes for move {moveCount}";
-            }
-        }
-
-        private void OnTitleNotesTextBoxBorderMouseDown()
-        {
-            PlaceHolderTextForTitleNotesTextBox = string.Empty;
-
-            if (SelectedAppModeValue == AppMode.Review &&
-                reviewModeHeaderDisplayVM.SelectedReviewModeValue == ReviewMode.Auto)
-            {
-                // If in Auto Review mode, switch to Manual mode when user tries to edit title notes.
-                reviewModeHeaderDisplayVM.SelectedReviewModeValue = ReviewMode.Manual;
-                TitleNotesTextBoxFocused = true; // Set focus to title notes text box after switching to manual mode.
-            }
-        }
-
-        private void OnTitleNotesLostFocus()
-        {
-            SetPlaceHolderTextForTitleNotesTextBox();
-        }
-
-        [ObservableProperty]
-        private string placeHolderTextForTitleNotesTextBox;
-
-        private string titleNotesText = string.Empty;
-
-        public string TitleNotesText
-        {
-            get
-            {
-                return titleNotesText;
-            }
-            set
-            {
-                if(string.IsNullOrWhiteSpace(value))
-                {
-                    SetPlaceHolderTextForTitleNotesTextBox();
-                }
-                else
-                {
-
-                }
-
-                SetProperty(ref titleNotesText, value);
-            }
         }
 
         /// <summary>
@@ -751,36 +571,15 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedHandler(AppMode previousAppMode)
         {
-            if(SelectedAppModeValue == AppMode.Review)
-            {
-                CustomBoardButtonVisibility = Visibility.Collapsed;
-            }
-            else
-            {
-                CustomBoardButtonVisibility = Visibility.Visible;
-            }
-
             SetReviewFileLoadComplete(loadComplete: false);
 
-            SaveTitleNotesText();
+            this.NewGameCommand.FireCanExecuteChanged();
 
-            if (SelectedAppModeValue == AppMode.Review &&
-                reviewModeHeaderDisplayVM.SelectedReviewModeValue == ReviewMode.Manual)
-            {
-                StartSaveTitleNotesTextLoop();
-            }
-
-            if (SelectedAppModeValue == AppMode.Record)
-            {
-                StartSaveTitleNotesTextLoop();
-            }
-
-            this.NewCommand.FireCanExecuteChanged();
             this.Board.ClearUpdates();
 
             this.recordModeNotReady = true; // Not ready for recording until the mode change is fully handled.
            
-            switch (SelectedAppModeValue)
+            switch (selectedAppModeValue)
             {
                 case AppMode.Play:
                     AppModeChangedToPlayMode(previousAppMode);
@@ -794,8 +593,6 @@ namespace Chess.ViewModel.Game
                 default:
                     break;
             }
-
-            recordReviewModeVM.CurrentAppMode = SelectedAppModeValue;
         }
 
         /// <summary>
@@ -803,28 +600,14 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedToPlayMode(AppMode previousAppMode)
         {
-            CurrentAppModeVM = playModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
         }
 
         /// <summary>
         /// Handles the change to Record Mode.
         /// </summary>
-        private async void AppModeChangedToRecordMode(AppMode previousAppMode)
+        private void AppModeChangedToRecordMode(AppMode previousAppMode)
         {
-            if (recordReviewModeVM.RecordingInProgress)
-            {
-                await reviewModeHeaderDisplayVM.StopAutoReviewLoop();
-
-                recordReviewModeVM.ResetRecordingState();
-            }
-
-            if (string.IsNullOrWhiteSpace(recordReviewModeVM.FullFilePath))
-            {
-                recordReviewModeVM.SetFullFilePath();
-            }
-
-            CurrentAppModeVM = recordReviewModeVM;
             ModeAndPlayerStatusDisplayVM = statusDisplayVM;
             recordModeNotReady = false; // Now ready for recording.
         }
@@ -834,227 +617,7 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private void AppModeChangedToReviewMode(AppMode previousAppMode)
         {
-            if (previousAppMode == AppMode.Play && this.Game.History.Count() != 0)
-            {
-                var result = windowService.ShowMessageBox(
-                   "A play is in progress." + Environment.NewLine +
-                   "Do you want to stop the play and switch to review?" + Environment.NewLine +
-                   "Switching to review will reset the board." + Environment.NewLine +
-                   "Click OK to Stop the play and reset the board, and proceed to review." + Environment.NewLine +
-                   "Click Cancel to continue the play.," + Environment.NewLine,
-                   "Play in progress", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Cancel)
-                {
-                    SelectedAppModeValue = AppMode.Play; // Revert back to Play Mode
-                    return;
-                }
-
-                if (result == MessageBoxResult.OK)
-                {
-                    StartNewGame();
-                }
-            }
-
-            CurrentAppModeVM = recordReviewModeVM;
             ModeAndPlayerStatusDisplayVM = reviewModeHeaderDisplayVM;
-
-            if (!File.Exists(recordReviewModeVM.FullFilePath))
-            {
-                StartNewGame();
-            }
-            SetReviewMode();
-
-            // If coming from Record mode, and recording is in progress, this means the file is already loaded.
-            if (previousAppMode == AppMode.Record && recordReviewModeVM.RecordingInProgress)
-            {
-                SetReviewFileLoadComplete(loadComplete: true);
-            }
-        }
-
-        private void AddUpdateXmlToFile()
-        {
-            if (SelectedAppModeValue != AppMode.Record)
-            {
-                return;
-            }
-
-            if (reviewModeHeaderDisplayVM.IsAutoReviewRunning)
-            {
-                return;
-            }
-
-            if (recordModeNotReady)
-            {
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(recordReviewModeVM.FullFilePath))
-            {
-                Debug.WriteLine("No file available for recording.");
-                MessageBox.Show("File Path Does not exist");
-                return;
-            }
-
-            if (SelectedAppModeValue == AppMode.Record
-                && xmlFileService != null)
-            {
-                recordReviewModeVM.WriteToXmlFile(this.Game);
-            }
-        }
-
-        private string previousSavedTitleNotes = string.Empty;
-
-        // Add a private lock object to the class
-        private readonly object titleNotesLock = new();
-
-        private void SaveTitleNotesText()
-        {
-            // Replace the code block with a thread-safe version using lock
-            lock (titleNotesLock)
-            {
-                if(previousSavedTitleNotes == TitleNotesText)
-                {
-                    return; // No change in title notes, no need to save.
-                }
-
-                var moveCount = this.Game.History.Count();
-
-                var latestUpdate = this.Game.History.FirstOrDefault();
-
-                if (!ChessGame.TitleNotesConcurrentDictionary.ContainsKey(moveCount))
-                {
-                    if (!ChessGame.TitleNotesConcurrentDictionary.TryAdd(moveCount, (TitleNotesText, this.Game.History.FirstOrDefault())))
-                    { 
-                        Debug.WriteLine("Failed to add to TitleNotesDictionaryNew");
-                    }
-                }
-                else
-                {
-                    var update = ChessGame.TitleNotesConcurrentDictionary[moveCount].update;
-                    //if (latestUpdate != null)
-                    //{
-                    //    bool isUpdateSameAsLatest = false;
-
-                    //    if (update.Command is SequenceCommand && latestUpdate.Command is SequenceCommand)
-                    //    {
-                    //        var updateFirstCommand = (update.Command as SequenceCommand).FirstCommand;
-                    //        var latestUpdateFirstCommand = (latestUpdate.Command as SequenceCommand).FirstCommand;
-                    //        if (updateFirstCommand != null && latestUpdateFirstCommand != null)
-                    //        {
-                    //            if (updateFirstCommand.Equals(latestUpdateFirstCommand))
-                    //            {
-                    //                isUpdateSameAsLatest = true;
-                    //            }
-                    //        }
-                    //    }
-
-                    //    if (isUpdateSameAsLatest)
-                    //    {
-                    //        // We are taking a different update for the same move count.
-                    //        foreach (var key in ChessGame.TitleNotesDictionary.Keys.ToList())
-                    //        {
-                    //            if (key >= moveCount)
-                    //            {
-                    //                ChessGame.TitleNotesDictionary.Remove(key);
-                    //            }
-                    //        }
-
-                    //        // TitleNotesText = string.Empty; // Reset title notes text as we are taking a different update for the same move count.
-                    //        ChessGame.TitleNotesDictionary.Add(moveCount, (string.Empty, latestUpdate));
-                    //    }
-                    //}
-                    ChessGame.TitleNotesConcurrentDictionary[moveCount] = (TitleNotesText, update);
-                }
-
-                ResetPreviousSavedTitleNotes();
-
-                if (SelectedAppModeValue == AppMode.Record)
-                {
-                    recordReviewModeVM.SaveTitleNotesText(moveCount);
-                }
-
-                if (SelectedAppModeValue == AppMode.Review && 
-                    reviewModeHeaderDisplayVM.SelectedReviewModeValue == ReviewMode.Manual)
-                {
-                    recordReviewModeVM.SaveTitleNotesText(moveCount);
-                }
-            }
-        }
-
-        private async void StartSaveTitleNotesTextLoop()
-        {
-            if(SelectedAppModeValue == AppMode.Play)
-            {
-                return; // Only start the loop in Record or review mode.
-            }
-
-            // If in Review Mode and Auto Review is running, do not start the loop.
-            // Start only in Manual review mode.
-            if (SelectedAppModeValue == AppMode.Review &&
-                reviewModeHeaderDisplayVM.SelectedReviewModeValue == ReviewMode.Auto)
-            {
-                return; // Do not start the loop in Auto Review mode
-            }
-
-            if (saveNotesCts != null && !saveNotesCts.IsCancellationRequested)
-            {
-                // Already running, do nothing
-                return;
-            }
-
-            saveNotesCts?.Cancel(); // Cancel any previous loop
-            saveNotesCts = new CancellationTokenSource();
-            var token = saveNotesCts.Token;
-            int waitTimeInSeconds = 2000;
-
-            await Task.Run(async () =>
-            {
-                try
-                {
-                    while (!token.IsCancellationRequested)
-                    {
-                        if ((SelectedAppModeValue != AppMode.Play) ||
-                            (previousSavedTitleNotes != TitleNotesText))
-                        {
-                            Debug.WriteLine("Auto Saving Title Notes...");
-                            SaveTitleNotesText();
-                        }
-                        await Task.Delay(TimeSpan.FromMilliseconds(waitTimeInSeconds), token);
-                    }
-                }
-                catch (TaskCanceledException)
-                {
-                    Debug.WriteLine("Task was canceled.");
-                }
-            }, token);
-        }
-
-        private CancellationTokenSource? saveNotesCts;
-
-        private void StopSaveTitleNotesTextLoop()
-        {
-            saveNotesCts?.Cancel();
-        }
-
-        private void SetReviewMode()
-        {
-            var manualAutoReview = ChessAppSettings.Default.ManualAutoReview;
-            if (!string.IsNullOrWhiteSpace(ChessAppSettings.Default.ManualAutoReview))
-            {
-                if (manualAutoReview.Equals("Manual", StringComparison.OrdinalIgnoreCase))
-                {
-                    reviewModeHeaderDisplayVM.SelectedReviewModeValue = ReviewMode.Manual;
-                }
-                else if (manualAutoReview.Equals("Auto", StringComparison.OrdinalIgnoreCase))
-                {
-                    reviewModeHeaderDisplayVM.SelectedReviewModeValue = ReviewMode.Auto;
-                }
-            }
-            else
-            {
-                reviewModeHeaderDisplayVM.SelectedReviewModeValue = ReviewMode.Manual;
-            }
         }
     }
 }

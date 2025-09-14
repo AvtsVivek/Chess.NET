@@ -3,11 +3,11 @@
 namespace Chess.View.StatusAndMode
 {
     /// <summary>
-    /// Interaction logic for ReviewModeHeaderDisplyView.xaml
+    /// Interaction logic for ReviewModeHeaderDisplayView.xaml
     /// </summary>
-    public partial class ReviewModeHeaderDisplyView : UserControl
+    public partial class ReviewModeHeaderDisplayView : UserControl
     {
-        public ReviewModeHeaderDisplyView()
+        public ReviewModeHeaderDisplayView()
         {
             InitializeComponent();
         }

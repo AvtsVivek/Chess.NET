@@ -23,7 +23,7 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type statusAndMode:ReviewModeHeaderDisplayVM}">
-        <statusAndModeWindow:ReviewModeHeaderDisplyView/>
+        <statusAndModeWindow:ReviewModeHeaderDisplayView/>
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type statusAndMode:StatusDisplayVM}">
