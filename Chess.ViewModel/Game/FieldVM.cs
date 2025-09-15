@@ -19,16 +19,19 @@ namespace Chess.ViewModel.Game
         [ObservableProperty]
         private bool isTarget;
 
+        private double boardMarginForId = BoardConstants.BoardMarginForId;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FieldVM"/> class.
         /// </summary>
         /// <param name="row">The row of the field, where 0 represents the bottom row.</param>
         /// <param name="column">The column of the field, where 0 represents the leftmost column.</param>
-        public FieldVM(int row, int column)
+        public FieldVM(int row, int column, double boardMarginForId)
         {
             this.Row = row;
             this.Column = column;
             this.IsTarget = false;
+            this.boardMarginForId = boardMarginForId;
         }
 
         /// <summary>
@@ -39,7 +42,7 @@ namespace Chess.ViewModel.Game
         {
             get 
             {
-                return Column + BoardConstants.BoardMarginForId;
+                return Column + this.boardMarginForId;
             } 
         }
 
@@ -51,7 +54,7 @@ namespace Chess.ViewModel.Game
         {
             get
             {
-                return Row - BoardConstants.BoardMarginForId;
+                return Row - this.boardMarginForId;
             }
         }
 

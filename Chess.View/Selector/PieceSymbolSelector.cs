@@ -25,7 +25,8 @@ namespace Chess.View.Selector
         {
             if (item is IChessPieceVisitable piece)
             {
-                return Application.Current.FindResource(piece.Accept(this)) as DataTemplate;
+                var pieceName = piece.Accept(this);
+                return Application.Current.FindResource(pieceName) as DataTemplate;
             }
 
             return base.SelectTemplate(item, container);

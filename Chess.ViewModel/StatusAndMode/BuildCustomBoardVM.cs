@@ -1,6 +1,11 @@
-﻿using Chess.ViewModel.Game;
+﻿using Chess.Model.Game;
+using Chess.Model.Piece;
+using Chess.ViewModel.Game;
+using Chess.ViewModel.Piece;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Chess.ViewModel.StatusAndMode
@@ -21,7 +26,7 @@ namespace Chess.ViewModel.StatusAndMode
             var fieldVMs =
                from row in Enumerable.Range(0, boardLength)
                from column in Enumerable.Range(0, boardLength)
-               select new FieldVM(row, column);
+               select new FieldVM(row, column, 0);
 
             foreach (var field in fieldVMs)
             {
@@ -29,6 +34,38 @@ namespace Chess.ViewModel.StatusAndMode
             }
 
             this.fields = fieldArray;
+
+            // Set up pieces in starting position for testing purposes.
+            IEnumerable<PlacedPiece> makeBaseLine()
+            {
+                yield return new PlacedPiece(new Position(3, 0), new King(Color.White));
+                yield return new PlacedPiece(new Position(3, 1), new King(Color.Black));
+                yield return new PlacedPiece(new Position(3, 2), new Queen(Color.White));
+                yield return new PlacedPiece(new Position(3, 3), new Queen(Color.Black));
+
+                yield return new PlacedPiece(new Position(2, 0), new Rook(Color.White));
+                yield return new PlacedPiece(new Position(2, 1), new Rook(Color.Black));
+                yield return new PlacedPiece(new Position(2, 2), new Bishop(Color.White));
+                yield return new PlacedPiece(new Position(2, 3), new Bishop(Color.Black));
+
+                yield return new PlacedPiece(new Position(1, 0), new Knight(Color.White));
+                yield return new PlacedPiece(new Position(1, 1), new Knight(Color.Black));
+                yield return new PlacedPiece(new Position(1, 2), new Pawn(Color.White));
+                yield return new PlacedPiece(new Position(1, 3), new Pawn(Color.Black));
+            }
+
+            IImmutableDictionary<Position, ChessPiece> makePieces()
+            {
+                var pieces = makeBaseLine();
+                var empty = ImmutableSortedDictionary.Create<Position, ChessPiece>(PositionComparer.DefaultComparer);
+                return pieces.Aggregate(empty, (s, p) => s.Add(p.Position, p.Piece));
+            }
+
+            var allPieces = makePieces();
+            var emptyPieceSetForTesting = ImmutableSortedDictionary<Position, ChessPiece>.Empty;
+            var board = new Board(allPieces);
+            var pieces = board.Select(p => new PlacedPieceVM(p));
+            this.Pieces = new ObservableCollection<PlacedPieceVM>(pieces);
         }
 
         /// <summary>
@@ -48,5 +85,7 @@ namespace Chess.ViewModel.StatusAndMode
                     select this.fields[row, column];
             }
         }
+
+        public ObservableCollection<PlacedPieceVM> Pieces { get; }
     }
 }

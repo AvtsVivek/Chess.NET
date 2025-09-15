@@ -52,6 +52,22 @@ namespace Chess.ViewModel.Game
             }
         }
 
+        public double DistanceFromLeftForCustomBoard
+        {
+            get
+            {
+                return Column + BoardConstants.CustomBoardMargin;
+            }
+        }
+
+        public double DistanceFromTopForCustomBoard
+        {
+            get
+            {
+                return Row - BoardConstants.CustomBoardMargin;
+            }
+        }
+
         /// <summary>
         /// Gets the row of the position, where 0 represents the bottom row.
         /// </summary>
