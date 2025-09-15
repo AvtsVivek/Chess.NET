@@ -88,7 +88,7 @@ namespace Chess.ViewModel.Game
             var fieldVMs =
                from row in Enumerable.Range(0, boardLength)
                from column in Enumerable.Range(0, boardLength)
-               select new FieldVM(row, column);
+               select new FieldVM(row, column, BoardConstants.BoardMarginForId);
 
             foreach (var field in fieldVMs)
             {

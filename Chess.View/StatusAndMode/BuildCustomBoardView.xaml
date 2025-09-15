@@ -9,78 +9,161 @@
              xmlns:gameModel="clr-namespace:Chess.Model.Game;assembly=Chess.Model"
              xmlns:select="clr-namespace:Chess.View.Selector"
              d:DesignHeight="4" d:DesignWidth="4">
-    <Viewbox >
-        <Canvas Width="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" Name="MainBoardCanvas" Focusable="True"
+    <Viewbox>
+        <StackPanel>
+            <TextBlock HorizontalAlignment="Left" 
+                       Width="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" Margin=".25 0 0 0" 
+                       FontSize="0.2" TextWrapping="Wrap">Notes</TextBlock>
+            <Border Margin="0.05" CornerRadius="0.01"
+                Background="Gray"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top">
+                <Canvas Width="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" Name="MainBoardCanvas" Focusable="True"
                 Height="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" MouseDown="MainBoardCanvas_MouseDown">
-            <Canvas.Resources>
-                <PowerEase x:Key="ease" EasingMode="EaseInOut" />
-                <Storyboard x:Key="fadeIn">
-                    <DoubleAnimation Duration="{StaticResource duration}" To="1" Storyboard.TargetProperty="Opacity" />
-                </Storyboard>
-                <Storyboard x:Key="fadeOut">
-                    <DoubleAnimation Duration="{StaticResource duration}" To="0" Storyboard.TargetProperty="Opacity" />
-                </Storyboard>
-                <Storyboard x:Key="fadeOutWithEvent" >
-                    <DoubleAnimation Duration="{StaticResource duration}" To="0" Storyboard.TargetProperty="Opacity" />
-                </Storyboard>
-            </Canvas.Resources>
+                    <Canvas.Resources>
+                        <PowerEase x:Key="ease" EasingMode="EaseInOut" />
+                        <Storyboard x:Key="fadeIn">
+                            <DoubleAnimation Duration="{StaticResource duration}" To="1" Storyboard.TargetProperty="Opacity" />
+                        </Storyboard>
+                        <Storyboard x:Key="fadeOut">
+                            <DoubleAnimation Duration="{StaticResource duration}" To="0" Storyboard.TargetProperty="Opacity" />
+                        </Storyboard>
+                        <Storyboard x:Key="fadeOutWithEvent" >
+                            <DoubleAnimation Duration="{StaticResource duration}" To="0" Storyboard.TargetProperty="Opacity" />
+                        </Storyboard>
+                    </Canvas.Resources>
 
-            <!-- Row Column Labels -->
+                    <!-- Row Column Labels -->
 
-            <!-- Board fields -->
-            <ItemsControl ItemsSource="{Binding Fields}">
-                <ItemsControl.Resources>
-                    <conv:FieldBrushConverter x:Key="fieldBrushConverter" />
-                </ItemsControl.Resources>
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <Canvas Width="{x:Static game:BoardConstants.CustomBoardFieldLength}" 
+                    <!-- Board fields -->
+
+                    <ItemsControl ItemsSource="{Binding Fields}"
+                        Canvas.Left="{x:Static game:BoardConstants.CustomBoardMargin}" 
+                        Canvas.Top="{x:Static game:BoardConstants.CustomBoardMargin}">
+                        <ItemsControl.Resources>
+                            <conv:FieldBrushConverter x:Key="fieldBrushConverter" />
+                        </ItemsControl.Resources>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas Width="{x:Static game:BoardConstants.CustomBoardFieldLength}" 
                                 Height="{x:Static game:BoardConstants.CustomBoardFieldLength}" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemContainerStyle>
-                    <Style TargetType="ContentPresenter">
-                        <Setter Property="Width" Value="1" />
-                        <Setter Property="Height" Value="1" />
-                        <Setter Property="Canvas.Bottom" Value="{Binding DistanceFromBottom}" />
-                        <Setter Property="Canvas.Left" Value="{Binding DistanceFromLeft}" />
-                    </Style>
-                </ItemsControl.ItemContainerStyle>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border>
-                            <Border.Background>
-                                <MultiBinding Converter="{StaticResource fieldBrushConverter}" Mode="OneTime">
-                                    <Binding Path="Row" />
-                                    <Binding Path="Column" />
-                                </MultiBinding>
-                            </Border.Background>
-                            <Rectangle Margin="0.075" Fill="SeaGreen" Opacity="0">
-                                <Rectangle.Style>
-                                    <Style>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsTarget}" Value="True" >
-                                                <DataTrigger.EnterActions>
-                                                    <BeginStoryboard>
-                                                        <StaticResource ResourceKey="fadeIn" />
-                                                    </BeginStoryboard>
-                                                </DataTrigger.EnterActions>
-                                                <DataTrigger.ExitActions>
-                                                    <BeginStoryboard>
-                                                        <StaticResource ResourceKey="fadeOut" />
-                                                    </BeginStoryboard>
-                                                </DataTrigger.ExitActions>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Rectangle.Style>
-                            </Rectangle>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <!-- Board pieces -->
-
-        </Canvas>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Width" Value="1" />
+                                <Setter Property="Height" Value="1" />
+                                <Setter Property="Canvas.Bottom" Value="{Binding DistanceFromBottom}" />
+                                <Setter Property="Canvas.Left" Value="{Binding DistanceFromLeft}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border>
+                                    <Border.Background>
+                                        <MultiBinding Converter="{StaticResource fieldBrushConverter}" Mode="OneTime">
+                                            <Binding Path="Row" />
+                                            <Binding Path="Column" />
+                                        </MultiBinding>
+                                    </Border.Background>
+                                    <Rectangle Margin="0.075" Fill="SeaGreen" Opacity="0">
+                                        <Rectangle.Style>
+                                            <Style>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsTarget}" Value="True" >
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard>
+                                                                <StaticResource ResourceKey="fadeIn" />
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                        <DataTrigger.ExitActions>
+                                                            <BeginStoryboard>
+                                                                <StaticResource ResourceKey="fadeOut" />
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.ExitActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Rectangle.Style>
+                                    </Rectangle>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- Board pieces -->
+                    <ItemsControl ItemsSource="{Binding Pieces}">
+                        <ItemsControl.Resources>
+                            <select:PieceSymbolSelector x:Key="symbolSelector" />
+                            <RelativeSource
+                                x:Key="parent"
+                                Mode="FindAncestor"
+                                AncestorType="{x:Type ContentPresenter}" />
+                        </ItemsControl.Resources>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas Width="{x:Static game:BoardConstants.CustomBoardFieldLength}" 
+                                        Height="{x:Static game:BoardConstants.CustomBoardFieldLength}"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Width" Value="1" />
+                                <Setter Property="Height" Value="1" />
+                                <Setter Property="Opacity" Value="0" />
+                                <Setter Property="Canvas.Bottom" Value="{Binding Position.DistanceFromTopForCustomBoard, Mode=OneTime}" />
+                                <Setter Property="Canvas.Left" Value="{Binding Position.DistanceFromLeftForCustomBoard, Mode=OneTime}" />
+                                <Style.Triggers>
+                                    <Trigger Property="Visibility" Value="Visible">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <StaticResource ResourceKey="fadeIn" />
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                    </Trigger>
+                                    <DataTrigger Binding="{Binding Removed}" Value="True" >
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <StaticResource ResourceKey="fadeOutWithEvent" />
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentControl Content="{Binding}">
+                                    <ContentControl.ContentTemplateSelector>
+                                        <StaticResource ResourceKey="symbolSelector" />
+                                    </ContentControl.ContentTemplateSelector>
+                                    <ContentControl.Triggers>
+                                        <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Duration="{StaticResource duration}"
+                                                        To="{Binding Position.Row, NotifyOnTargetUpdated=True}"
+                                                        Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
+                                                        Storyboard.TargetProperty="(Canvas.Bottom)"
+                                                        EasingFunction="{StaticResource ease}"/>
+                                                    <DoubleAnimation
+                                                        Duration="{StaticResource duration}"
+                                                        To="{Binding Position.Column, NotifyOnTargetUpdated=True}"
+                                                        Storyboard.Target="{Binding RelativeSource={StaticResource parent}}"
+                                                        Storyboard.TargetProperty="(Canvas.Left)"
+                                                        EasingFunction="{StaticResource ease}"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </ContentControl.Triggers>
+                                </ContentControl>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Canvas>
+            </Border>
+            <TextBlock HorizontalAlignment="Left" Width="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" 
+                       Margin=".25 0 0 0" FontSize="0.2" TextWrapping="Wrap">Notes</TextBlock>
+        </StackPanel>
     </Viewbox>
 </UserControl>

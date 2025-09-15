@@ -9,7 +9,9 @@ namespace Chess.ViewModel.Game
         public const double FullCanvasLength = BoardLength + 2 * BoardMarginForId;
         public static Color BoardFieldLightBrushColor = Colors.NavajoWhite;
         public static Color BoardFieldDarkBrushColor = Colors.Peru;
+
+        public static double CustomBoardMargin = 0.1;
         public static double CustomBoardFieldLength = 4;
-        public static double CustomBoardFullCanvasLength = CustomBoardFieldLength + 2 * BoardMarginForId;
+        public static double CustomBoardFullCanvasLength = CustomBoardFieldLength + 2 * CustomBoardMargin;
     }
 }
