@@ -11,6 +11,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/ChessPathStyle.xaml" />
                 <ResourceDictionary Source="Resources/MvvmDataTemplates.xaml" />
+                <ResourceDictionary Source="Resources/IconDataTemplates.xaml" />
                 <ResourceDictionary Source="Resources/PiecesDataTemplates.xaml" />
                 <ResourceDictionary Source="Resources/RowColumnIdTemplates.xaml" />
                 <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->

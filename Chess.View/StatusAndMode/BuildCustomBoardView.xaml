@@ -91,9 +91,10 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <!-- Board pieces -->
-                    <ItemsControl ItemsSource="{Binding Pieces}">
+                    <ItemsControl ItemsSource="{Binding Icons}">
                         <ItemsControl.Resources>
                             <select:PieceSymbolSelector x:Key="symbolSelector" />
+                            <select:CustomBoardIconSelector x:Key="customBoardIconSelector" />
                             <RelativeSource
                                 x:Key="parent"
                                 Mode="FindAncestor"
@@ -134,7 +135,7 @@
                             <DataTemplate>
                                 <ContentControl Content="{Binding}">
                                     <ContentControl.ContentTemplateSelector>
-                                        <StaticResource ResourceKey="symbolSelector" />
+                                        <StaticResource ResourceKey="customBoardIconSelector" />
                                     </ContentControl.ContentTemplateSelector>
                                     <ContentControl.Triggers>
                                         <EventTrigger RoutedEvent="Binding.TargetUpdated">
