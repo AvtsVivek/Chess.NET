@@ -1,13 +1,8 @@
 ﻿using Chess.Model.CustomBoardIcon;
 using Chess.Model.Game;
-using Chess.Model.Piece;
 using Chess.ViewModel.Game;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace Chess.ViewModel.Piece
 {
@@ -35,5 +30,7 @@ namespace Chess.ViewModel.Piece
             this.Position = new PositionVM(position);
             this.Icon = customBoardIcon;
         }
+
+        public Brush SquareFill { get; set; } = new SolidColorBrush(BoardConstants.BoardFieldDarkBrushColor);
     }
 }

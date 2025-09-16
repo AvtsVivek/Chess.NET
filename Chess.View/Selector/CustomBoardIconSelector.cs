@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 namespace Chess.View.Selector
 {
-    using Chess.Model.CustomBoardIcon;
     using Chess.ViewModel.Piece;
     using System.Windows;
     using System.Windows.Controls;

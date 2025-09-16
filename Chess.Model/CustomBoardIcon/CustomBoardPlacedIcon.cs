@@ -1,11 +1,5 @@
 ﻿using Chess.Model.Data;
 using Chess.Model.Game;
-using Chess.Model.Piece;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace Chess.Model.CustomBoardIcon
