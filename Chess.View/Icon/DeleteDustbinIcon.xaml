@@ -7,12 +7,12 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Viewbox Stretch="Uniform">
-        <Canvas Width="40" Height="40">
-            <Path
-            Fill="#FF000000"
-            Stroke="White"
-            StrokeThickness="1"
-            Data="M6,10 L6,36 Q6,38 8,38 L32,38 Q34,38 34,36 L34,10 M10,10 L30,10 M14,10 L14,6 Q14,4 16,4 L24,4 Q26,4 26,6 L26,10 M18,16 L18,32 M22,16 L22,32 M26,16 L26,32" />
+        <Canvas Name="svg1" Width="45" Height="45">
+            <Canvas Canvas.Top="2" Canvas.Left="2">
+                <Path
+                    Fill="#FF000000" Stroke="White" StrokeThickness="1" 
+                    Data="M6,10 L6,36 Q6,38 8,38 L32,38 Q34,38 34,36 L34,10 M10,10 L30,10 M14,10 L14,6 Q14,4 16,4 L24,4 Q26,4 26,6 L26,10 M18,16 L18,32 M22,16 L22,32 M26,16 L26,32" />
+            </Canvas>
         </Canvas>
     </Viewbox>
 </UserControl>

@@ -4,60 +4,86 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Chess.View.Icon"
+             xmlns:piece="clr-namespace:Chess.View.Piece"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
     <Viewbox Stretch="Uniform">
-        <Canvas Width="40" Height="40">
-            <!-- Chessboard squares (black) -->
-            <Path Fill="#FF000000" Data="M0,0 H5 V5 H0 Z" />
-            <Path Fill="#FF000000" Data="M10,0 H15 V5 H10 Z" />
-            <Path Fill="#FF000000" Data="M20,0 H25 V5 H20 Z" />
-            <Path Fill="#FF000000" Data="M30,0 H35 V5 H30 Z" />
-            <Path Fill="#FF000000" Data="M5,5 H10 V10 H5 Z" />
-            <Path Fill="#FF000000" Data="M15,5 H20 V10 H15 Z" />
-            <Path Fill="#FF000000" Data="M25,5 H30 V10 H25 Z" />
-            <Path Fill="#FF000000" Data="M35,5 H40 V10 H35 Z" />
-            <Path Fill="#FF000000" Data="M0,10 H5 V15 H0 Z" />
-            <Path Fill="#FF000000" Data="M10,10 H15 V15 H10 Z" />
-            <Path Fill="#FF000000" Data="M20,10 H25 V15 H20 Z" />
-            <Path Fill="#FF000000" Data="M30,10 H35 V15 H30 Z" />
-            <Path Fill="#FF000000" Data="M5,15 H10 V20 H5 Z" />
-            <Path Fill="#FF000000" Data="M15,15 H20 V20 H15 Z" />
-            <Path Fill="#FF000000" Data="M25,15 H30 V20 H25 Z" />
-            <Path Fill="#FF000000" Data="M35,15 H40 V20 H35 Z" />
-            <Path Fill="#FF000000" Data="M0,20 H5 V25 H0 Z" />
-            <Path Fill="#FF000000" Data="M10,20 H15 V25 H10 Z" />
-            <Path Fill="#FF000000" Data="M20,20 H25 V25 H20 Z" />
-            <Path Fill="#FF000000" Data="M30,20 H35 V25 H30 Z" />
-            <Path Fill="#FF000000" Data="M5,25 H10 V30 H5 Z" />
-            <Path Fill="#FF000000" Data="M15,25 H20 V30 H15 Z" />
-            <Path Fill="#FF000000" Data="M25,25 H30 V30 H25 Z" />
-            <Path Fill="#FF000000" Data="M35,25 H40 V30 H35 Z" />
-            <Path Fill="#FF000000" Data="M0,30 H5 V35 H0 Z" />
-            <Path Fill="#FF000000" Data="M10,30 H15 V35 H10 Z" />
-            <Path Fill="#FF000000" Data="M20,30 H25 V35 H20 Z" />
-            <Path Fill="#FF000000" Data="M30,30 H35 V35 H30 Z" />
-            <Path Fill="#FF000000" Data="M5,35 H10 V40 H5 Z" />
-            <Path Fill="#FF000000" Data="M15,35 H20 V40 H15 Z" />
-            <Path Fill="#FF000000" Data="M25,35 H30 V40 H25 Z" />
-            <Path Fill="#FF000000" Data="M35,35 H40 V40 H35 Z" />
+        <Canvas Name="svg1" Width="50" Height="50">
+            <Canvas Canvas.Top="5" Canvas.Left="5">
+                <Path Fill="{Binding SquareFill}" Data="M0,0 H5 V5 H0 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M10,0 H15 V5 H10 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M20,0 H25 V5 H20 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M30,0 H35 V5 H30 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M5,5 H10 V10 H5 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M15,5 H20 V10 H15 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M25,5 H30 V10 H25 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M35,5 H40 V10 H35 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M0,10 H5 V15 H0 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M10,10 H15 V15 H10 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M20,10 H25 V15 H20 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M30,10 H35 V15 H30 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M5,15 H10 V20 H5 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M15,15 H20 V20 H15 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M25,15 H30 V20 H25 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M35,15 H40 V20 H35 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M0,20 H5 V25 H0 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M10,20 H15 V25 H10 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M20,20 H25 V25 H20 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M30,20 H35 V25 H30 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M5,25 H10 V30 H5 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M15,25 H20 V30 H15 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M25,25 H30 V30 H25 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M35,25 H40 V30 H35 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M0,30 H5 V35 H0 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M10,30 H15 V35 H10 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M20,30 H25 V35 H20 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M30,30 H35 V35 H30 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M5,35 H10 V40 H5 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M15,35 H20 V40 H15 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M25,35 H30 V40 H25 Z" />
+                <Path Fill="{Binding SquareFill}" Data="M35,35 H40 V40 H35 Z" />
 
-            <!-- White pawns (circles) -->
-            <Path Fill="#FFFFFFFF" Stroke="#FF000000" StrokeThickness="0.5" Data="M2.5,7.5 A2,2 0 1 1 6.5,7.5 A2,2 0 1 1 2.5,7.5 Z" />
-            <Path Fill="#FFFFFFFF" Stroke="#FF000000" StrokeThickness="0.5" Data="M12.5,7.5 A2,2 0 1 1 16.5,7.5 A2,2 0 1 1 12.5,7.5 Z" />
-            <Path Fill="#FFFFFFFF" Stroke="#FF000000" StrokeThickness="0.5" Data="M22.5,7.5 A2,2 0 1 1 26.5,7.5 A2,2 0 1 1 22.5,7.5 Z" />
-            <Path Fill="#FFFFFFFF" Stroke="#FF000000" StrokeThickness="0.5" Data="M32.5,7.5 A2,2 0 1 1 36.5,7.5 A2,2 0 1 1 32.5,7.5 Z" />
+                <!-- Place pieces using Canvas.Left and Canvas.Top -->
+                <!-- Black pieces (top two ranks) -->
+                <piece:BlackRook   Width="5" Height="5" Canvas.Left="0"  Canvas.Top="0"  />
+                <piece:BlackKnight Width="5" Height="5" Canvas.Left="5"  Canvas.Top="0"  />
+                <piece:BlackBishop Width="5" Height="5" Canvas.Left="10" Canvas.Top="0"  />
+                <piece:BlackQueen  Width="5" Height="5" Canvas.Left="15" Canvas.Top="0"  />
+                <piece:BlackKing   Width="5" Height="5" Canvas.Left="20" Canvas.Top="0"  />
+                <piece:BlackBishop Width="5" Height="5" Canvas.Left="25" Canvas.Top="0"  />
+                <piece:BlackKnight Width="5" Height="5" Canvas.Left="30" Canvas.Top="0"  />
+                <piece:BlackRook   Width="5" Height="5" Canvas.Left="35" Canvas.Top="0"  />
 
-            <!-- Black pawns (circles) -->
-            <Path Fill="#FF000000" Stroke="#FF000000" StrokeThickness="0.5" Data="M2.5,32.5 A2,2 0 1 1 6.5,32.5 A2,2 0 1 1 2.5,32.5 Z" />
-            <Path Fill="#FF000000" Stroke="#FF000000" StrokeThickness="0.5" Data="M12.5,32.5 A2,2 0 1 1 16.5,32.5 A2,2 0 1 1 12.5,32.5 Z" />
-            <Path Fill="#FF000000" Stroke="#FF000000" StrokeThickness="0.5" Data="M22.5,32.5 A2,2 0 1 1 26.5,32.5 A2,2 0 1 1 22.5,32.5 Z" />
-            <Path Fill="#FF000000" Stroke="#FF000000" StrokeThickness="0.5" Data="M32.5,32.5 A2,2 0 1 1 36.5,32.5 A2,2 0 1 1 32.5,32.5 Z" />
+                <piece:BlackPawn   Width="5" Height="5" Canvas.Left="0"  Canvas.Top="5"  />
+                <piece:BlackPawn   Width="5" Height="5" Canvas.Left="5"  Canvas.Top="5"  />
+                <piece:BlackPawn   Width="5" Height="5" Canvas.Left="10" Canvas.Top="5"  />
+                <piece:BlackPawn   Width="5" Height="5" Canvas.Left="15" Canvas.Top="5"  />
+                <piece:BlackPawn   Width="5" Height="5" Canvas.Left="20" Canvas.Top="5"  />
+                <piece:BlackPawn   Width="5" Height="5" Canvas.Left="25" Canvas.Top="5"  />
+                <piece:BlackPawn   Width="5" Height="5" Canvas.Left="30" Canvas.Top="5"  />
+                <piece:BlackPawn   Width="5" Height="5" Canvas.Left="35" Canvas.Top="5"  />
 
-            <!-- White king (triangle crown) -->
-            <Path Fill="#FFFFFFFF" Stroke="#FF000000" StrokeThickness="0.5" Data="M20,2 L18,6 L22,6 Z" />
-            <!-- Black king (triangle crown) -->
-            <Path Fill="#FF000000" Stroke="#FF000000" StrokeThickness="0.5" Data="M20,37 L18,33 L22,33 Z" />
+                <!-- White pieces (bottom two ranks) -->
+                <piece:WhitePawn   Width="5" Height="5" Canvas.Left="0"  Canvas.Top="30" />
+                <piece:WhitePawn   Width="5" Height="5" Canvas.Left="5"  Canvas.Top="30" />
+                <piece:WhitePawn   Width="5" Height="5" Canvas.Left="10" Canvas.Top="30" />
+                <piece:WhitePawn   Width="5" Height="5" Canvas.Left="15" Canvas.Top="30" />
+                <piece:WhitePawn   Width="5" Height="5" Canvas.Left="20" Canvas.Top="30" />
+                <piece:WhitePawn   Width="5" Height="5" Canvas.Left="25" Canvas.Top="30" />
+                <piece:WhitePawn   Width="5" Height="5" Canvas.Left="30" Canvas.Top="30" />
+                <piece:WhitePawn   Width="5" Height="5" Canvas.Left="35" Canvas.Top="30" />
+
+                <piece:WhiteRook   Width="5" Height="5" Canvas.Left="0"  Canvas.Top="35" />
+                <piece:WhiteKnight Width="5" Height="5" Canvas.Left="5"  Canvas.Top="35" />
+                <piece:WhiteBishop Width="5" Height="5" Canvas.Left="10" Canvas.Top="35" />
+                <piece:WhiteQueen  Width="5" Height="5" Canvas.Left="15" Canvas.Top="35" />
+                <piece:WhiteKing   Width="5" Height="5" Canvas.Left="20" Canvas.Top="35" />
+                <piece:WhiteBishop Width="5" Height="5" Canvas.Left="25" Canvas.Top="35" />
+                <piece:WhiteKnight Width="5" Height="5" Canvas.Left="30" Canvas.Top="35" />
+                <piece:WhiteRook   Width="5" Height="5" Canvas.Left="35" Canvas.Top="35" />
+            </Canvas>
         </Canvas>
     </Viewbox>
+
 </UserControl>
