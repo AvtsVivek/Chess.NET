@@ -1,0 +1,56 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:icon="clr-namespace:Chess.View.Icon"
+                    xmlns:piece="clr-namespace:Chess.View.Piece"
+                    >
+
+    <!-- Custom Board White icons -->
+    <DataTemplate x:Key="whiteCustomBoardBishopIcon">
+        <piece:WhiteBishop />
+    </DataTemplate>
+    <DataTemplate x:Key="whiteCustomBoardKingIcon">
+        <piece:WhiteKing />
+    </DataTemplate>
+    <DataTemplate x:Key="whiteCustomBoardKnightIcon">
+        <piece:WhiteKnight />
+    </DataTemplate>
+    <DataTemplate x:Key="whiteCustomBoardPawnIcon">
+        <piece:WhitePawn />
+    </DataTemplate>
+    <DataTemplate x:Key="whiteCustomBoardQueenIcon">
+        <piece:WhiteQueen />
+    </DataTemplate>
+    <DataTemplate x:Key="whiteCustomBoardRookIcon">
+        <piece:WhiteRook />
+    </DataTemplate>
+    <!-- Black pieces -->
+    <DataTemplate x:Key="blackCustomBoardBishopIcon">
+        <piece:BlackBishop />
+    </DataTemplate>
+    <DataTemplate x:Key="blackCustomBoardKingIcon">
+        <piece:BlackKing />
+    </DataTemplate>
+    <DataTemplate x:Key="blackCustomBoardKnightIcon">
+        <piece:BlackKnight />
+    </DataTemplate>
+    <DataTemplate x:Key="blackCustomBoardPawnIcon">
+        <piece:BlackPawn />
+    </DataTemplate>
+    <DataTemplate x:Key="blackCustomBoardQueenIcon">
+        <piece:BlackQueen />
+    </DataTemplate>
+    <DataTemplate x:Key="blackCustomBoardRookIcon">
+        <piece:BlackRook />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CustomBoardOkTickMarkIcon">
+        <icon:OkTickMarkIcon />
+    </DataTemplate>
+    <DataTemplate x:Key="CustomBoardStdBoardIcon">
+        <icon:StandardChessBoardIcon />
+    </DataTemplate>
+    <DataTemplate x:Key="CustomBoardDeleteDustbinIcon">
+        <icon:DeleteDustbinIcon />
+    </DataTemplate>
+
+</ResourceDictionary>
