@@ -8,5 +8,18 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Chess.Model\Chess.Model.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Compile Update="SerializeSettings.Designer.cs">
+	    <DesignTimeSharedInput>True</DesignTimeSharedInput>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>SerializeSettings.settings</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="SerializeSettings.settings">
+	    <Generator>SettingsSingleFileGenerator</Generator>
+	    <LastGenOutput>SerializeSettings.Designer.cs</LastGenOutput>
+	  </None>
+	</ItemGroup>
 	
 </Project>
