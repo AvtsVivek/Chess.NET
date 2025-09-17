@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Chess.ViewModel.StatusAndMode
@@ -21,7 +22,7 @@ namespace Chess.ViewModel.StatusAndMode
         public BuildCustomBoardVM()
         {
 
-            int boardLength = (int)BoardConstants.BoardLength / 2; // This is 4, but using the constant for clarity.
+            int boardLength = (int)BoardConstants.BoardFieldLength / 2; // This is 4, but using the constant for clarity.
 
             var fieldArray = new FieldVM[boardLength, boardLength];
             var fieldVMs =
@@ -35,8 +36,6 @@ namespace Chess.ViewModel.StatusAndMode
             }
 
             this.fields = fieldArray;
-
-            // var customBoardPlacedIcon = new CustomBoardPlacedIcon();
 
             // Set up pieces in starting position for testing purposes.
             IEnumerable<CustomBoardPlacedIcon> makeBaseLineForCustomBoardPlacedIcon()
@@ -74,6 +73,28 @@ namespace Chess.ViewModel.StatusAndMode
             var customBoard = new CustomBoard(allCustomBoardIcons);
             var icons = customBoard.Select(p => new CustomBoardPlacedIconVM(p));
             this.Icons = new ObservableCollection<CustomBoardPlacedIconVM>(icons);
+        }
+
+        public void HandleBoardClick(int row, int column)
+        { 
+            var selectedPosition = new Position(row, column);
+
+            if (this.Fields.Where(field => field.Row == row && field.Column == column).Any())
+            {
+                if(row == 0 && column == 0)
+                {
+                    return;
+                }
+
+                this.Fields.ToList().ForEach(field => field.IsTarget = false);
+                this.Fields.Where(field => field.Row == row && field.Column == column).First().IsTarget = true;
+            }
+
+            if (this.Icons.Where(icon => icon.Position.Position.Equals(selectedPosition)).Any())
+            {
+                var iconSelected = this.Icons.Where(icon => icon.Position.Position.Equals(selectedPosition)).First().Icon.CustomBoardIconKey();
+                Debug.WriteLine($"BuildCustomBoardVM: Icon {iconSelected} selected.");
+            }
         }
 
         /// <summary>

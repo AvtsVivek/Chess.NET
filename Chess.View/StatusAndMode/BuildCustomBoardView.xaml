@@ -18,8 +18,8 @@
                 Background="Gray"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top">
-                <Canvas Width="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" Name="MainBoardCanvas" Focusable="True"
-                Height="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" MouseDown="MainBoardCanvas_MouseDown">
+                <Canvas Width="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" Name="MainCustomBoardCanvas" Focusable="True"
+                Height="{x:Static game:BoardConstants.CustomBoardFullCanvasLength}" MouseDown="MainBoardCanvas_MouseDown" >
                     <Canvas.Resources>
                         <PowerEase x:Key="ease" EasingMode="EaseInOut" />
                         <Storyboard x:Key="fadeIn">
@@ -121,13 +121,6 @@
                                             </BeginStoryboard>
                                         </Trigger.EnterActions>
                                     </Trigger>
-                                    <DataTrigger Binding="{Binding Removed}" Value="True" >
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <StaticResource ResourceKey="fadeOutWithEvent" />
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </ItemsControl.ItemContainerStyle>

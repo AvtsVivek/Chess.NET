@@ -8,10 +8,12 @@ namespace Chess.ViewModel.Game
 {
     using Chess.Model.Game;
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// Represents the view model of a chess board position.
     /// </summary>
+    [DebuggerDisplay("{Row + 1}, {Column + 1}")]
     public class PositionVM : IEquatable<Position>
     {
         /// <summary>

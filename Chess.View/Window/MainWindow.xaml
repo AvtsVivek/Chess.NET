@@ -9,7 +9,6 @@
         xmlns:localView="clr-namespace:Chess.View.Window"
         xmlns:statusAndMode="clr-namespace:Chess.View.StatusAndMode"
         xmlns:select="clr-namespace:Chess.View.Selector"
-        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:conv="clr-namespace:Chess.View.Converter"
         xmlns:game="clr-namespace:Chess.ViewModel.Game;assembly=Chess.ViewModel"
         xmlns:statusAndModeVm="clr-namespace:Chess.ViewModel.StatusAndMode;assembly=Chess.ViewModel"
@@ -281,7 +280,7 @@
                         </ItemsControl.Resources>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <Canvas Width="{x:Static game:BoardConstants.BoardLength}" Height="{x:Static game:BoardConstants.BoardLength}" />
+                                <Canvas Width="{x:Static game:BoardConstants.BoardFieldLength}" Height="{x:Static game:BoardConstants.BoardFieldLength}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemContainerStyle>
