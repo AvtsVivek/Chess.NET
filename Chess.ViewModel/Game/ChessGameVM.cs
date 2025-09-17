@@ -9,6 +9,7 @@ namespace Chess.ViewModel.Game
     using Chess.Model.Command;
     using Chess.Model.Data;
     using Chess.Model.Game;
+    using Chess.Model.Piece;
     using Chess.Model.Rule;
     using Chess.Services;
     using Chess.ViewModel.Command;
@@ -80,6 +81,10 @@ namespace Chess.ViewModel.Game
 
         private readonly IWindowService windowService;
 
+        private readonly BoardSerializationService boardSerializationService;
+
+        private string customBoardCommandString = string.Empty;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ChessGameVM"/> class.
         /// </summary>
@@ -88,11 +93,18 @@ namespace Chess.ViewModel.Game
         {
             this.buildCustomBoardVM = new();
 
+            this.boardSerializationService = new();
+
             this.buildCustomBoardCommand = new GenericCommand
             (
                 () =>
                 {
                     if (selectedAppModeValue == AppMode.Review)
+                    {
+                        return false;
+                    }
+
+                    if (selectedAppModeValue == AppMode.Record)
                     {
                         return false;
                     }
@@ -206,6 +218,101 @@ namespace Chess.ViewModel.Game
 
         private void DoMessengerRegistration()
         {
+            WeakReferenceMessenger.Default.Register<MessageFromBuildCustomBoardVMToChessGameVM>(this, (r, m) =>
+            {
+                customBoardCommandString = m.IconSelected;
+
+                switch (m.IconSelected)
+                {
+                    case "whiteCustomBoardKingIcon":
+                        {
+                            Debug.WriteLine("White King clicked.");
+                        }
+                        break;
+                    case "blackCustomBoardKingIcon":
+                        {
+                            Debug.WriteLine("Black King clicked.");
+                        }
+                        break;
+                    case "whiteCustomBoardQueenIcon":
+                        {
+                            Debug.WriteLine("White Queen clicked.");
+                        }
+                        break;
+                    case "blackCustomBoardQueenIcon":
+                        {
+                            Debug.WriteLine("Black Queen clicked.");
+                        }
+                        break;
+                    case "whiteCustomBoardRookIcon":
+                        {
+                            Debug.WriteLine("White Rook clicked.");
+                        }
+                        break;
+                    case "blackCustomBoardRookIcon":
+                        {
+                            Debug.WriteLine("Black Rook clicked.");
+                        }
+                        break;
+                    case "whiteCustomBoardBishopIcon":
+                        {
+                            Debug.WriteLine("White Bishop clicked.");
+                        }
+                        break;
+                    case "blackCustomBoardBishopIcon":
+                        {
+                            Debug.WriteLine("Black Bishop clicked.");
+                        }
+                        break;
+                    case "whiteCustomBoardKnightIcon":
+                        {
+                            Debug.WriteLine("White Knight clicked.");
+                        }
+                        break;
+                    case "blackCustomBoardKnightIcon":
+                        {
+                            Debug.WriteLine("Black Knight clicked.");
+                        }
+                        break;
+                    case "whiteCustomBoardPawnIcon":
+                        {
+                            Debug.WriteLine("White Pawn clicked.");
+                        }
+                        break;
+                    case "blackCustomBoardPawnIcon":
+                        {
+                            Debug.WriteLine("Black Pawn clicked.");
+                        }
+                        break;
+                    case "CustomBoardDeleteDustbinIcon":
+                        {
+                            Debug.WriteLine("Delete Dustbin clicked.");
+                        }
+                        break;
+                    case "CustomBoardStdBoardIcon":
+                        {
+                            Debug.WriteLine("Standard Board clicked.");
+                            this.Game = this.rulebook.CreateGame();
+                            RefreshBoard();
+                        }
+                        break;
+                    case "CustomBoardOkTickMarkIcon":
+                        {
+                            Debug.WriteLine("OK Tick Mark clicked.");
+                            boardSerializationService.SerializeBoard(this.Game);
+                            // buildCustomBoardVM
+                            CustomBoardStatusModeVM = statusModeListViewVM;
+                        }
+                        break;
+                    default:
+                        {
+                            Debug.WriteLine("Unknown icon selected.");
+                            Debugger.Break();
+                        }
+                        break;
+                }
+            });
+
             WeakReferenceMessenger.Default.Register<MessageFromStatusModeListViewVMToChessGameVM>(this, async (r, m) =>
             {
                 var previousAppMode = selectedAppModeValue;
@@ -365,12 +472,31 @@ namespace Chess.ViewModel.Game
 
         private void StartNewGame()
         {
-            this.Game = this.rulebook.CreateGame();
-            this.Board = new BoardVM(this.Game.Board);
-            this.OnPropertyChanged(nameof(this.Status));
-            this.Board.ClearChessMoveSequence();
-            this.OnPropertyChanged(nameof(statusModeListViewVM.Status));
-            RefreshAfterEndTurn();
+            var game = boardSerializationService.DeserializeBoardAndGetGame();
+
+            if(game != null)
+            {
+                this.Game = game;
+            }
+            else
+            {
+                Debug.WriteLine("No custom board found. Starting standard game.");
+                this.Game = this.rulebook.CreateGame();
+            }
+
+            RefreshBoard();
+        }
+
+        private void RefreshBoard()
+        {
+            if (this.Game != null)
+            {
+                this.Board = new BoardVM(this.Game.Board);
+                this.OnPropertyChanged(nameof(this.Status));
+                this.Board.ClearChessMoveSequence();
+                this.OnPropertyChanged(nameof(statusModeListViewVM.Status));
+                RefreshAfterEndTurn();
+            }
         }
 
         private bool CanExecuteNewGameCommand()
@@ -450,7 +576,22 @@ namespace Chess.ViewModel.Game
                 return;
             }
 
+            if(this.Game == null)
+            {
+                Debug.WriteLine("Game is null in Select.");
+                Debugger.Break();
+                return;
+            }
+
             var position = new Position(row, column);
+
+            if (this.Game.History.Count() == 0 
+                && CustomBoardStatusModeVM is BuildCustomBoardVM)
+            {
+                SetupCustomBoard(position);
+                return;
+            }
+
             var field = this.Board.GetField(position);
 
             if (this.Board.Source == field)
@@ -487,6 +628,87 @@ namespace Chess.ViewModel.Game
                 // this.Game = null; // Game can never be null.
             }
         }
+
+        private void SetupCustomBoard(Position position)
+        {
+            if (string.IsNullOrWhiteSpace(customBoardCommandString))
+            {
+                Debug.WriteLine("No custom board command string available.");
+                return;
+            }
+
+            switch (customBoardCommandString)
+            {
+                case "whiteCustomBoardKingIcon":
+
+                case "blackCustomBoardKingIcon":
+
+                case "whiteCustomBoardQueenIcon":
+
+                case "blackCustomBoardQueenIcon":
+
+                case "whiteCustomBoardRookIcon":
+
+                case "blackCustomBoardRookIcon":
+
+                case "whiteCustomBoardBishopIcon":
+
+                case "blackCustomBoardBishopIcon":
+
+                case "whiteCustomBoardKnightIcon":
+
+                case "blackCustomBoardKnightIcon":
+
+                case "whiteCustomBoardPawnIcon":
+
+                case "blackCustomBoardPawnIcon":
+                    {
+                        var firstFive = customBoardCommandString.Length >= 5 ?
+                            customBoardCommandString.Substring(0, 5) : string.Empty;
+                        var color = firstFive == "white" ? Color.White : Color.Black;
+
+                        var pieceType = customBoardCommandString.Length > 20
+                            ? customBoardCommandString.Substring(16, customBoardCommandString.Length - 16 - 4)
+                            : string.Empty;
+
+                        var pieceFactory = new PieceFactory();
+
+                        ChessPiece piece = pieceFactory.CreatePiece(pieceType, color);
+
+                        var placedPiece = new PlacedPiece(position, piece);
+                        IMaybe<ChessGame> chessGame = this.Game.Board.Add(position, piece).Map
+                        (
+                            newBoard => game.SetBoard(newBoard)
+                        );
+
+                        this.Game = chessGame.GetOrElse(c => c, (ChessGame)null);
+                    }
+                    break;
+                case "CustomBoardDeleteDustbinIcon":
+                    {
+                        var board = this.Game.Board;
+
+                        var placedPieced = board.Where(placedPiece => placedPiece.Position == position).FirstOrDefault();
+
+                        IMaybe<ChessGame> chessGame = board.Remove(position).Map
+                        (
+                            newBoard => game.SetBoard(newBoard)
+                        );
+
+                        this.Game = chessGame.GetOrElse(c => c, (ChessGame)null);
+                    }
+                    break;
+                default:
+                    {
+                        Debug.WriteLine("Unknown icon selected.");
+                        Debugger.Break();
+                    }
+                    break;
+            }
+            RefreshBoard();
+        }
+
+
 
         /// <summary>
         /// Executes a <see cref="SequenceCommand"/> in order to change the presented game state.

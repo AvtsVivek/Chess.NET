@@ -1,9 +1,12 @@
 ﻿using Chess.Model.CustomBoardIcon;
 using Chess.Model.Game;
 using Chess.Model.Piece;
+using Chess.ViewModel.Command;
 using Chess.ViewModel.Game;
+using Chess.ViewModel.Messages;
 using Chess.ViewModel.Piece;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -73,29 +76,10 @@ namespace Chess.ViewModel.StatusAndMode
             var customBoard = new CustomBoard(allCustomBoardIcons);
             var icons = customBoard.Select(p => new CustomBoardPlacedIconVM(p));
             this.Icons = new ObservableCollection<CustomBoardPlacedIconVM>(icons);
+            LoadedCommand = new GenericCommand(() => true, OnLoaded);
         }
 
-        public void HandleBoardClick(int row, int column)
-        { 
-            var selectedPosition = new Position(row, column);
-
-            if (this.Fields.Where(field => field.Row == row && field.Column == column).Any())
-            {
-                if(row == 0 && column == 0)
-                {
-                    return;
-                }
-
-                this.Fields.ToList().ForEach(field => field.IsTarget = false);
-                this.Fields.Where(field => field.Row == row && field.Column == column).First().IsTarget = true;
-            }
-
-            if (this.Icons.Where(icon => icon.Position.Position.Equals(selectedPosition)).Any())
-            {
-                var iconSelected = this.Icons.Where(icon => icon.Position.Position.Equals(selectedPosition)).First().Icon.CustomBoardIconKey();
-                Debug.WriteLine($"BuildCustomBoardVM: Icon {iconSelected} selected.");
-            }
-        }
+        public GenericCommand LoadedCommand { get; }
 
         /// <summary>
         /// Gets a sequence of the currently presented chess board fields.
@@ -117,5 +101,41 @@ namespace Chess.ViewModel.StatusAndMode
 
         public ObservableCollection<CustomBoardPlacedIconVM> Icons { get; }
         public ObservableCollection<PlacedPieceVM> Pieces { get; }
+
+        public void HandleBoardClick(int row, int column)
+        {
+            var selectedPosition = new Position(row, column);
+
+            if (this.Fields.Where(field => field.Row == row && field.Column == column).Any())
+            {
+                if (row == 0 && column == 0)
+                {
+                    return;
+                }
+
+                ResetFields();
+
+                this.Fields.Where(field => field.Row == row && field.Column == column).First().IsTarget = true;
+            }
+
+            if (this.Icons.Where(icon => icon.Position.Position.Equals(selectedPosition)).Any())
+            {
+                var iconSelected = this.Icons.Where(icon => icon.Position.Position.Equals(selectedPosition)).First().Icon.CustomBoardIconKey();
+                Debug.WriteLine($"BuildCustomBoardVM: Icon {iconSelected} selected.");
+
+                var message = new MessageFromBuildCustomBoardVMToChessGameVM(iconSelected);
+                WeakReferenceMessenger.Default.Send(message);
+            }
+        }
+
+        private void OnLoaded()
+        {
+            ResetFields();
+        }
+
+        private void ResetFields()
+        {
+            this.Fields.ToList().ForEach(field => field.IsTarget = false);
+        }
     }
 }

@@ -22,4 +22,9 @@ namespace Chess.ViewModel.Messages
     {
         public AppMode AppModeValue { get; private set; } = appModeValue;
     }
+
+    public record MessageFromBuildCustomBoardVMToChessGameVM(string iconSelected)
+    {
+        public string IconSelected { get; private set; } = iconSelected;
+    }
 }

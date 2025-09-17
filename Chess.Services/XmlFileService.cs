@@ -24,6 +24,8 @@ namespace Chess.Services
             return fileName;
         }
 
+        PieceFactory pieceFactory;
+
         XmlWriterSettings settings;
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlFileService"/> class.
@@ -38,6 +40,7 @@ namespace Chess.Services
             settings.Encoding = Encoding.UTF8;
             settings.IndentChars = ("\t");
             settings.OmitXmlDeclaration = false;
+            pieceFactory = new PieceFactory();
         }
 
         public ChessGame GetPieceMoveCommandsFromXmlFile(string fullFilePath)
@@ -696,7 +699,7 @@ namespace Chess.Services
 
             var color = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
                 ? Color.Black : Color.White;
-            ChessPiece piece = CreatePiece(pieceElement?.Name.LocalName, color);
+            ChessPiece piece = pieceFactory.CreatePiece(pieceElement?.Name.LocalName, color);
 
             var sourceElement = command.Element(XmlConstants.SourcePositionAttributeName);
             var targetElement = command.Element(XmlConstants.TargetPositionAttributeName);
@@ -738,7 +741,7 @@ namespace Chess.Services
             var color = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
                 ? Color.Black : Color.White;
 
-            ChessPiece piece = CreatePiece(pieceElement?.Name.LocalName, color);
+            ChessPiece piece = pieceFactory.CreatePiece(pieceElement?.Name.LocalName, color);
 
             var positionElement = command.Element(XmlConstants.SourcePositionAttributeName);
             var position = new Position(
@@ -755,7 +758,7 @@ namespace Chess.Services
 
             var color = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
                 ? Color.Black : Color.White;
-            ChessPiece piece = CreatePiece(pieceElement?.Name.LocalName, color);
+            ChessPiece piece = pieceFactory.CreatePiece(pieceElement?.Name.LocalName, color);
             var positionElement = command.Element(XmlConstants.SourcePositionAttributeName);
             var position = new Position(
                 int.Parse(positionElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
@@ -764,35 +767,11 @@ namespace Chess.Services
             return new SpawnCommand(position, piece, isUndo: false);
         } // Done
 
-        private ChessPiece CreatePiece(string pieceType, Color color)
-        {
-            return pieceType switch
-            {
-                "Pawn" => new Pawn(color),
-                "Knight" => new Knight(color),
-                "Bishop" => new Bishop(color),
-                "Rook" => new Rook(color),
-                "Queen" => new Queen(color),
-                "King" => new King(color),
-                _ => throw new InvalidOperationException("Unknown piece type")
-            };
-        } // Done
-
         private List<PlacedPiece> GetPieces(XElement piecesNode, string pieceType, Color color)
         {
             var placedPieces = new List<PlacedPiece>();
-            var colorPieceNodes = piecesNode.Descendants(color.ToString() + "s");
 
-            Func<Color, ChessPiece> pieceFactory = pieceType switch
-            {
-                "Pawns" => c => new Pawn(c),
-                "Knights" => c => new Knight(c),
-                "Bishops" => c => new Bishop(c),
-                "Rooks" => c => new Rook(c),
-                "Queens" => c => new Queen(c),
-                "King" => c => new King(c),
-                _ => c => new Pawn(c)
-            };
+            var colorPieceNodes = piecesNode.Descendants(color.ToString() + "s");
 
             foreach (var piece in colorPieceNodes.Descendants(pieceType))
             {
@@ -804,15 +783,19 @@ namespace Chess.Services
                         continue;
                     if (int.TryParse(rowAttribute.Value, out int row) && int.TryParse(columnAttribute.Value, out int column))
                     {
+                        // Use the PieceFactory instance to create the piece
+                        ChessPiece chessPiece = pieceFactory.CreatePiece(
+                            pieceType == "King" ? "King" : pieceType.TrimEnd('s'), color);
+
                         var placedPiece = new PlacedPiece(
                             new Position(row - 1, column - 1),
-                            pieceFactory(color)
+                            chessPiece
                         );
                         placedPieces.Add(placedPiece);
                     }
                 }
             }
             return placedPieces;
-        } // Done
+        }
     }
 }
