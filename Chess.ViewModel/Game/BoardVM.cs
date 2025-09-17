@@ -82,7 +82,7 @@ namespace Chess.ViewModel.Game
             this.chessMoveSequence = new ChessMoveSequenceVM();
             var pieces = board.Select(p => new PlacedPieceVM(p));
 
-            int boardLength = (int)BoardConstants.BoardLength; // This is 8, but using the constant for clarity.
+            int boardLength = (int)BoardConstants.BoardFieldLength; // This is 8, but using the constant for clarity.
 
             var fieldArray = new FieldVM[boardLength, boardLength];
             var fieldVMs =

@@ -1,7 +1,9 @@
 ﻿using Chess.Model.Piece;
+using System.Diagnostics;
 
 namespace Chess.Model.CustomBoardIcon
 {
+    [DebuggerDisplay(@"{CustomBoardIconKey()}")]
     public class CustomBoardIcon
     {
         /// <summary>

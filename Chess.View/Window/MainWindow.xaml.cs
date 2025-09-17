@@ -74,12 +74,13 @@ namespace Chess.View.Window
             }
 
             var point = Mouse.GetPosition(sender as Canvas);
+            var maxRowOrColumn = (int)BoardConstants.BoardFieldLength - 1;
 
-            var row = 7 - (int)(point.Y - BoardConstants.BoardMarginForId);
+            var row = maxRowOrColumn - (int)(point.Y - BoardConstants.BoardMarginForId);
             var column = (int)(point.X - BoardConstants.BoardMarginForId);
 
-            var validRow = Math.Max(0, Math.Min(7, row));
-            var validColumn = Math.Max(0, Math.Min(7, column));
+            var validRow = Math.Max(0, Math.Min(maxRowOrColumn, row));
+            var validColumn = Math.Max(0, Math.Min(maxRowOrColumn, column));
 
             this.game.Select(validRow, validColumn);
         }

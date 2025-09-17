@@ -2,10 +2,12 @@
 using Chess.Model.Game;
 using Chess.ViewModel.Game;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Diagnostics;
 using System.Windows.Media;
 
 namespace Chess.ViewModel.Piece
 {
+    [DebuggerDisplay(@"Position={Position}, Icon={Icon}")]
     public partial class CustomBoardPlacedIconVM: ObservableObject
     {
         /// <summary>

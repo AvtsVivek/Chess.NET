@@ -11,7 +11,7 @@
             <!-- White border (thicker) -->
             <Path
             Stroke="White"
-            StrokeThickness="6"
+            StrokeThickness="7"
             StrokeLineJoin="Round"
             StrokeStartLineCap="Round"
             StrokeEndLineCap="Round"
