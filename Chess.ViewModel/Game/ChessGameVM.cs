@@ -663,6 +663,15 @@ namespace Chess.ViewModel.Game
 
                 case "blackCustomBoardPawnIcon":
                     {
+                        var existingPiece = this.Game.Board.Where(placedPiece => placedPiece.Position.Equals(position)).FirstOrDefault();
+
+                        if (existingPiece != null)
+                        {
+                            HeaderNotificationMessage.MessageText = $"A {existingPiece.Piece.ToString()} already exists at this position. Remove it first.";
+                            HeaderNotificationMessage.MessageFontSize = 18; // Smaller font size for longer messages.
+                            return;
+                        }
+
                         var firstFive = customBoardCommandString.Length >= 5 ?
                             customBoardCommandString.Substring(0, 5) : string.Empty;
                         var color = firstFive == "white" ? Color.White : Color.Black;
@@ -681,7 +690,13 @@ namespace Chess.ViewModel.Game
                             newBoard => game.SetBoard(newBoard)
                         );
 
-                        this.Game = chessGame.GetOrElse(c => c, (ChessGame)null);
+                        if (chessGame.HasValue)
+                            this.Game = chessGame.GetOrElse(c => c, (ChessGame)null);
+                        else
+                        {
+                            Debug.WriteLine("Could not add piece to the board.");
+                            return;
+                        }
                     }
                     break;
                 case "CustomBoardDeleteDustbinIcon":
