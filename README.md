@@ -14,6 +14,14 @@
 * Provides an undo command to restore previous chess game states.
 * Provides a full code documentation.
 
+## Architecture and learning guide
+
+New to game development but familiar with C#, .NET, or WPF? Start with the
+[Chess.NET architecture and patterns guide](docs/README.md). It explains the
+MVVM layers, immutable board transformations, Command/Composite/Visitor patterns,
+optional values, legal-move generation, animation, undo/redo, and a practical
+Visual Studio debugging walkthrough for this fork.
+
 ToDo
 
 1. To add visual identifier to rows and columns.
