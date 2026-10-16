@@ -158,10 +158,10 @@
 
             <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" >
                 <Button Margin="0 10 1 10" Command="{Binding BuildCustomBoardCommand}" Visibility="{Binding CustomBoardButtonVisibility}" >Custom Board</Button>
-                <Button Margin="0 10 0 10" Padding="0" Width="34" 
+                <Button Margin="0 10 0 10" Padding="4" Width="34"
                         VerticalAlignment="Center" HorizontalAlignment="Center"
                         Command="{Binding BoardInversionToggleCommand}" ToolTip="Invert the board">
-                    <icon:RotateIcon Width="24" Height="24"/>
+                    <icon:RotateIcon Width="20" Height="20"/>
                 </Button>
             </StackPanel>
             <Menu Grid.Column="3" >
