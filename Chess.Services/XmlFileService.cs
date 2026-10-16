@@ -695,22 +695,29 @@ namespace Chess.Services
         private ICommand ParseMoveCommand(XElement command)
         {
             var pieceElement = command.Elements().FirstOrDefault(e =>
-                e.Name.LocalName is "Pawn" or "Knight" or "Bishop" or "Rook" or "Queen" or "King");
+                e.Name.LocalName is "Pawn" or "Knight" or "Bishop" or "Rook" or "Queen" or "King")
+                ?? throw new XmlException("MoveCommand must contain a chess piece element.");
 
-            var color = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
+            var color = pieceElement.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
                 ? Color.Black : Color.White;
-            ChessPiece piece = pieceFactory.CreatePiece(pieceElement?.Name.LocalName, color);
+            ChessPiece piece = pieceFactory.CreatePiece(pieceElement.Name.LocalName, color);
 
-            var sourceElement = command.Element(XmlConstants.SourcePositionAttributeName);
-            var targetElement = command.Element(XmlConstants.TargetPositionAttributeName);
+            var sourceElement = command.Element(XmlConstants.SourcePositionAttributeName)
+                ?? throw new XmlException("MoveCommand must contain a source position element.");
+            var targetElement = command.Element(XmlConstants.TargetPositionAttributeName)
+                ?? throw new XmlException("MoveCommand must contain a target position element.");
 
             var source = new Position(
-                int.Parse(sourceElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
-                int.Parse(sourceElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
+                int.Parse(sourceElement.Attribute(XmlConstants.RowAttributeName)?.Value
+                    ?? throw new XmlException("MoveCommand source position must have a row attribute.")) - 1,
+                int.Parse(sourceElement.Attribute(XmlConstants.ColumnAttributeName)?.Value
+                    ?? throw new XmlException("MoveCommand source position must have a column attribute.")) - 1);
 
             var target = new Position(
-                int.Parse(targetElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
-                int.Parse(targetElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
+                int.Parse(targetElement.Attribute(XmlConstants.RowAttributeName)?.Value
+                    ?? throw new XmlException("MoveCommand target position must have a row attribute.")) - 1,
+                int.Parse(targetElement.Attribute(XmlConstants.ColumnAttributeName)?.Value
+                    ?? throw new XmlException("MoveCommand target position must have a column attribute.")) - 1);
 
             return new MoveCommand(source, target, piece, isUndo: false);
         } // Done
@@ -736,17 +743,21 @@ namespace Chess.Services
             }
 
             var pieceElement = command.Elements().FirstOrDefault(e =>
-                e.Name.LocalName is "Pawn" or "Knight" or "Bishop" or "Rook" or "Queen" or "King");
+                e.Name.LocalName is "Pawn" or "Knight" or "Bishop" or "Rook" or "Queen" or "King")
+                ?? throw new XmlException("RemoveCommand must contain a chess piece element.");
 
-            var color = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
+            var color = pieceElement.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
                 ? Color.Black : Color.White;
 
-            ChessPiece piece = pieceFactory.CreatePiece(pieceElement?.Name.LocalName, color);
+            ChessPiece piece = pieceFactory.CreatePiece(pieceElement.Name.LocalName, color);
 
-            var positionElement = command.Element(XmlConstants.SourcePositionAttributeName);
+            var positionElement = command.Element(XmlConstants.SourcePositionAttributeName)
+                ?? throw new XmlException("RemoveCommand must contain a source position element.");
             var position = new Position(
-                int.Parse(positionElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
-                int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
+                int.Parse(positionElement.Attribute(XmlConstants.RowAttributeName)?.Value
+                    ?? throw new XmlException("RemoveCommand source position must have a row attribute.")) - 1,
+                int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName)?.Value
+                    ?? throw new XmlException("RemoveCommand source position must have a column attribute.")) - 1);
 
             return new RemoveCommand(position, piece, isUndo: false, isPromotion);
         } // Done
@@ -754,15 +765,19 @@ namespace Chess.Services
         private ICommand ParseSpawnCommand(XElement command)
         {
             var pieceElement = command.Elements().FirstOrDefault(e =>
-                e.Name.LocalName is "Pawn" or "Knight" or "Bishop" or "Rook" or "Queen" or "King");
+                e.Name.LocalName is "Pawn" or "Knight" or "Bishop" or "Rook" or "Queen" or "King")
+                ?? throw new XmlException("SpawnCommand must contain a chess piece element.");
 
-            var color = pieceElement?.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
+            var color = pieceElement.Attribute(XmlConstants.PieceColorAttributeName)?.Value == "Black"
                 ? Color.Black : Color.White;
-            ChessPiece piece = pieceFactory.CreatePiece(pieceElement?.Name.LocalName, color);
-            var positionElement = command.Element(XmlConstants.SourcePositionAttributeName);
+            ChessPiece piece = pieceFactory.CreatePiece(pieceElement.Name.LocalName, color);
+            var positionElement = command.Element(XmlConstants.SourcePositionAttributeName)
+                ?? throw new XmlException("SpawnCommand must contain a source position element.");
             var position = new Position(
-                int.Parse(positionElement.Attribute(XmlConstants.RowAttributeName).Value) - 1,
-                int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName).Value) - 1);
+                int.Parse(positionElement.Attribute(XmlConstants.RowAttributeName)?.Value
+                    ?? throw new XmlException("SpawnCommand source position must have a row attribute.")) - 1,
+                int.Parse(positionElement.Attribute(XmlConstants.ColumnAttributeName)?.Value
+                    ?? throw new XmlException("SpawnCommand source position must have a column attribute.")) - 1);
 
             return new SpawnCommand(position, piece, isUndo: false);
         } // Done
